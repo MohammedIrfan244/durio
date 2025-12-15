@@ -1196,3 +1196,23 @@ body {
     display: block;
   }
 }
+
+/* card  */
+
+@keyframes tilt-once {
+  0% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(2deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-tilt-once:hover {
+  animation: tilt-once 300ms ease-out;
+}
+
+

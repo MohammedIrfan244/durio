@@ -45,7 +45,12 @@ import { flagTimestamp } from "@/server/flag-time-stamp";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { toast } from "sonner";
 import clsx from "clsx";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 export default function Header() {
   const pathname = usePathname();
@@ -58,17 +63,19 @@ export default function Header() {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
 
-  const handleFlag = async () => {
+  const handleFlag = async (pathname: string) => {
     setLoading(true);
-    const response = await withClientAction(() => flagTimestamp(), true);
-    if(response==='DONE') toast.success('Timestamp Flagged');
+    const response = await withClientAction(
+      () => flagTimestamp(pathname),
+      true
+    );
+    if (response === "DONE") toast.success("Timestamp Flagged");
     setLoading(false);
   };
 
   useEffect(() => {
     setMounted(true);
-
-    flagTimestamp();
+    flagTimestamp(pathname || "/");
 
     const updateClock = () => {
       const now = new Date();
@@ -135,11 +142,7 @@ export default function Header() {
 
         {/* --- CENTER SECTION: Time Card --- */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex flex-col items-center justify-center">
-          <Card
-            className="flex flex-col items-center justify-center py-1 px-5 md:py-3 md:px-6 bg-secondary/30 border border-border/40 gap-2 
-            transition-all duration-500 ease-out 
-            hover:bg-secondary/50 hover:border-primary/20 hover:shadow-lg hover:-translate-y-0.5 group"
-          >
+          <Card className="flex flex-col items-center justify-center py-1 px-5 md:py-3 md:px-6 bg-secondary/30 gap-2 transition-all duration-500 ease-out border-0 shadow-none hover:bg-secondary/50 lg hover:-translate-y-0.5 group">
             {/* Greeting */}
             <div className="flex items-center gap-2 mb-0.5">
               <Sparkles
@@ -176,7 +179,7 @@ export default function Header() {
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  onClick={handleFlag}
+                  onClick={() => handleFlag(pathname)}
                   className="h-9 px-3 border-border/60 flex items-center settings-button gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
                 >
                   <LoaderPinwheelIcon

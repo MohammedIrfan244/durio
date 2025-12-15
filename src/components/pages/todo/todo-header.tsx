@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+// Lucide Icons
 import {
   Search,
   Filter,
@@ -12,8 +10,27 @@ import {
   ArrowUpDown,
   Sparkles,
   CheckCircle2,
+  Flame,
+  AlertCircle,
+  Leaf,
+  Clock,
+  PlayCircle,
+  CheckCheck,
+  XCircle,
+  AlertTriangle,
+  Layers,
+  CalendarPlus,
+  CalendarClock,
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  MoreHorizontal,
 } from "lucide-react";
 
+// Shadcn UI Components
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
@@ -21,17 +38,14 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-
 import {
   Command,
   CommandInput,
@@ -39,12 +53,18 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { TodoFilterInput } from "@/schema/todo";
 import { getTodoTags } from "@/server/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { priorityColors } from "@/lib/color";
+import { priorityColor, statusColor } from "@/lib/color";
 import ToDoDialog from "./todo-dialogue";
 
 interface TodoHeaderProps {
@@ -58,7 +78,459 @@ interface TodoHeaderProps {
   load: (override?: TodoFilterInput) => Promise<void>;
 }
 
-// --- COMPONENT START ---
+type FilterComponentProps = Pick<TodoHeaderProps, "filters" | "setFilters">;
+
+// Modular Sub-Components
+
+// --- Status Filter ---
+const StatusFilter: React.FC<FilterComponentProps> = ({
+  filters,
+  setFilters,
+}) => (
+  <div className="flex flex-col gap-2 nav-item-group">
+    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+      <CheckCircle2 className="h-3 w-3 animate-check" />
+      How's it going?
+    </Label>
+    <Select
+      value={filters.status ?? "ALL"}
+      onValueChange={(value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          status:
+            value === "ALL" ? undefined : (value as TodoFilterInput["status"]),
+        }))
+      }
+    >
+      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+        <SelectValue placeholder="See everything there" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ALL" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-muted-foreground" />
+            See everything there
+          </span>
+        </SelectItem>
+        <SelectItem value="PLAN" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <Clock className={`h-4 w-4 ${statusColor.PLAN}`} />
+            What's coming up
+          </span>
+        </SelectItem>
+        <SelectItem value="PENDING" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <PlayCircle className={`h-4 w-4 ${statusColor.PENDING}`} />
+            Currently in progress
+          </span>
+        </SelectItem>
+        <SelectItem value="DONE" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <CheckCheck className={`h-4 w-4 ${statusColor.DONE}`} />
+            Show me the wins
+          </span>
+        </SelectItem>
+        <SelectItem value="CANCELLED" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <XCircle className={`h-4 w-4 ${statusColor.CANCELLED}`} />
+            Dropped tasks
+          </span>
+        </SelectItem>
+        <SelectItem value="OVERDUE" className="whitespace-nowrap px-2">
+          <span className="flex items-center gap-2">
+            <AlertTriangle className={`h-4 w-4 ${statusColor.OVERDUE}`} />
+            Running late
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+);
+
+// --- Priority Filter ---
+const PriorityFilter: React.FC<FilterComponentProps> = ({
+  filters,
+  setFilters,
+}) => (
+  <div className="flex flex-col gap-2 nav-item-group">
+    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+      <Sparkles className="h-3 w-3 animate-zap" />
+      Need to panic?
+    </Label>
+    <Select
+      value={filters.priority ?? "ALL"}
+      onValueChange={(value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          priority:
+            value === "ALL"
+              ? undefined
+              : (value as TodoFilterInput["priority"]),
+        }))
+      }
+    >
+      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+        <SelectValue placeholder="Anything goes" />
+      </SelectTrigger>
+
+      <SelectContent>
+        <SelectItem value="ALL">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <Layers className="h-4 w-4 text-muted-foreground" />
+            Anything goes here
+          </span>
+        </SelectItem>
+        <SelectItem value="LOW">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <Leaf className={`h-4 w-4 ${priorityColor.LOW}`} />
+            Chill and Do
+          </span>
+        </SelectItem>
+        <SelectItem value="MEDIUM">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <AlertCircle className={`h-4 w-4 ${priorityColor.MEDIUM}`} />
+            Meh, Maybe
+          </span>
+        </SelectItem>
+        <SelectItem value="HIGH">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <Flame className={`h-4 w-4 ${priorityColor.HIGH}`} />
+            Oops, Urgent!
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+);
+
+// --- Tags Multiselect Filter ---
+const TagsMultiselect: React.FC<FilterComponentProps> = ({
+  filters,
+  setFilters,
+}) => {
+  const [availableTags, setAvailableTags] = React.useState<
+    IGetTodoTagsPayload[]
+  >([]);
+  const [openTags, setOpenTags] = React.useState(false);
+  const [selectedTags, setSelectedTags] = React.useState<string[]>(
+    filters.tags ?? []
+  );
+
+  // Load tags on mount
+  useEffect(() => {
+    const loadTags = async () => {
+      const response = await withClientAction<IGetTodoTagsPayload[]>(() =>
+        getTodoTags()
+      );
+      if (response) setAvailableTags(response);
+    };
+    loadTags();
+  }, []);
+
+  // Update parent filters state when selectedTags changes
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      tags: selectedTags.length ? selectedTags : undefined,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTags]);
+
+  return (
+    <div className="flex flex-col gap-2 nav-item-group lg:col-span-2">
+      <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+        <Tag className="h-3 w-3 animate-dumbbell" />
+        Got any topics?
+      </Label>
+
+      <Popover open={openTags} onOpenChange={setOpenTags}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="justify-start font-medium border-border/60 transition-all duration-300 hover:border-primary/30"
+          >
+            {selectedTags.length ? (
+              <span className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center h-5 w-5 text-xs font-bold bg-primary text-primary-foreground rounded-full">
+                  {selectedTags.length}
+                </span>
+                <span className="text-foreground/80">
+                  {selectedTags.length === 1 ? "tag selected" : "tags selected"}
+                </span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Pick some tags...</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="p-0">
+          <Command>
+            <CommandInput placeholder="Search tags..." />
+            <CommandEmpty>No tags found.</CommandEmpty>
+
+            <CommandGroup>
+              {availableTags.map((tag) => (
+                <CommandItem
+                  key={tag.tag}
+                  onSelect={() => {
+                    setSelectedTags((prev) =>
+                      prev.includes(tag.tag)
+                        ? prev.filter((x) => x !== tag.tag)
+                        : [...prev, tag.tag]
+                    );
+                  }}
+                >
+                  <CheckCircle2
+                    className={`mr-2 h-4 w-4 transition-all duration-200 ${
+                      selectedTags.includes(tag.tag)
+                        ? "text-primary fill-primary/20"
+                        : "text-muted-foreground/50"
+                    }`}
+                  />
+                  {tag.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
+// --- Sort By Select ---
+const SortBySelect: React.FC<FilterComponentProps> = ({
+  filters,
+  setFilters,
+}) => (
+  <div className="flex flex-col gap-2 nav-item-group">
+    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+      <Calendar className="h-3 w-3 animate-calendar" />
+      Order by...
+    </Label>
+
+    <Select
+      value={filters.sortBy ?? "CREATED_AT"}
+      onValueChange={(value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          sortBy: value as TodoFilterInput["sortBy"],
+        }))
+      }
+    >
+      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+        <SelectValue placeholder="Sort by" />
+      </SelectTrigger>
+
+      <SelectContent>
+        <SelectItem value="CREATED_AT">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <CalendarPlus className="h-4 w-4 text-blue-500" />
+            Created Date
+          </span>
+        </SelectItem>
+        <SelectItem value="DUE_DATE">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <CalendarClock className="h-4 w-4 text-orange-500" />
+            Due Soon Tasks
+          </span>
+        </SelectItem>
+        <SelectItem value="PRIORITY">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <TrendingUp className="h-4 w-4 text-red-500" />
+            Priority Level
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+);
+
+// --- Sort Order Select ---
+const SortOrderSelect: React.FC<FilterComponentProps> = ({
+  filters,
+  setFilters,
+}) => (
+  <div className="flex flex-col gap-2 nav-item-group">
+    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+      <ArrowUpDown className="h-3 w-3 animate-hourglass" />
+      Direction
+    </Label>
+
+    <Select
+      value={filters.sortOrder ?? "DESC"}
+      onValueChange={(value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          sortOrder: value as TodoFilterInput["sortOrder"],
+        }))
+      }
+    >
+      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+        <SelectValue placeholder="Order" />
+      </SelectTrigger>
+
+      <SelectContent>
+        <SelectItem value="ASC">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <ArrowUp className="h-4 w-4 text-green-500" />
+            Ascending
+          </span>
+        </SelectItem>
+        <SelectItem value="DESC">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <ArrowDown className="h-4 w-4 text-purple-500" />
+            Descending
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+);
+
+// --- Apply Filters and More Button Group ---
+interface ApplyGroupProps {
+  applyFilters: () => void;
+}
+
+const ApplyFiltersGroup: React.FC<ApplyGroupProps> = ({ applyFilters }) => {
+  return (
+    <div className="flex flex-col gap-2 col-span-2 sm:col-span-1 xl:col-span-1 self-end">
+      {/* Invisible label for alignment */}
+      <Label className="text-xs font-semibold text-transparent select-none">
+        &nbsp;
+      </Label>
+      <div className="group">
+        <Button
+          onClick={applyFilters}
+          className="bg-primary text-primary-foreground flex items-center w-full group-hover:flex-row-reverse transition-all duration-300 hover:bg-primary/90 font-semibold"
+        >
+          <Filter className="h-4 w-4 mr-2 transition-all duration-300 group-hover:ml-2 group-hover:rotate-90 group-hover:mr-0" />
+          <span className="transition-all duration-300 group-hover:mr-2">
+            Show Me The Tasks!
+          </span>
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const MoreOptionsButton: React.FC = () => {
+  const handleMoreClick = () => {
+    // Placeholder for future feature
+    alert("More filter options coming soon!");
+  };
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={handleMoreClick}
+            variant="outline"
+            className="p-3 border-border/60 transition-all duration-300 hover:border-primary/30 group"
+          >
+            <MoreHorizontal className="group-hover:-rotate-45 transition-all duration-300" />
+            More ?
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+          <p className="text-xs font-medium">More filters coming soon</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+// --- Search and Today Mode Row ---
+interface SearchAndCreateRowProps {
+  search: string;
+  setSearch: (value: string) => void;
+  todayMode: boolean;
+  setTodayMode: (value: boolean) => void;
+  load: (override?: TodoFilterInput) => Promise<void>;
+  filters: TodoFilterInput;
+}
+
+const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
+  search,
+  setSearch,
+  todayMode,
+  setTodayMode,
+  load,
+  filters,
+}) => (
+  <div className="flex flex-col sm:flex-row items-stretch gap-4 mb-6">
+    {/* Search Bar */}
+    <div className="flex-1 relative group nav-item-group">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="What are you looking for?"
+        className="pl-10 bg-background border-border/60 transition-all duration-300 hover:border-primary/30 focus:ring-2 focus:ring-primary/20"
+      />
+    </div>
+
+    <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
+      <ToDoDialog onSaved={() => load(filters)} />
+      <Card
+        className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
+               duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
+        onClick={() => setTodayMode(!todayMode)}
+      >
+        <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
+          {/* Label */}
+          <Label
+            htmlFor="today-mode"
+            className="text-sm font-bold text-foreground/80 cursor-pointer 
+                   transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
+          >
+            Focus on Today
+          </Label>
+          {/* Switch */}
+          <Switch
+            id="today-mode"
+            checked={todayMode}
+            onCheckedChange={setTodayMode}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+// --- Filter and Sort Section Container ---
+const FilterAndSortSection: React.FC<TodoHeaderProps> = (props) => {
+  const { applyFilters, filters, setFilters } = props;
+
+  return (
+    <>
+      {/* Filters Section Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <Filter className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-extrabold tracking-tight text-foreground">
+          Quick Filters & Sorting
+        </h3>
+        <div className="flex-1 h-px bg-primary/20" />
+        <MoreOptionsButton />
+      </div>
+
+      {/* Bottom Row - Filters Grid (made responsive) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start">
+        <StatusFilter filters={filters} setFilters={setFilters} />
+        <PriorityFilter filters={filters} setFilters={setFilters} />
+        <TagsMultiselect filters={filters} setFilters={setFilters} />
+        <SortBySelect filters={filters} setFilters={setFilters} />
+        <SortOrderSelect filters={filters} setFilters={setFilters} />
+        <ApplyFiltersGroup applyFilters={applyFilters} />
+      </div>
+    </>
+  );
+};
+
+// Parent Component
+
 export default function TodoHeader({
   filters,
   setFilters,
@@ -69,350 +541,33 @@ export default function TodoHeader({
   setTodayMode,
   load,
 }: TodoHeaderProps) {
-  const [availableTags, setAvailableTags] = React.useState<
-    IGetTodoTagsPayload[]
-  >([]);
-
-  const [openTags, setOpenTags] = React.useState(false);
-
-  const [selectedTags, setSelectedTags] = React.useState<string[]>(
-    filters.tags ?? []
-  );
-
-  const loadTags = async () => {
-    const response = await withClientAction<IGetTodoTagsPayload[]>(() =>
-      getTodoTags()
-    );
-    if (response) setAvailableTags(response);
-  };
-
-  useEffect(() => {
-    loadTags();
-  }, []);
-
-  useEffect(() => {
-    setFilters((prev) => ({
-      ...prev,
-      tags: selectedTags.length ? selectedTags : undefined,
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTags]);
-
   return (
     <Card className="border w-full card overflow-x-hidden">
       <div className="w-full p-4 sm:p-6">
-        {/* Top Row - Search and Today Mode */}
-        <div className="flex flex-col sm:flex-row items-stretch gap-4 mb-6">
-          {/* Search Bar  */}
-          <div className="flex-1 relative group nav-item-group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="What are you looking for?"
-              className="pl-10 bg-background border-border/60 transition-all duration-300 hover:border-primary/30 focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
-            <ToDoDialog onSaved={()=>load(filters)} />
-            <Card
-              className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
-               duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
-              onClick={() => setTodayMode(!todayMode)}
-            >
-              <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
-                {/* Label */}
-                <Label
-                  htmlFor="today-mode"
-                  className="text-sm font-bold text-foreground/80 cursor-pointer 
-                   transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
-                >
-                  Focus on Today
-                </Label>
-
-                {/* Switch */}
-                <Switch
-                  id="today-mode"
-                  checked={todayMode}
-                  onCheckedChange={setTodayMode}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Top Row: Search and Today Mode */}
+        <SearchAndCreateRow
+          search={search}
+          setSearch={setSearch}
+          todayMode={todayMode}
+          setTodayMode={setTodayMode}
+          load={load}
+          filters={filters}
+        />
 
         {/* Main Separator */}
         <Separator className="h-px bg-border/60 mb-6" />
 
-        {/* Filters Section Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <Filter className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-extrabold tracking-tight text-foreground">
-            Quick Filters & Sorting
-          </h3>
-          <div className="flex-1 h-px bg-primary/20" />
-        </div>
-
-        {/* Bottom Row - Filters Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start">
-          {/* Status */}
-          <div className="flex flex-col gap-2 nav-item-group">
-            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
-              <CheckCircle2 className="h-3 w-3 animate-check" />
-              How's it going?
-            </Label>
-            <Select
-              value={filters.status ?? "ALL"}
-              onValueChange={(value: string) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  status:
-                    value === "ALL"
-                      ? undefined
-                      : (value as TodoFilterInput["status"]),
-                }))
-              }
-            >
-              <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
-                <SelectValue placeholder="See everything there" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL" className="whitespace-nowrap px-2">
-                  See everything there
-                </SelectItem>
-                <SelectItem value="PLAN" className="whitespace-nowrap px-2">
-                  What’s coming up
-                </SelectItem>
-                <SelectItem value="PENDING" className="whitespace-nowrap px-2">
-                  Currently in progress
-                </SelectItem>
-                <SelectItem value="DONE" className="whitespace-nowrap px-2">
-                  Show me the wins
-                </SelectItem>
-                <SelectItem
-                  value="CANCELLED"
-                  className="whitespace-nowrap px-2"
-                >
-                  Dropped tasks
-                </SelectItem>
-                <SelectItem value="OVERDUE" className="whitespace-nowrap px-2">
-                  Running late
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Priority */}
-          <div className="flex flex-col gap-2 nav-item-group">
-            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
-              <Sparkles className="h-3 w-3 animate-zap" />
-              Need to panic?
-            </Label>
-            <Select
-              value={filters.priority ?? "ALL"}
-              onValueChange={(value: string) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  priority:
-                    value === "ALL"
-                      ? undefined
-                      : (value as TodoFilterInput["priority"]),
-                }))
-              }
-            >
-              <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
-                <SelectValue placeholder="Anything goes ( All )" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="ALL">
-                  <span className="whitespace-nowrap">
-                    Anything goes here{" "}
-                    <span className={priorityColors.none}>( All )</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="LOW">
-                  <span className="whitespace-nowrap">
-                    Chill and Do{" "}
-                    <span className={priorityColors.low}>( Low )</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="MEDIUM">
-                  <span className="whitespace-nowrap">
-                    Meh, Maybe{" "}
-                    <span className={priorityColors.medium}>( Medium )</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="HIGH">
-                  <span className="whitespace-nowrap">
-                    Oops, Urgent!{" "}
-                    <span className={priorityColors.high}>( High )</span>
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Tags multiselect */}
-          <div className="flex flex-col gap-2 nav-item-group lg:col-span-2">
-            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
-              <Tag className="h-3 w-3 animate-dumbbell" />
-              Got any topics?
-            </Label>
-
-            <Popover open={openTags} onOpenChange={setOpenTags}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="justify-start font-medium border-border/60 transition-all duration-300 hover:border-primary/30"
-                >
-                  {selectedTags.length ? (
-                    <span className="flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center h-5 w-5 text-xs font-bold bg-primary text-primary-foreground rounded-full">
-                        {selectedTags.length}
-                      </span>
-                      <span className="text-foreground/80">
-                        {selectedTags.length === 1
-                          ? "tag selected"
-                          : "tags selected"}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick some tags...
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent className="p-0">
-                <Command>
-                  <CommandInput placeholder="Search tags..." />
-                  <CommandEmpty>No tags found.</CommandEmpty>
-
-                  <CommandGroup>
-                    {availableTags.map((tag) => (
-                      <CommandItem
-                        key={tag.tag}
-                        onSelect={() => {
-                          setSelectedTags((prev) =>
-                            prev.includes(tag.tag)
-                              ? prev.filter((x) => x !== tag.tag)
-                              : [...prev, tag.tag]
-                          );
-                        }}
-                      >
-                        <CheckCircle2
-                          className={`mr-2 h-4 w-4 transition-all duration-200 ${
-                            selectedTags.includes(tag.tag)
-                              ? "text-primary fill-primary/20"
-                              : "text-muted-foreground/50"
-                          }`}
-                        />
-                        {tag.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Sort by */}
-          <div className="flex flex-col gap-2 nav-item-group">
-            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
-              <Calendar className="h-3 w-3 animate-calendar" />
-              Order by...
-            </Label>
-
-            <Select
-              value={filters.sortBy ?? "CREATED_AT"}
-              onValueChange={(value: string) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  sortBy: value as TodoFilterInput["sortBy"],
-                }))
-              }
-            >
-              {/* SelectTrigger */}
-              <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="CREATED_AT">
-                  <span className="whitespace-nowrap">
-                    Newest First (Created)
-                  </span>
-                </SelectItem>
-                <SelectItem value="DUE_DATE">
-                  <span className="whitespace-nowrap">Due Soon (Due Date)</span>
-                </SelectItem>
-                <SelectItem value="PRIORITY">
-                  <span className="whitespace-nowrap">
-                    Most Important (Priority)
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort order */}
-          <div className="flex flex-col gap-2 nav-item-group">
-            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
-              <ArrowUpDown className="h-3 w-3 animate-hourglass" />
-              Direction
-            </Label>
-
-            <Select
-              value={filters.sortOrder ?? "DESC"}
-              onValueChange={(value: string) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  sortOrder: value as TodoFilterInput["sortOrder"],
-                }))
-              }
-            >
-              <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
-                <SelectValue placeholder="Order" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="ASC">
-                  <span className="whitespace-nowrap">
-                    Oldest / A-Z (Ascending)
-                  </span>
-                </SelectItem>
-                <SelectItem value="DESC">
-                  <span className="whitespace-nowrap">
-                    Newest / Z-A (Descending)
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Apply Button */}
-          <div className="flex flex-col gap-2 col-span-2 sm:col-span-1 xl:col-span-1 self-end group">
-            <Label className="text-xs font-semibold text-transparent select-none">
-              &nbsp;
-            </Label>
-            <Button
-              onClick={applyFilters}
-              className="bg-primary text-primary-foreground flex items-center group-hover:flex-row-reverse transition-all duration-300 hover:bg-primary/90 font-semibold w-full"
-            >
-              <Filter
-                className="h-4 w-4 mr-2 
-                       transition-all duration-300 
-                       group-hover:ml-2 group-hover:rotate-90 group-hover:mr-0"
-              />
-              <span className="transition-all duration-300 group-hover:mr-2">
-                Show Me The Tasks!
-              </span>
-            </Button>
-          </div>
-        </div>
+        {/* Filters Section */}
+        <FilterAndSortSection
+          filters={filters}
+          setFilters={setFilters}
+          search={search}
+          setSearch={setSearch}
+          applyFilters={applyFilters}
+          todayMode={todayMode}
+          setTodayMode={setTodayMode}
+          load={load}
+        />
       </div>
     </Card>
   );

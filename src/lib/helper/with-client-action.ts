@@ -10,7 +10,18 @@ export async function withClientAction<T>(
     const res = await fn();
 
     if (!res.success) {
-      const msg = res.error?.message || "Something went wrong.";
+      const msg =
+  typeof res.error?.message === "string"
+    ? (() => {
+        try {
+          const parsed = JSON.parse(res.error.message);
+          return parsed?.[0]?.message ?? "Something went wrong.";
+        } catch {
+          return res.error.message;
+        }
+      })()
+    : "Something went wrong.";
+
 
       logError("CLIENT_ACTION_ERROR:", res);
       if (showToast) toast.error(msg);

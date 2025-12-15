@@ -1,6 +1,10 @@
 export type ITodoStatus = 'PLAN' | 'PENDING' | 'DONE' | 'CANCELLED' | 'OVERDUE' | 'ARCHIVED';
+export type ITodoStatusChangeable = 'PLAN' | 'PENDING' | 'DONE' | 'CANCELLED';
 export type IPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type IPriorityWithNone = 'LOW' | 'MEDIUM' | 'HIGH' | 'NONE';
+export type ITodoStatusWithNone = 'PLAN' | 'PENDING' | 'DONE' | 'CANCELLED' | 'OVERDUE' | 'ARCHIVED' | 'NONE';
 export type IRenewInterval = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+
 export const prioritySortValues : Record<IPriority, number> = {
   'HIGH': 3,
   'MEDIUM': 2,
@@ -64,7 +68,7 @@ export interface ITodoNotification {
 
 // payloads
 
-export interface IGetTodoListPayload {
+export interface IGetTodoList {
   id: string;
   title: string;
   status: ITodoStatus;
@@ -74,6 +78,12 @@ export interface IGetTodoListPayload {
   renewInterval?: IRenewInterval | null;
   renewEvery?: number | null;
 }
+
+export interface IGetTodoListPayload {
+    plan: IGetTodoList[];
+    pending: IGetTodoList[];
+    done: IGetTodoList[];
+  }
 
   export interface IGetTodoTagsPayload {
     tag: string;

@@ -10,8 +10,13 @@ import TodoHeader from "./todo-header";
 import TodoBoard from "./todo-board";
 
 function Todo() {
-  const [todos, setTodos] = useState<IGetTodoListPayload[]>([]);
-  const [todayMode, setTodayMode] = useState<boolean>(false);
+  const [todos, setTodos] = useState<IGetTodoListPayload>({
+    plan: [],
+    pending: [],
+    done: [],
+  });
+
+  const [todayMode, setTodayMode] = useState(false);
 
   const [filters, setFilters] = useState<TodoFilterInput>({
     status: undefined,
@@ -22,16 +27,25 @@ function Todo() {
     sortOrder: undefined,
   });
 
-  const [search, setSearch] = useState<string>("");
-  const debouncedSearch = useDebounce<string>(search, 300);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const load = async (override?: TodoFilterInput) => {
     const finalFilters = override ?? filters;
     const action = todayMode ? getTodayTodos : getTodoList;
-    const response = await withClientAction<IGetTodoListPayload[]>(() =>
+
+    const response = await withClientAction<IGetTodoListPayload>(() =>
       action(finalFilters)
     );
+
     if (response) setTodos(response);
+  };
+
+  const applyFilters = () => {
+    load({
+      ...filters,
+      query: search || undefined,
+    });
   };
 
   useEffect(() => {
@@ -42,24 +56,20 @@ function Todo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, todayMode]);
 
-  const applyFilters = () => {
-    load(filters);
-  };
-
   return (
     <div className="section-wrapper">
       <TodoHeader
+        applyFilters={applyFilters}
         load={load}
         filters={filters}
         setFilters={setFilters}
         search={search}
         setSearch={setSearch}
-        applyFilters={applyFilters}
         todayMode={todayMode}
         setTodayMode={setTodayMode}
       />
 
-      <TodoBoard todos={todos} />
+      <TodoBoard fetchTodos={load} todos={todos} />
     </div>
   );
 }
