@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
-
+import { getUserClient } from "@/lib/helper/get-user-client";
 import {
   LogOut,
   Mail,
@@ -54,7 +53,6 @@ import {
 
 export default function Header() {
   const pathname = usePathname();
-  const { data: session } = useSession();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState("");
@@ -112,7 +110,7 @@ export default function Header() {
   const item = navItems.find((i) => i.url === pathname);
   const title = item?.label || "Page";
   const description = item?.description || "Manage your daily activities";
-  const username = formatName(session?.user?.name || "User");
+  const username = formatName(getUserClient()?.name);
 
   if (!mounted) return <Card className="border bg-background h-16" />;
 
@@ -235,11 +233,11 @@ export default function Header() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-semibold leading-none flex items-center gap-2">
                     <User size={14} className="text-primary" />
-                    {session?.user?.name}
+                    {getUserClient()?.name}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">
                     <Mail size={14} />
-                    {session?.user?.email}
+                    {getUserClient()?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>

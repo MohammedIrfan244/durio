@@ -7,9 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ---------------------------------------------------------
 //  USER
-// ---------------------------------------------------------
 
 model User {
   id         String        @id @default(auto()) @map("_id") @db.ObjectId
@@ -21,9 +19,7 @@ model User {
   notifications Notification[]
 }
 
-// ---------------------------------------------------------
 //  ENUMS - TODO
-// ---------------------------------------------------------
 
 enum TodoStatus {
   PLAN
@@ -48,9 +44,7 @@ enum RenewInterval {
   CUSTOM
 }
 
-// ---------------------------------------------------------
 //  TODO
-// ---------------------------------------------------------
 
 model Todo {
   id     String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -83,9 +77,7 @@ model Todo {
   updatedAt DateTime @updatedAt
 }
 
-// ---------------------------------------------------------
 //  CHECKLIST ITEMS
-// ---------------------------------------------------------
 
 model ChecklistItem {
   id     String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -99,9 +91,7 @@ model ChecklistItem {
   updatedAt DateTime @updatedAt
 }
 
-// ---------------------------------------------------------
 //  TODO STREAK
-// ---------------------------------------------------------
 
 model TodoStreak {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -113,9 +103,7 @@ model TodoStreak {
   lastCompleted DateTime?
 }
 
-// ---------------------------------------------------------
 //  NOTIFICATIONS
-// ---------------------------------------------------------
 
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -126,5 +114,18 @@ model Notification {
   date      DateTime // when to notify
   read      Boolean  @default(false)
 
+  createdAt DateTime @default(now())
+}
+
+
+
+
+
+// SERVER LOGS
+
+model ServerLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  level     String
+  message   String
   createdAt DateTime @default(now())
 }
