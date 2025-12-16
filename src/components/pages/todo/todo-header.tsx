@@ -25,8 +25,8 @@ import {
   ArrowUp,
   ArrowDown,
   MoreHorizontal,
-  EyeClosed,
-  EyeIcon
+  EyeOff,
+  Eye
 } from "lucide-react";
 
 // Shadcn UI Components
@@ -60,6 +60,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { TodoFilterInput } from "@/schema/todo";
 import { getTodoTags } from "@/server/to-do-action";
@@ -452,8 +457,6 @@ interface SearchAndCreateRowProps {
   setTodayMode: (value: boolean) => void;
   load: (override?: TodoFilterInput) => Promise<void>;
   filters: TodoFilterInput;
-  isFiltersExpanded: boolean;
-  setIsFiltersExpanded: (v: boolean) => void;
 }
 
 const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
@@ -463,8 +466,6 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
   setTodayMode,
   load,
   filters,
-  isFiltersExpanded,
-  setIsFiltersExpanded,
 }) => (
   <div className="flex flex-col gap-4">
     <div className="flex flex-col sm:flex-row items-stretch gap-4">
@@ -505,68 +506,8 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
         </Card>
       </div>
     </div>
-
-    {/* Filters Toggle Button */}
-    <button
-      type="button"
-      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-      className="
-        w-full flex items-center gap-3
-        cursor-pointer select-none
-        transition-all duration-300
-        hover:text-primary
-      "
-    >
-      <Filter className="h-5 w-5 text-primary" />
-
-      <h3 className="text-lg font-extrabold tracking-tight">
-        Quick Filters & Sorting
-      </h3>
-
-      <div className="flex-1 h-px bg-primary/20" />
-
-      <span className="flex items-center gap-1 text-sm font-semibold">
-        {isFiltersExpanded ? "Hide" : "Show"}
-        {isFiltersExpanded ? (
-          <EyeClosed className="h-4 w-4" />
-        ) : (
-          <EyeIcon className="h-4 w-4" />
-        )}
-      </span>
-    </button>
   </div>
 );
-
-
-interface FilterAndSortSectionProps extends TodoHeaderProps {
-  isExpanded: boolean;
-  setIsExpanded: (v: boolean) => void;
-}
-
-const FilterAndSortSection: React.FC<FilterAndSortSectionProps> = ({
-  applyFilters,
-  filters,
-  setFilters,
-  isExpanded,
-}) => {
-  return (
-    <div
-      className={`
-        overflow-hidden transition-all duration-500 ease-out
-        ${isExpanded ? "h-auto opacity-100 pt-4" : "h-0 w-0 overflow-hidden opacity-0"}
-      `}
-    >
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start pt-2">
-        <StatusFilter filters={filters} setFilters={setFilters} />
-        <PriorityFilter filters={filters} setFilters={setFilters} />
-        <TagsMultiselect filters={filters} setFilters={setFilters} />
-        <SortBySelect filters={filters} setFilters={setFilters} />
-        <SortOrderSelect filters={filters} setFilters={setFilters} />
-        <ApplyFiltersGroup applyFilters={applyFilters} />
-      </div>
-    </div>
-  );
-};
 
 // Parent Component
 
@@ -581,10 +522,11 @@ export default function TodoHeader({
   load,
 }: TodoHeaderProps) {
   const [filtersExpanded, setFiltersExpanded] = React.useState(false);
+  
   return (
     <Card className="border w-full card overflow-x-hidden">
       <div className="w-full p-4 sm:p-6 pb-0">
-        {/* Top Row: Search, Today Mode, and Filters Toggle */}
+        {/* Top Row: Search, Today Mode */}
         <SearchAndCreateRow
           search={search}
           setSearch={setSearch}
@@ -592,23 +534,54 @@ export default function TodoHeader({
           setTodayMode={setTodayMode}
           load={load}
           filters={filters}
-          isFiltersExpanded={filtersExpanded}
-          setIsFiltersExpanded={setFiltersExpanded}
         />
 
-        {/* Filters Section - Only shows when expanded */}
-        <FilterAndSortSection
-          isExpanded={filtersExpanded}
-          setIsExpanded={setFiltersExpanded}
-          filters={filters}
-          setFilters={setFilters}
-          search={search}
-          setSearch={setSearch}
-          applyFilters={applyFilters}
-          todayMode={todayMode}
-          setTodayMode={setTodayMode}
-          load={load}
-        />
+        {/* Collapsible Filters Section */}
+        <Collapsible 
+          open={filtersExpanded} 
+          onOpenChange={setFiltersExpanded}
+          className="mt-4"
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="
+                w-full flex items-center gap-3
+                cursor-pointer select-none
+                transition-all duration-300
+                hover:text-primary
+              "
+            >
+              <Filter className="h-5 w-5 text-primary" />
+
+              <h3 className="text-lg font-extrabold tracking-tight">
+                Quick Filters & Sorting
+              </h3>
+
+              <div className="flex-1 h-px bg-primary/20" />
+
+              <span className="flex items-center gap-1 text-sm font-semibold">
+                {filtersExpanded ? "Hide" : "Show"}
+                {filtersExpanded ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </span>
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="pt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start pt-2">
+              <StatusFilter filters={filters} setFilters={setFilters} />
+              <PriorityFilter filters={filters} setFilters={setFilters} />
+              <TagsMultiselect filters={filters} setFilters={setFilters} />
+              <SortBySelect filters={filters} setFilters={setFilters} />
+              <SortOrderSelect filters={filters} setFilters={setFilters} />
+              <ApplyFiltersGroup applyFilters={applyFilters} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </Card>
   );

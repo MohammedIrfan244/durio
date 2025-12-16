@@ -8,11 +8,11 @@ export const createServerLog = withErrorWrapper(async (input: CreateServerLogInp
     const { level, message , userId } = input;
     let name = "unknown"
     if(userId){
-        await prisma.user.findFirst({
+       const user = await prisma.user.findFirst({
             where: { id: userId },
             select:{name:true}
         })
-        name = name || "unknown"
+        name = user?.name || "unknown"
     }else {
         name = "system"
     }
