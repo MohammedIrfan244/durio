@@ -25,6 +25,8 @@ import {
   ArrowUp,
   ArrowDown,
   MoreHorizontal,
+  EyeClosed,
+  EyeIcon
 } from "lucide-react";
 
 // Shadcn UI Components
@@ -40,7 +42,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Popover,
   PopoverTrigger,
@@ -66,6 +67,7 @@ import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { priorityColor, statusColor } from "@/lib/color";
 import ToDoDialog from "./todo-dialogue";
+
 
 interface TodoHeaderProps {
   filters: TodoFilterInput;
@@ -450,6 +452,8 @@ interface SearchAndCreateRowProps {
   setTodayMode: (value: boolean) => void;
   load: (override?: TodoFilterInput) => Promise<void>;
   filters: TodoFilterInput;
+  isFiltersExpanded: boolean;
+  setIsFiltersExpanded: (v: boolean) => void;
 }
 
 const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
@@ -459,65 +463,100 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
   setTodayMode,
   load,
   filters,
+  isFiltersExpanded,
+  setIsFiltersExpanded,
 }) => (
-  <div className="flex flex-col sm:flex-row items-stretch gap-4 mb-6">
-    {/* Search Bar */}
-    <div className="flex-1 relative group nav-item-group">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
-      <Input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="What are you looking for?"
-        className="pl-10 bg-background border-border/60 transition-all duration-300 hover:border-primary/30 focus:ring-2 focus:ring-primary/20"
-      />
+  <div className="flex flex-col gap-4">
+    <div className="flex flex-col sm:flex-row items-stretch gap-4">
+      {/* Search Bar */}
+      <div className="flex-1 relative group nav-item-group">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="What are you looking for?"
+          className="pl-10 bg-background border-border/60 transition-all duration-300 hover:border-primary/30 focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
+      <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
+        <ToDoDialog onSaved={() => load(filters)} />
+        <Card
+          className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
+                 duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
+          onClick={() => setTodayMode(!todayMode)}
+        >
+          <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
+            {/* Label */}
+            <Label
+              htmlFor="today-mode"
+              className="text-sm font-bold text-foreground/80 cursor-pointer 
+                     transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
+            >
+              Focus on Today
+            </Label>
+            {/* Switch */}
+            <Switch
+              id="today-mode"
+              checked={todayMode}
+              onCheckedChange={setTodayMode}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
-    <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
-      <ToDoDialog onSaved={() => load(filters)} />
-      <Card
-        className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
-               duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
-        onClick={() => setTodayMode(!todayMode)}
-      >
-        <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
-          {/* Label */}
-          <Label
-            htmlFor="today-mode"
-            className="text-sm font-bold text-foreground/80 cursor-pointer 
-                   transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
-          >
-            Focus on Today
-          </Label>
-          {/* Switch */}
-          <Switch
-            id="today-mode"
-            checked={todayMode}
-            onCheckedChange={setTodayMode}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    {/* Filters Toggle Button */}
+    <button
+      type="button"
+      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+      className="
+        w-full flex items-center gap-3
+        cursor-pointer select-none
+        transition-all duration-300
+        hover:text-primary
+      "
+    >
+      <Filter className="h-5 w-5 text-primary" />
+
+      <h3 className="text-lg font-extrabold tracking-tight">
+        Quick Filters & Sorting
+      </h3>
+
+      <div className="flex-1 h-px bg-primary/20" />
+
+      <span className="flex items-center gap-1 text-sm font-semibold">
+        {isFiltersExpanded ? "Hide" : "Show"}
+        {isFiltersExpanded ? (
+          <EyeClosed className="h-4 w-4" />
+        ) : (
+          <EyeIcon className="h-4 w-4" />
+        )}
+      </span>
+    </button>
   </div>
 );
 
-// --- Filter and Sort Section Container ---
-const FilterAndSortSection: React.FC<TodoHeaderProps> = (props) => {
-  const { applyFilters, filters, setFilters } = props;
 
+interface FilterAndSortSectionProps extends TodoHeaderProps {
+  isExpanded: boolean;
+  setIsExpanded: (v: boolean) => void;
+}
+
+const FilterAndSortSection: React.FC<FilterAndSortSectionProps> = ({
+  applyFilters,
+  filters,
+  setFilters,
+  isExpanded,
+}) => {
   return (
-    <>
-      {/* Filters Section Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <Filter className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-extrabold tracking-tight text-foreground">
-          Quick Filters & Sorting
-        </h3>
-        <div className="flex-1 h-px bg-primary/20" />
-        <MoreOptionsButton />
-      </div>
-
-      {/* Bottom Row - Filters Grid (made responsive) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start">
+    <div
+      className={`
+        overflow-hidden transition-all duration-500 ease-out
+        ${isExpanded ? "h-auto opacity-100 pt-4" : "h-0 w-0 overflow-hidden opacity-0"}
+      `}
+    >
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start pt-2">
         <StatusFilter filters={filters} setFilters={setFilters} />
         <PriorityFilter filters={filters} setFilters={setFilters} />
         <TagsMultiselect filters={filters} setFilters={setFilters} />
@@ -525,7 +564,7 @@ const FilterAndSortSection: React.FC<TodoHeaderProps> = (props) => {
         <SortOrderSelect filters={filters} setFilters={setFilters} />
         <ApplyFiltersGroup applyFilters={applyFilters} />
       </div>
-    </>
+    </div>
   );
 };
 
@@ -541,10 +580,11 @@ export default function TodoHeader({
   setTodayMode,
   load,
 }: TodoHeaderProps) {
+  const [filtersExpanded, setFiltersExpanded] = React.useState(false);
   return (
     <Card className="border w-full card overflow-x-hidden">
-      <div className="w-full p-4 sm:p-6">
-        {/* Top Row: Search and Today Mode */}
+      <div className="w-full p-4 sm:p-6 pb-0">
+        {/* Top Row: Search, Today Mode, and Filters Toggle */}
         <SearchAndCreateRow
           search={search}
           setSearch={setSearch}
@@ -552,13 +592,14 @@ export default function TodoHeader({
           setTodayMode={setTodayMode}
           load={load}
           filters={filters}
+          isFiltersExpanded={filtersExpanded}
+          setIsFiltersExpanded={setFiltersExpanded}
         />
 
-        {/* Main Separator */}
-        <Separator className="h-px bg-border/60 mb-6" />
-
-        {/* Filters Section */}
+        {/* Filters Section - Only shows when expanded */}
         <FilterAndSortSection
+          isExpanded={filtersExpanded}
+          setIsExpanded={setFiltersExpanded}
           filters={filters}
           setFilters={setFilters}
           search={search}

@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-const MONGOID = z.string().refine(
-  (val) => /^[0-9a-fA-F]{24}$/.test(val),
-  { message: "Invalid ObjectId" }
-);
+import { MONGOID } from "./mongo";
 
 // TODO THINGS
 

@@ -2,7 +2,7 @@
 import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload, OverviewStats, TodayStats, StreakStats, PriorityInsights, TimePatternStats, PersonalInsight } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -27,6 +27,7 @@ import {
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
 import { today } from "@/lib/helper/today";
+import { createServerLog } from "./server-log";
 
 // Helper function to check if a date is a renewal day
 function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null): boolean {
@@ -58,6 +59,73 @@ function isRenewalDay(renewStart: Date | null, renewInterval: string | null, ren
 function getPrioritySortValue(priority?: string): number {
   if(!priority)return 0;
   return prioritySortValues[priority as IPriority];
+}
+
+function generateInsights(input: {
+  overview: OverviewStats
+  today: TodayStats
+  streak: StreakStats
+  priority: PriorityInsights
+  time: TimePatternStats
+}): PersonalInsight[] {
+  const insights: PersonalInsight[] = [];
+
+  if (input.streak.current.isActive && input.streak.current.count >= 7) {
+    insights.push({
+      id: "strong-streak",
+      type: "POSITIVE",
+      message: "You are maintaining a strong and consistent daily streak.",
+    });
+  }
+
+  if (!input.streak.current.isActive && input.streak.current.count > 0) {
+    insights.push({
+      id: "streak-broken",
+      type: "WARNING",
+      message:
+        "Your streak has been broken. Completing at least one task today will restart it.",
+    });
+  }
+
+  if (input.overview.overdueTodos > 0) {
+    insights.push({
+      id: "overdue-pressure",
+      type: "WARNING",
+      message: "Overdue tasks are adding pressure to your workflow.",
+    });
+  }
+
+  if (
+    input.priority.counts.HIGH > 0 &&
+    input.priority.overdue.HIGH === 0
+  ) {
+    insights.push({
+      id: "high-priority-control",
+      type: "POSITIVE",
+      message:
+        "You are staying on top of high-priority tasks without letting them slip.",
+    });
+  }
+
+  if (input.today.completedThisWeek > input.today.createdThisWeek) {
+    insights.push({
+      id: "backlog-reduction",
+      type: "POSITIVE",
+      message:
+        "You are reducing your backlog by completing more tasks than you create.",
+    });
+  }
+
+  if (insights.length === 0) {
+    insights.push({
+      id: "neutral-state",
+      type: "NEUTRAL",
+      message:
+        "Your activity is stable. Small consistent actions will improve your momentum.",
+    });
+  }
+
+  return insights;
 }
 
 // Action to create a new to-do item , done
@@ -93,6 +161,12 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
       checklist: true,
     },
   });
+
+  await createServerLog({
+    level: "INFO",
+    message: `Created todo with id: ${todo.id}`,
+    userId: userId,
+  })
 
   return todo as ITodo;
 }); 
@@ -172,6 +246,12 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
       }
     }
 
+    await createServerLog({
+      level: "INFO",
+      message: `Retrieved todo list`,
+      userId: userId,
+    });
+
     return grouped;
   }
 );
@@ -194,8 +274,21 @@ export const getTodoById = withErrorWrapper<ITodo, [GetTodoByIdInput]>(async (in
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Todo not found with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+
     throw error;
   }
+
+  await createServerLog({
+    level: "INFO",
+    message: `Retrieved todo with id: ${validatedInput.id}`,
+    userId: userId,
+  })
 
   return todo as ITodo;
 });
@@ -213,6 +306,13 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
   if (!existingTodo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Todo not found with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
@@ -221,6 +321,13 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     await prisma.checklistItem.deleteMany({
       where: { todoId: validatedInput.id },
     });
+
+    await createServerLog({
+      level: "INFO",
+      message: `Deleted checklist items for todo with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+
   }
 
   let priorityInt: number = existingTodo.priorityInt;
@@ -254,6 +361,12 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     },
   });
 
+  await createServerLog({
+    level: "INFO",
+    message: `Updated todo with id: ${validatedInput.id}`,
+    userId: userId,
+  })
+
   return todo as ITodo;
 });
 
@@ -269,6 +382,13 @@ export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Todo not found with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
@@ -281,6 +401,13 @@ export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input
   await prisma.todo.delete({
     where: { id: validatedInput.id },
   });
+
+  await createServerLog({
+    level: "INFO",
+    message: `Deleted todo with id: ${validatedInput.id}`,
+    userId: userId,
+  });
+
 });
 
 // Action to soft delete a to-do item (archive) , done
@@ -295,8 +422,21 @@ export const softDeleteTodo = withErrorWrapper<ITodo, [DeleteTodoInput]>(async (
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Todo not found with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+    
     throw error;
   }
+
+  await createServerLog({
+    level: "INFO",
+    message: `Archived todo with id: ${validatedInput.id}`,
+    userId: userId,
+  })
 
   return await prisma.todo.update({
     where: { id: validatedInput.id },
@@ -318,6 +458,13 @@ export const bulkDeleteTodos = withErrorWrapper<void, [BulkDeleteTodoInput]>(asy
   if (todos.length !== validatedInput.ids.length) {
     const error = new Error("Some todos not found or don't belong to you") as AppError;
     error.code = "UNAUTHORIZED";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Unauthorized attempt to delete todos with ids: ${validatedInput.ids}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
@@ -330,6 +477,13 @@ export const bulkDeleteTodos = withErrorWrapper<void, [BulkDeleteTodoInput]>(asy
   await prisma.todo.deleteMany({
     where: { id: { in: validatedInput.ids } },
   });
+
+  await createServerLog({
+    level: "INFO",
+    message: `Deleted todos with ids: ${validatedInput.ids}`,
+    userId: userId,
+  });
+
 });
 
 // Action to bulk soft delete to-do items (archive) done
@@ -344,6 +498,13 @@ export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInpu
   if (todos.length !== validatedInput.ids.length) {
     const error = new Error("Some todos not found or don't belong to you") as AppError;
     error.code = "UNAUTHORIZED";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Unauthorized attempt to archive todos with ids: ${validatedInput.ids}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
@@ -356,6 +517,12 @@ export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInpu
       })
     )
   );
+
+  await createServerLog({
+    level: "INFO",
+    message: `Archived todos with ids: ${validatedInput.ids}`,
+    userId: userId,
+  });
 
   return updatedTodos as ITodo[];
 });
@@ -372,11 +539,24 @@ export const changeTodoStatus = withErrorWrapper<ITodo, [ChangeTodoStatusInput]>
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Todo not found with id: ${validatedInput.id}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
   // Update completedAt if status is DONE
   const completedAt = validatedInput.status === "DONE" ? new Date() : null;
+
+  await createServerLog({
+    level: "INFO",
+    message: `Changed status of todo with id: ${validatedInput.id} to ${validatedInput.status}`,
+    userId: userId,
+  })
 
   return await prisma.todo.update({
     where: { id: validatedInput.id },
@@ -397,6 +577,13 @@ export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoSta
   if (todos.length !== validatedInput.ids.length) {
     const error = new Error("Some todos not found or don't belong to you") as AppError;
     error.code = "UNAUTHORIZED";
+
+    await createServerLog({
+      level: "WARN",
+      message: `Unauthorized attempt to change status of todos with ids: ${validatedInput.ids}`,
+      userId: userId,
+    })
+
     throw error;
   }
 
@@ -411,6 +598,12 @@ export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoSta
       })
     )
   );
+
+  await createServerLog({
+    level: "INFO",
+    message: `Changed status of todos with ids: ${validatedInput.ids} to ${validatedInput.status}`,
+    userId: userId,
+  })
 
   return updatedTodos as ITodo[];
 });
@@ -445,6 +638,12 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
     where: { id: validatedInput.checklistItemId },
     data: { marked: !checklistItem.marked },
   });
+
+  await createServerLog({
+    level: "INFO",
+    message: `Marked/unmarked checklist item with id: ${validatedInput.checklistItemId} on todo with id: ${validatedInput.todoId}`,
+    userId: userId,
+  })
 
   return await prisma.todo.findUniqueOrThrow({
     where: { id: validatedInput.todoId },
@@ -528,6 +727,12 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
     }
   }
 
+  await createServerLog({
+    level: "INFO",
+    message: `Retrieved todo list`,
+    userId: userId,
+  })
+
   return grouped;
 });
 
@@ -559,6 +764,12 @@ export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (
     grouped.done.push(todo);
   }
 
+  await createServerLog({
+    level: "INFO",
+    message: `Retrieved archived todo list`,
+    userId: userId,
+  })
+
   return grouped;
 });
 
@@ -576,6 +787,12 @@ export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiv
     error.code = "TODO_NOT_FOUND";
     throw error;
   }
+
+  await createServerLog({
+    level: "INFO",
+    message: `Restored todo from archive with id: ${validatedInput.id}`,
+    userId: userId,
+  })
 
   return await prisma.todo.update({
     where: { id: validatedInput.id },
@@ -604,6 +821,13 @@ export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async 
       renewEvery: true,
     }
   });
+
+  await createServerLog({
+    level: "INFO",
+    message: `Restored all todos from archive`,
+    userId: userId,
+  })
+
   return todos as IGetTodoList[];
 });
 
@@ -617,5 +841,352 @@ export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async ():
   const tags = todos.flatMap(todo => todo.tags);
   const uniqueTags = Array.from(new Set(tags));
   const tagPayload : IGetTodoTagsPayload[] = uniqueTags.map(tag => ({ tag, label: tag.toUpperCase() }));
+
+  await createServerLog({
+    level: "INFO",
+    message: `Retrieved todo tags`,
+    userId: userId,
+  })
+
   return tagPayload;
 });
+
+// Action to get todo statistics done
+export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
+  async (): Promise<ITodoStatsResponsePayload> => {
+    const userId = await getUserId();
+
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    const last30Days = new Date(startOfToday);
+    last30Days.setDate(last30Days.getDate() - 30);
+
+    //  OVERVIEW
+
+    const [
+      totalTodos,
+      activeTodos,
+      completedTodos,
+      cancelledOrArchived,
+      overdueTodos,
+    ] = await Promise.all([
+      prisma.todo.count({ where: { userId } }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { in: ["PLAN", "PENDING"] },
+        },
+      }),
+
+      prisma.todo.count({
+        where: { userId, status: "DONE" },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { in: ["CANCELLED", "ARCHIVED"] },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { not: "DONE" },
+          dueDate: { lt: now },
+        },
+      }),
+    ]);
+
+    //  TODAY & SHORT TERM
+
+    const [
+      dueToday,
+      completedToday,
+      completedThisWeek,
+      createdToday,
+      createdThisWeek,
+    ] = await Promise.all([
+      prisma.todo.count({
+        where: {
+          userId,
+          dueDate: {
+            gte: startOfToday,
+            lt: now,
+          },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: "DONE",
+          completedAt: { gte: startOfToday },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: "DONE",
+          completedAt: { gte: startOfWeek },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          createdAt: { gte: startOfToday },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          createdAt: { gte: startOfWeek },
+        },
+      }),
+    ]);
+
+    const completionRateToday =
+      dueToday > 0 ? Math.round((completedToday / dueToday) * 100) : undefined;
+
+    // STREAK
+
+    const streak = await prisma.todoStreak.findUnique({
+      where: { userId },
+    });
+
+    const isStreakActive =
+      streak?.lastCompleted &&
+      streak.lastCompleted >= startOfToday;
+
+    const daysSinceLastCompletion = streak?.lastCompleted
+      ? Math.floor(
+          (startOfToday.getTime() -
+            new Date(streak.lastCompleted).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : undefined;
+
+    const activeDaysLast30 = await prisma.todo.groupBy({
+      by: ["completedAt"],
+      where: {
+        userId,
+        status: "DONE",
+        completedAt: { gte: last30Days },
+      },
+    });
+
+    const percentageActiveLast30 = Math.round(
+      (activeDaysLast30.length / 30) * 100
+    );
+
+    // STATUS BREAKDOWN
+
+    const statusCountsRaw = await prisma.todo.groupBy({
+      by: ["status"],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    const statusCounts = {
+      PLAN: 0,
+      PENDING: 0,
+      DONE: 0,
+      CANCELLED: 0,
+      OVERDUE: overdueTodos,
+      ARCHIVED: 0,
+    };
+
+    for (const s of statusCountsRaw) {
+      statusCounts[s.status] = s._count._all;
+    }
+
+    //  PRIORITY INSIGHTS
+
+    const priorityCountsRaw = await prisma.todo.groupBy({
+      by: ["priority"],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    const priorityBase = {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    };
+
+    for (const p of priorityCountsRaw) {
+      priorityBase[p.priority ?? "NONE"] = p._count._all;
+    }
+
+    const insights = generateInsights({
+  overview: {
+    totalTodos,
+    activeTodos,
+    completedTodos,
+    cancelledOrArchived,
+    overdueTodos,
+  },
+  today: {
+    dueToday,
+    overdueNow: overdueTodos,
+    completedToday,
+    completedThisWeek,
+    createdToday,
+    createdThisWeek,
+    completionRateToday,
+  },
+  streak: {
+    current: {
+      isActive: isStreakActive ?? false,
+      count: streak?.count ?? 0,
+      lastCompletedDate: streak?.lastCompleted?.toISOString(),
+      daysSinceLastCompletion: isStreakActive
+        ? undefined
+        : daysSinceLastCompletion,
+    },
+    longest: {
+      count: streak?.longest ?? 0,
+    },
+    health: {
+      averageCompletedPerStreakDay:
+        streak && streak.count > 0
+          ? completedThisWeek / streak.count
+          : 0,
+      activeDaysLast30: activeDaysLast30.length,
+      percentageActiveLast30,
+    },
+  },
+  priority: {
+    counts: priorityBase,
+    completionRate: {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    },
+    overdue: {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    },
+  },
+  time: {
+    mostProductiveDay: null,
+    leastProductiveDay: null,
+    averageCompletedPerDay:
+      Math.round((completedThisWeek / 7) * 10) / 10,
+    zeroActivityDaysLast30: 30 - activeDaysLast30.length,
+  },
+});
+
+ await createServerLog({
+      level: "INFO",
+      message: `Retrieved todo statistics`,
+      userId: userId,
+    })
+
+
+    // FINAL RETURN
+
+    return {
+      overview: {
+        totalTodos,
+        activeTodos,
+        completedTodos,
+        cancelledOrArchived,
+        overdueTodos,
+      },
+
+      today: {
+        dueToday,
+        overdueNow: overdueTodos,
+        completedToday,
+        completedThisWeek,
+        createdToday,
+        createdThisWeek,
+        completionRateToday,
+      },
+
+      streak: {
+        current: {
+          isActive: isStreakActive ?? false,
+          count: streak?.count ?? 0,
+          lastCompletedDate: streak?.lastCompleted?.toISOString(),
+          daysSinceLastCompletion: isStreakActive
+            ? undefined
+            : daysSinceLastCompletion,
+        },
+        longest: {
+          count: streak?.longest ?? 0,
+        },
+        health: {
+          averageCompletedPerStreakDay:
+            streak && streak.count > 0
+              ? completedThisWeek / streak.count
+              : 0,
+          activeDaysLast30: activeDaysLast30.length,
+          percentageActiveLast30,
+        },
+      },
+
+      statusBreakdown: {
+        counts: statusCounts,
+        trendInsight:
+          completedThisWeek >= createdThisWeek
+            ? "More tasks are getting completed than created."
+            : "Task creation is outpacing completion.",
+      },
+
+      priorityInsights: {
+        counts: priorityBase,
+        completionRate: {
+          HIGH: 0,
+          MEDIUM: 0,
+          LOW: 0,
+          NONE: 0,
+        },
+        overdue: {
+          HIGH: 0,
+          MEDIUM: 0,
+          LOW: 0,
+          NONE: 0,
+        },
+      },
+
+      timePatterns: {
+        mostProductiveDay: null,
+        leastProductiveDay: null,
+        averageCompletedPerDay:
+          Math.round((completedThisWeek / 7) * 10) / 10,
+        zeroActivityDaysLast30: 30 - activeDaysLast30.length,
+      },
+
+      recurringAndChecklist: {
+        recurring: {
+          total: 0,
+          completedOnTime: 0,
+          overdueOrSkipped: 0,
+        },
+        checklist: {
+          todosWithChecklist: 0,
+          todosWithoutChecklist: 0,
+          averageItemsPerTodo: 0,
+          completionRate: 0,
+        },
+      },
+
+      insights: insights,
+    };
+  }
+);

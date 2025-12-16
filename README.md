@@ -19,6 +19,12 @@ hooks/ the hooks used
 useMobile
 useDebounce
 
+lib/
+color
+nav
+prisma
+utils
+
 lib/helper/ the helpers used
 date-formatter
 logger
@@ -27,10 +33,12 @@ name-formatter
 otp-generator
 today
 with-client-action
+get-user-client
 
 lib/server-utils/ the helpers on server used
 error-wrapper
 get-user
+client-logger
 
 lib/ other things
 nav

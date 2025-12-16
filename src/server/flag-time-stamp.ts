@@ -4,12 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
 import { today, nowWithTime , parseTimeStringToDate } from "@/lib/helper/today";
 import { revalidatePath } from "next/cache";
+import { createServerLog } from "./server-log";
 
 export const flagTimestamp = withErrorWrapper<string, [string]>(async (input): Promise<string> => {
     const userId = await getUserId();
     const currentDateMidnight = today();
     const currentMoment = nowWithTime();
     const path = input;
+
+    await createServerLog({
+        level: "INFO",
+        message: `Flagging timestamps started on ${path || 'no-path'}`,
+        userId: userId,
+    });
+
 //  Todo flagging
     const potentiallyOverdueTodos = await prisma.todo.findMany({
         where: {
@@ -35,6 +43,13 @@ export const flagTimestamp = withErrorWrapper<string, [string]>(async (input): P
             overdueTodoIds.push(todo.id);
         }
     }
+
+    await createServerLog({
+        level: "WARN",
+        message: `Found ${overdueTodoIds.length} overdue todos`,
+        userId: userId,
+    });
+
     if (overdueTodoIds.length > 0) {
         await prisma.todo.updateMany({
             where: {
@@ -51,5 +66,6 @@ export const flagTimestamp = withErrorWrapper<string, [string]>(async (input): P
         revalidatePath(path);
     }
 
+    await createServerLog({ level: "INFO", message: "flagged timestamp", userId });
     return 'DONE';
 });

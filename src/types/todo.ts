@@ -89,3 +89,154 @@ export interface IGetTodoListPayload {
     tag: string;
     label: string;
   }
+
+
+  // stats
+
+  export interface ITodoStatsResponsePayload {
+  overview: OverviewStats
+  today: TodayStats
+  streak: StreakStats
+  statusBreakdown: StatusBreakdownStats
+  priorityInsights: PriorityInsights
+  timePatterns: TimePatternStats
+  recurringAndChecklist: RecurringChecklistStats
+  insights: PersonalInsight[]
+}
+
+export interface OverviewStats {
+  totalTodos: number
+  activeTodos: number // PLAN + PENDING
+  completedTodos: number // DONE
+  cancelledOrArchived: number // CANCELLED + ARCHIVED
+  overdueTodos: number // current overdue count
+}
+
+export interface TodayStats {
+  dueToday: number
+  overdueNow: number
+  completedToday: number
+  completedThisWeek: number
+  createdToday: number
+  createdThisWeek: number
+  completionRateToday?: number // 0–100, optional if no due today
+}
+
+export interface StreakStats {
+  current: {
+    isActive: boolean
+    count: number // days
+    lastCompletedDate?: string // ISO
+    daysSinceLastCompletion?: number // only if broken
+  }
+  longest: {
+    count: number
+    from?: string // ISO
+    to?: string // ISO
+  }
+  health: {
+    averageCompletedPerStreakDay: number
+    activeDaysLast30: number // days with >=1 completion
+    percentageActiveLast30: number // 0–100
+  }
+}
+
+export interface StatusBreakdownStats {
+  counts: {
+    PLAN: number
+    PENDING: number
+    DONE: number
+    CANCELLED: number
+    OVERDUE: number
+    ARCHIVED: number
+  }
+  trendInsight: string
+}
+
+export interface PriorityInsights {
+  counts: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+
+  completionRate: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+
+  overdue: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+}
+
+export interface PriorityInsights {
+  counts: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+
+  completionRate: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+
+  overdue: {
+    HIGH: number
+    MEDIUM: number
+    LOW: number
+    NONE: number
+  }
+}
+
+export interface RecurringChecklistStats {
+  recurring: {
+    total: number
+    completedOnTime: number
+    overdueOrSkipped: number
+  }
+
+  checklist: {
+    todosWithChecklist: number
+    todosWithoutChecklist: number
+
+    averageItemsPerTodo: number
+    completionRate: number // 0–100
+  }
+}
+
+export interface PersonalInsight {
+  id: string
+  type: "POSITIVE" | "WARNING" | "NEUTRAL"
+  message: string
+}
+
+export interface TimePatternStats {
+  mostProductiveDay: Weekday | null
+  leastProductiveDay: Weekday | null
+
+  averageCompletedPerDay: number
+
+  zeroActivityDaysLast30: number
+
+  bestStreakWeekday?: Weekday
+}
+
+export type Weekday =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY"
