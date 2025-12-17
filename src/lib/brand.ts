@@ -1,4 +1,11 @@
 import { IPriorityWithNone, ITodoStatusWithNone } from "@/types/todo";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
+export const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["200", "300", "400", "500", "600", "700", "800"],
+});
 
 export const priorityColor: Record<IPriorityWithNone, string> = {
   HIGH: "text-red-500",
@@ -46,3 +53,5 @@ export const statusBgColorBoard: Record<ITodoStatusWithNone, string> = {
   ARCHIVED: "bg-muted/10",
   NONE: "bg-muted/10",
 };
+
+export const APP_NAME = "DURIO";

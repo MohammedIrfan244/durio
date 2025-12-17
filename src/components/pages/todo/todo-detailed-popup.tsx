@@ -41,7 +41,7 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { statusColor, priorityColor } from "@/lib/color";
+import { statusColor, priorityColor } from "@/lib/brand";
 import { formatDate } from "@/lib/helper/date-formatter";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";

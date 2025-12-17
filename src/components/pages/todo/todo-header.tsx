@@ -65,7 +65,7 @@ import { TodoFilterInput } from "@/schema/todo";
 import { getTodoTags } from "@/server/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { priorityColor, statusColor } from "@/lib/color";
+import { priorityColor, statusColor } from "@/lib/brand";
 import ToDoDialog from "./todo-dialogue";
 import TodoArchive from "./todo-archive";
 

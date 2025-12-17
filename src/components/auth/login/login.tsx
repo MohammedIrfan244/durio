@@ -13,6 +13,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import PrivacyModal from "./privacy-policy";
+import { APP_NAME } from "@/lib/brand";
 
 export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -26,7 +27,7 @@ export default function Login() {
       <Card className="w-[380px] shadow-lg border border-border">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold text-foreground">
-            Welcome to <span className="title">DURIO</span>
+            Welcome to <span className="title">{APP_NAME}</span>
           </CardTitle>
           <CardDescription>
             Your plan matter bro, let&apos;s get you signed in!

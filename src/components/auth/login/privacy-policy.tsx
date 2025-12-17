@@ -9,6 +9,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
+import { APP_NAME } from "@/lib/brand";
 
 interface PrivacyModalProps {
   open: boolean;
@@ -39,7 +40,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
           </p>
 
           <p>
-            Everything you create inside DURIO — tasks, notes, journal entries,
+            Everything you create inside {APP_NAME} — tasks, notes, journal entries,
             calendar items, habit logs, and more — remains securely stored.
           </p>
 
@@ -57,7 +58,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
           </p>
 
           <p>
-            Thank you for trusting DURIO with your productivity!
+            Thank you for trusting {APP_NAME} with your productivity!
           </p>
         </div>
 

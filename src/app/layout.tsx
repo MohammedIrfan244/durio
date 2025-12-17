@@ -10,6 +10,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import AppLayout from "@/components/layout/app-layout";
 import SessionProviderWrapper from "@/components/layout/session-provider";
+import { APP_NAME } from "@/lib/brand";
 
 // CURRENT FONTS
 const geistSans = Geist({
@@ -36,13 +37,13 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "DURIO",
+  title: APP_NAME,
   description: "A simple Daily manager app",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning={true}>
       <body
         className={`
           ${geistSans.variable}

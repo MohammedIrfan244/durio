@@ -51,10 +51,6 @@ body {
   overflow-x: hidden;
 }
 
-.title {
-  font-family: var(--font-heading), cursive;
-}
-
 .card {
   background-color: var(--sidebar) !important;
   color: var(--sidebar-foreground) !important;
