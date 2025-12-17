@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getUserClient } from "@/lib/helper/get-user-client";
+import  { useUserClient }  from "@/lib/helper/get-user-client";
 import {
   LogOut,
   Mail,
@@ -110,7 +110,9 @@ export default function Header() {
   const item = navItems.find((i) => i.url === pathname);
   const title = item?.label || "Page";
   const description = item?.description || "Manage your daily activities";
-  const username = formatName(getUserClient()?.name);
+  const user = useUserClient();
+  const username = formatName(user?.name);
+  const userEmail = user?.email;
 
   if (!mounted) return <Card className="border bg-background h-16" />;
 
@@ -233,11 +235,11 @@ export default function Header() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-semibold leading-none flex items-center gap-2">
                     <User size={14} className="text-primary" />
-                    {getUserClient()?.name}
+                    {username}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">
                     <Mail size={14} />
-                    {getUserClient()?.email}
+                    {userEmail}
                   </p>
                 </div>
               </DropdownMenuLabel>

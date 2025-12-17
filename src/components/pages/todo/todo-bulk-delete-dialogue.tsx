@@ -11,41 +11,49 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { softDeleteTodo , deleteTodo } from "@/server/to-do-action";
+import {
+  bulkDeleteTodos,
+  bulkSoftDeleteTodos,
+} from "@/server/to-do-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface TodoDeleteDialogueProps {
-  todoId: string | null;
+interface TodoBulkDeleteDialogueProps {
+  ids: string[];
   isOpen: boolean;
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  isSoft : boolean
+  isSoft: boolean;
 }
 
-export default function TodoDeleteDialogue({
-  todoId,
+export default function TodoBulkDeleteDialogue({
+  ids,
   isOpen,
   setOpen,
   onSuccess,
-  isSoft
-}: TodoDeleteDialogueProps) {
+  isSoft,
+}: TodoBulkDeleteDialogueProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async () => {
-    if (!todoId) return;
+    if (!ids.length) return;
 
     setIsDeleting(true);
 
-    if(isSoft){
-      await withClientAction(() => softDeleteTodo({ id: todoId }), true);
-    }else{
-      await withClientAction(() => deleteTodo({ id: todoId }), true);
-    }
+    await withClientAction(
+      () =>
+        isSoft
+          ? bulkSoftDeleteTodos({ ids })
+          : bulkDeleteTodos(),
+      true
+    );
 
     setIsDeleting(false);
     setShowSuccess(true);
     onSuccess();
+
+    toast.success(isSoft ? "Archived!" : "Deleted!");
 
     setTimeout(() => {
       setShowSuccess(false);
@@ -76,42 +84,45 @@ export default function TodoDeleteDialogue({
                   <Trash2 className="h-5 w-5 text-destructive" />
                 </div>
                 <AlertDialogTitle className="text-xl">
-                  Hey, wait a sec...
+                  Hold up...
                 </AlertDialogTitle>
               </div>
             </AlertDialogHeader>
 
             <div className="space-y-2">
               <p className="text-base">
-                Are you sure you want to delete this todo?
+                You’re about to {isSoft ? "archive" : "delete"}{" "}
+                <strong>{isSoft ? ids.length : 'all'}</strong> todos.
               </p>
               <p className="text-sm text-muted-foreground">
-                {isSoft ? "This todo will be archived instead of permanently deleted." : "Just checking because, you know, we can't bring it back once it's gone. No pressure though!"}
+                {isSoft
+                  ? "These todos will be moved to archive."
+                  : "This action is permanent and cannot be undone."}
               </p>
             </div>
 
             <AlertDialogFooter className="gap-2">
               <AlertDialogCancel
                 disabled={isDeleting}
-                className="transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
+                className="transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                Nah, keep it
+                Cancel
               </AlertDialogCancel>
 
               <AlertDialogAction
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex items-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 group"
+                className="flex items-center transition-all duration-300 hover:scale-105 active:scale-95 group"
               >
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Deleting...
+                    Processing...
                   </>
                 ) : (
                   <>
                     <Trash2 className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
-                    Yeah, delete it
+                    Yes, {isSoft ? "archive" : "delete"} all
                   </>
                 )}
               </AlertDialogAction>

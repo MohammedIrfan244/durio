@@ -1,12 +1,10 @@
-import { useSession } from "next-auth/react"
+import { useSession } from "next-auth/react";
 
-
-export function getUserClient() { {
+export function useUserClient() {
   const { data: session } = useSession();
-  const user = {
+
+  return {
     name: session?.user?.name || "User",
     email: session?.user?.email || "system",
   };
-  return user;
-  }
 }

@@ -127,6 +127,10 @@ export const restoreTodoFromArchiveSchema = z.object({
   id: MONGOID,
 });
 
+export const searchArchiveTodosSchema = z.object({
+  query: z.string().max(100, "Search query too long").optional(),
+})
+
 // type aliases for inferred types
 export type CreateTodoInput = z.infer<typeof createTodoSchema>;
 export type TodoFilterInput = z.infer<typeof todoFilterSchema>;
@@ -138,3 +142,4 @@ export type ChangeTodoStatusInput = z.infer<typeof changeTodoStatusSchema>;
 export type BulkChangeTodoStatusInput = z.infer<typeof bulkChangeTodoStatusSchema>;
 export type MarkChecklistItemInput = z.infer<typeof markChecklistItemSchema>;
 export type RestoreTodoFromArchiveInput = z.infer<typeof restoreTodoFromArchiveSchema>;
+export type SearchArchiveTodosInput = z.infer<typeof searchArchiveTodosSchema>;

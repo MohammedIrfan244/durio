@@ -51,10 +51,6 @@ body {
   overflow-x: hidden;
 }
 
-.title {
-  font-family: var(--font-heading), cursive;
-}
-
 .card {
   background-color: var(--sidebar) !important;
   color: var(--sidebar-foreground) !important;
@@ -656,7 +652,6 @@ body {
   }
 }
 
-
 /* Hourglass - Flip and drain */
 @keyframes hourglass-flip {
   0% {
@@ -725,8 +720,6 @@ body {
   }
 }
 
-/* ========== Keyframes ========== */
-
 @keyframes slide-left-right {
   0% {
     transform: translateX(0);
@@ -773,7 +766,6 @@ body {
     transform: scaleX(1);
   }
 }
-
 
 .title-animate {
   transform-origin: left center;
@@ -1215,4 +1207,396 @@ body {
   animation: tilt-once 300ms ease-out;
 }
 
+/* stat card  */
 
+/* Card Entrance Animation */
+@keyframes card-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Fade In Animations */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Badge Entrance */
+@keyframes badge-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Star Twinkle */
+@keyframes star-twinkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.2) rotate(-10deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.9) rotate(10deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+    opacity: 0.9;
+  }
+}
+
+/* Icon Pulse */
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* Emoji Animations */
+@keyframes emoji-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-5px) scale(1.1);
+  }
+  50% {
+    transform: translateY(0) scale(0.95);
+  }
+  75% {
+    transform: translateY(-3px) scale(1.05);
+  }
+}
+
+@keyframes emoji-wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+}
+
+/* Progress Bar Fill */
+@keyframes progress-fill {
+  0% {
+    width: 0;
+  }
+}
+
+/* Fire Flicker */
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: scale(0.95) rotate(5deg);
+    filter: brightness(0.9);
+  }
+  75% {
+    transform: scale(1.1) rotate(-3deg);
+    filter: brightness(1.1);
+  }
+}
+
+/* Zap Pulse */
+@keyframes zap-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.2) rotate(-10deg);
+  }
+  50% {
+    transform: scale(0.9) rotate(10deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+}
+
+/* Sun Rotate */
+@keyframes sun-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Calendar Flip */
+@keyframes calendar-flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotateX(360deg);
+  }
+}
+
+/* Target Pulse */
+@keyframes target-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Alert Shake */
+@keyframes alert-shake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+  75% {
+    transform: rotate(-10deg);
+  }
+}
+
+/* Chart Pulse */
+@keyframes chart-pulse {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  25% {
+    transform: scale(1.1) translateY(-2px);
+  }
+  50% {
+    transform: scale(0.95) translateY(0);
+  }
+  75% {
+    transform: scale(1.05) translateY(-1px);
+  }
+}
+
+/* Music Bounce */
+@keyframes music-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-4px) scale(1.1);
+  }
+  50% {
+    transform: translateY(2px) scale(0.95);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.05);
+  }
+}
+
+/* Bulb Glow */
+@keyframes bulb-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0 rgba(255, 255, 0, 0));
+  }
+  50% {
+    filter: brightness(1.5) drop-shadow(0 0 8px rgba(255, 255, 0, 0.6));
+  }
+}
+
+/* Plant Grow */
+@keyframes plant-grow {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  30% {
+    transform: scale(0.8) translateY(3px);
+  }
+  60% {
+    transform: scale(1.2) translateY(-5px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Sparkle */
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.3) rotate(-15deg);
+    filter: brightness(1.5);
+  }
+  50% {
+    transform: scale(0.9) rotate(15deg);
+    filter: brightness(1.2);
+  }
+  75% {
+    transform: scale(1.2) rotate(-10deg);
+    filter: brightness(1.4);
+  }
+}
+
+/* Pulse Subtle */
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Apply Animations */
+.animate-card-entrance {
+  animation: card-entrance 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s ease-out forwards;
+}
+
+.animate-badge-entrance {
+  animation: badge-entrance 0.6s ease-out forwards;
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.animate-icon-pulse {
+  animation: icon-pulse 0.4s ease-in-out;
+}
+
+.animate-emoji-bounce {
+  animation: emoji-bounce 0.6s ease-in-out;
+}
+
+.animate-emoji-wiggle {
+  animation: emoji-wiggle 0.5s ease-in-out;
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1s ease-out forwards;
+}
+
+.animate-fire-flicker {
+  animation: fire-flicker 1.5s ease-in-out infinite;
+}
+
+.animate-zap-pulse {
+  animation: zap-pulse 1s ease-in-out infinite;
+}
+
+.animate-sun-rotate {
+  animation: sun-rotate 20s linear infinite;
+}
+
+.animate-calendar-flip {
+  animation: calendar-flip 0.6s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.animate-target-pulse {
+  animation: target-pulse 2s ease-in-out infinite;
+}
+
+.animate-alert-shake {
+  animation: alert-shake 0.5s ease-in-out;
+}
+
+.animate-chart-pulse {
+  animation: chart-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-music-bounce {
+  animation: music-bounce 0.6s ease-in-out;
+}
+
+.animate-bulb-glow {
+  animation: bulb-glow 2s ease-in-out infinite;
+}
+
+.animate-plant-grow {
+  animation: plant-grow 0.8s ease-in-out;
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}

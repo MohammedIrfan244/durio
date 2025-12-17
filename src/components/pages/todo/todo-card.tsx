@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/helper/date-formatter";
 import { changeTodoStatus } from "@/server/to-do-action";
 import { ChangeTodoStatusInput } from "@/schema/todo";
 import { useTransition } from "react";
-import { priorityColor, statusColor } from "@/lib/color";
+import { priorityColor, statusColor } from "@/lib/brand";
 import { withClientAction } from "@/lib/helper/with-client-action";
 
 import { Card, CardContent } from "@/components/ui/card";

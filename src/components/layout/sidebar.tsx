@@ -21,13 +21,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-
 /* decorations */
 import PookieFlowers from "@/components/decoration/pookie-flowers";
 import NaturalDecor from "@/components/decoration/natural-decor";
 import GothicDecor from "@/components/decoration/gothic-decor";
 import DarkDecor from "@/components/decoration/dark-decor";
 import LightDecor from "@/components/decoration/light-decor";
+import { APP_NAME, jakarta } from "@/lib/brand";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -46,10 +46,12 @@ export default function Sidebar() {
               href="/"
               className="flex flex-col border-b pb-4 pt-2 space-y-1"
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title">
-                DURIO
+              <h2
+                className={`text-2xl md:text-3xl font-bold md:font-extrabold text-accent-foreground tracking-tight title-animate ${jakarta.className}`}
+              >
+                {APP_NAME}
               </h2>
-              <p className="text-xs md:text-sm tracking-tight text-slate-400 mt-1">
+              <p className="text-xs md:text-sm tracking-tight text-muted-foreground mt-1">
                 Your personal daily companion
               </p>
             </Link>
@@ -58,7 +60,7 @@ export default function Sidebar() {
               href="/"
               className="text-2xl font-bold text-foreground tracking-tight transform -translate-x-1 title"
             >
-              <h1>D</h1>
+              <h1>{APP_NAME[0]}</h1>
             </Link>
           )}
         </SidebarHeader>

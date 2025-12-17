@@ -8,7 +8,7 @@ import {
   statusBgColorBoard,
   statusColorBoard,
   statusToneBoard,
-} from "@/lib/color";
+} from "@/lib/brand";
 
 export function TodoCardSkeleton() {
   return (

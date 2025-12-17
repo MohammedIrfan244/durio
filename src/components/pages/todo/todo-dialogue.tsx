@@ -53,6 +53,7 @@ import {
 import { formatDate } from "@/lib/helper/date-formatter";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { today } from "@/lib/helper/today";
+import TodoDialogSkeleton from "@/components/skelton/todo/todo-dialogue-skelton";
 
 type Props = {
   todoId?: string;
@@ -609,10 +610,7 @@ export default function ToDoDialog({
 
         {/* Loading State */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin mr-2 text-primary" />
-            <div className="text-sm text-muted-foreground">Loading todo...</div>
-          </div>
+          <TodoDialogSkeleton/>
         ) : (
           /* Main Form */
           <form onSubmit={handleSubmit(submitForm)} className="space-y-5">

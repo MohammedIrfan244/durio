@@ -41,12 +41,13 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { statusColor, priorityColor } from "@/lib/color";
+import { statusColor, priorityColor } from "@/lib/brand";
 import { formatDate } from "@/lib/helper/date-formatter";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatName } from "@/lib/helper/name-formatter";
+import TodoDetailedPopupSkeleton from "@/components/skelton/todo/todo-detail-skelton";
 
 // --- TYPES ---
 interface TodoDetailedProps {
@@ -506,9 +507,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <TodoDetailedPopupSkeleton isOpen={true} setOpen={() => {}} />
     );
   }
 

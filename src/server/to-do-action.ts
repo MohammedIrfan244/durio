@@ -2,7 +2,7 @@
 import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload, OverviewStats, TodayStats, StreakStats, PriorityInsights, TimePatternStats, PersonalInsight } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload, OverviewStats, TodayStats, StreakStats, PriorityInsights, TimePatternStats, PersonalInsight, IGetArchivedTodoListPayload } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -23,11 +23,11 @@ import {
   ChangeTodoStatusInput,
   BulkChangeTodoStatusInput,
   MarkChecklistItemInput,
-  RestoreTodoFromArchiveInput
+  RestoreTodoFromArchiveInput,
+  SearchArchiveTodosInput
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
 import { today } from "@/lib/helper/today";
-import { createServerLog } from "./server-log";
 
 // Helper function to check if a date is a renewal day
 function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null): boolean {
@@ -162,12 +162,6 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
     },
   });
 
-  await createServerLog({
-    level: "INFO",
-    message: `Created todo with id: ${todo.id}`,
-    userId: userId,
-  })
-
   return todo as ITodo;
 }); 
 
@@ -246,12 +240,6 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
       }
     }
 
-    await createServerLog({
-      level: "INFO",
-      message: `Retrieved todo list`,
-      userId: userId,
-    });
-
     return grouped;
   }
 );
@@ -274,22 +262,8 @@ export const getTodoById = withErrorWrapper<ITodo, [GetTodoByIdInput]>(async (in
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Todo not found with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-
     throw error;
   }
-
-  await createServerLog({
-    level: "INFO",
-    message: `Retrieved todo with id: ${validatedInput.id}`,
-    userId: userId,
-  })
-
   return todo as ITodo;
 });
 
@@ -306,13 +280,6 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
   if (!existingTodo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Todo not found with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-
     throw error;
   }
 
@@ -321,13 +288,6 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     await prisma.checklistItem.deleteMany({
       where: { todoId: validatedInput.id },
     });
-
-    await createServerLog({
-      level: "INFO",
-      message: `Deleted checklist items for todo with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-
   }
 
   let priorityInt: number = existingTodo.priorityInt;
@@ -361,16 +321,10 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     },
   });
 
-  await createServerLog({
-    level: "INFO",
-    message: `Updated todo with id: ${validatedInput.id}`,
-    userId: userId,
-  })
-
   return todo as ITodo;
 });
 
-// Action to hard delete a to-do item (permanent deletion)  pending
+// Action to hard delete a to-do item (permanent deletion)  done
 export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input: DeleteTodoInput): Promise<void> => {
   const validatedInput = deleteTodoSchema.parse(input);
   const userId = await getUserId();
@@ -382,13 +336,6 @@ export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Todo not found with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-
     throw error;
   }
 
@@ -401,13 +348,6 @@ export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input
   await prisma.todo.delete({
     where: { id: validatedInput.id },
   });
-
-  await createServerLog({
-    level: "INFO",
-    message: `Deleted todo with id: ${validatedInput.id}`,
-    userId: userId,
-  });
-
 });
 
 // Action to soft delete a to-do item (archive) , done
@@ -422,22 +362,8 @@ export const softDeleteTodo = withErrorWrapper<ITodo, [DeleteTodoInput]>(async (
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Todo not found with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-    
     throw error;
   }
-
-  await createServerLog({
-    level: "INFO",
-    message: `Archived todo with id: ${validatedInput.id}`,
-    userId: userId,
-  })
-
   return await prisma.todo.update({
     where: { id: validatedInput.id },
     data: { status: "ARCHIVED" },
@@ -445,49 +371,27 @@ export const softDeleteTodo = withErrorWrapper<ITodo, [DeleteTodoInput]>(async (
   }) as ITodo;
 });
 
-// Action to bulk delete to-do items (permanent deletion) pending
-export const bulkDeleteTodos = withErrorWrapper<void, [BulkDeleteTodoInput]>(async (input: BulkDeleteTodoInput): Promise<void> => {
-  const validatedInput = bulkDeleteTodoSchema.parse(input);
+// Action to bulk delete to-do items (permanent deletion) done
+export const bulkDeleteTodos = withErrorWrapper<void, []>(async (): Promise<void> => {
   const userId = await getUserId();
 
-  // Verify all todos belong to user
-  const todos = await prisma.todo.findMany({
-    where: { id: { in: validatedInput.ids }, userId },
+  const todosToDelete = await prisma.todo.findMany({
+    where: { userId , status: "ARCHIVED" },
   });
 
-  if (todos.length !== validatedInput.ids.length) {
-    const error = new Error("Some todos not found or don't belong to you") as AppError;
-    error.code = "UNAUTHORIZED";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Unauthorized attempt to delete todos with ids: ${validatedInput.ids}`,
-      userId: userId,
-    })
-
+  if (todosToDelete.length === 0) {
+    const error = new Error("No archived todos found") as AppError;
+    error.code = "TODO_NOT_FOUND";
     throw error;
   }
 
-  // Delete checklist items
-  await prisma.checklistItem.deleteMany({
-    where: { todoId: { in: validatedInput.ids } },
-  });
-
-  // Delete todos
   await prisma.todo.deleteMany({
-    where: { id: { in: validatedInput.ids } },
-  });
-
-  await createServerLog({
-    level: "INFO",
-    message: `Deleted todos with ids: ${validatedInput.ids}`,
-    userId: userId,
-  });
-
+    where: { id: { in: todosToDelete.map(todo => todo.id) } , userId , status: "ARCHIVED" },
+  })
 });
 
 // Action to bulk soft delete to-do items (archive) done
-export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInput]>(async (input: BulkDeleteTodoInput): Promise<ITodo[]> => {
+export const bulkSoftDeleteTodos = withErrorWrapper<void, [BulkDeleteTodoInput]>(async (input: BulkDeleteTodoInput): Promise<void> => {
   const validatedInput = bulkDeleteTodoSchema.parse(input);
   const userId = await getUserId();
 
@@ -498,17 +402,10 @@ export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInpu
   if (todos.length !== validatedInput.ids.length) {
     const error = new Error("Some todos not found or don't belong to you") as AppError;
     error.code = "UNAUTHORIZED";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Unauthorized attempt to archive todos with ids: ${validatedInput.ids}`,
-      userId: userId,
-    })
-
     throw error;
   }
 
-  const updatedTodos = await Promise.all(
+  await Promise.all(
     validatedInput.ids.map(id =>
       prisma.todo.update({
         where: { id },
@@ -517,14 +414,7 @@ export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInpu
       })
     )
   );
-
-  await createServerLog({
-    level: "INFO",
-    message: `Archived todos with ids: ${validatedInput.ids}`,
-    userId: userId,
-  });
-
-  return updatedTodos as ITodo[];
+  return 
 });
 
 // Action to change status of a single to-do done
@@ -539,25 +429,11 @@ export const changeTodoStatus = withErrorWrapper<ITodo, [ChangeTodoStatusInput]>
   if (!todo) {
     const error = new Error("Todo not found") as AppError;
     error.code = "TODO_NOT_FOUND";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Todo not found with id: ${validatedInput.id}`,
-      userId: userId,
-    })
-
     throw error;
   }
 
   // Update completedAt if status is DONE
   const completedAt = validatedInput.status === "DONE" ? new Date() : null;
-
-  await createServerLog({
-    level: "INFO",
-    message: `Changed status of todo with id: ${validatedInput.id} to ${validatedInput.status}`,
-    userId: userId,
-  })
-
   return await prisma.todo.update({
     where: { id: validatedInput.id },
     data: { status: validatedInput.status as ITodoStatus, completedAt },
@@ -565,7 +441,7 @@ export const changeTodoStatus = withErrorWrapper<ITodo, [ChangeTodoStatusInput]>
   }) as ITodo;
 });
 
-// Action to bulk change status pending
+// Action to bulk change status cancelled
 export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoStatusInput]>(async (input: BulkChangeTodoStatusInput): Promise<ITodo[]> => {
   const validatedInput = bulkChangeTodoStatusSchema.parse(input);
   const userId = await getUserId();
@@ -577,13 +453,6 @@ export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoSta
   if (todos.length !== validatedInput.ids.length) {
     const error = new Error("Some todos not found or don't belong to you") as AppError;
     error.code = "UNAUTHORIZED";
-
-    await createServerLog({
-      level: "WARN",
-      message: `Unauthorized attempt to change status of todos with ids: ${validatedInput.ids}`,
-      userId: userId,
-    })
-
     throw error;
   }
 
@@ -598,13 +467,6 @@ export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoSta
       })
     )
   );
-
-  await createServerLog({
-    level: "INFO",
-    message: `Changed status of todos with ids: ${validatedInput.ids} to ${validatedInput.status}`,
-    userId: userId,
-  })
-
   return updatedTodos as ITodo[];
 });
 
@@ -638,13 +500,6 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
     where: { id: validatedInput.checklistItemId },
     data: { marked: !checklistItem.marked },
   });
-
-  await createServerLog({
-    level: "INFO",
-    message: `Marked/unmarked checklist item with id: ${validatedInput.checklistItemId} on todo with id: ${validatedInput.todoId}`,
-    userId: userId,
-  })
-
   return await prisma.todo.findUniqueOrThrow({
     where: { id: validatedInput.todoId },
     include: { checklist: true },
@@ -726,18 +581,11 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
         grouped.plan.push(todo);
     }
   }
-
-  await createServerLog({
-    level: "INFO",
-    message: `Retrieved todo list`,
-    userId: userId,
-  })
-
   return grouped;
 });
 
-// Action to get all archived todos pending
-export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): Promise<IGetTodoListPayload> => {
+// Action to get all archived todos done
+export const getArchivedTodos = withErrorWrapper<IGetArchivedTodoListPayload,[]>(async (): Promise<IGetArchivedTodoListPayload> => {
   const userId = await getUserId();
 
   const todos = await prisma.todo.findMany({
@@ -749,31 +597,12 @@ export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (
     select: {
       id: true,
       title: true,
-      status: true,
-      priority: true,
-      dueDate: true,
     },
   });
-
-  const grouped: IGetTodoListPayload = {
-    plan: [],
-    pending: [],
-    done: [],
-  };
-  for (const todo of todos) {
-    grouped.done.push(todo);
-  }
-
-  await createServerLog({
-    level: "INFO",
-    message: `Retrieved archived todo list`,
-    userId: userId,
-  })
-
-  return grouped;
+  return todos as IGetArchivedTodoListPayload;
 });
 
-// Action to restore a todo from archive pending
+// Action to restore a todo from archive done
 export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiveInput]>(async (input: RestoreTodoFromArchiveInput): Promise<ITodo> => {
   const validatedInput = restoreTodoFromArchiveSchema.parse(input);
   const userId = await getUserId();
@@ -787,13 +616,6 @@ export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiv
     error.code = "TODO_NOT_FOUND";
     throw error;
   }
-
-  await createServerLog({
-    level: "INFO",
-    message: `Restored todo from archive with id: ${validatedInput.id}`,
-    userId: userId,
-  })
-
   return await prisma.todo.update({
     where: { id: validatedInput.id },
     data: { status: "PLAN" },
@@ -801,7 +623,7 @@ export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiv
   }) as ITodo;
 });
 
-// Action to get restore all archived todos pending
+// Action to get restore all archived todos done
 export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async (): Promise<IGetTodoList[]> => {
   const userId = await getUserId();
   await prisma.todo.updateMany({
@@ -821,13 +643,6 @@ export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async 
       renewEvery: true,
     }
   });
-
-  await createServerLog({
-    level: "INFO",
-    message: `Restored all todos from archive`,
-    userId: userId,
-  })
-
   return todos as IGetTodoList[];
 });
 
@@ -841,15 +656,48 @@ export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async ():
   const tags = todos.flatMap(todo => todo.tags);
   const uniqueTags = Array.from(new Set(tags));
   const tagPayload : IGetTodoTagsPayload[] = uniqueTags.map(tag => ({ tag, label: tag.toUpperCase() }));
-
-  await createServerLog({
-    level: "INFO",
-    message: `Retrieved todo tags`,
-    userId: userId,
-  })
-
   return tagPayload;
 });
+
+// Action to search archived todos done
+export const searchArchivedTodos = withErrorWrapper(async (input: SearchArchiveTodosInput) => {
+    const userId = await getUserId();
+    const { query } = input;
+
+    const archivedTodos = await prisma.todo.findMany({
+      where: {
+        userId,
+        status: "ARCHIVED",
+        ...(query
+          ? {
+              OR: [
+                {
+                  title: {
+                    contains: query,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  description: {
+                    contains: query,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return archivedTodos;
+})
 
 // Action to get todo statistics done
 export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
@@ -1089,14 +937,6 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
     zeroActivityDaysLast30: 30 - activeDaysLast30.length,
   },
 });
-
- await createServerLog({
-      level: "INFO",
-      message: `Retrieved todo statistics`,
-      userId: userId,
-    })
-
-
     // FINAL RETURN
 
     return {

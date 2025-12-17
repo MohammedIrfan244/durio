@@ -117,15 +117,3 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-
-
-
-
-// SERVER LOGS
-
-model ServerLog {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  level     String
-  message   String
-  createdAt DateTime @default(now())
-}

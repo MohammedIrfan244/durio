@@ -79,6 +79,13 @@ export interface IGetTodoList {
   renewEvery?: number | null;
 }
 
+export interface IGetArchivedTodoList {
+    id: string;
+    title: string;
+}
+
+export type IGetArchivedTodoListPayload = IGetArchivedTodoList[];
+
 export interface IGetTodoListPayload {
     plan: IGetTodoList[];
     pending: IGetTodoList[];

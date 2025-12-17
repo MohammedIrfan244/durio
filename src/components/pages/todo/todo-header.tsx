@@ -24,9 +24,9 @@ import {
   TrendingUp,
   ArrowUp,
   ArrowDown,
-  MoreHorizontal,
-  EyeClosed,
-  EyeIcon
+  EyeOff,
+  Eye,
+  Archive
 } from "lucide-react";
 
 // Shadcn UI Components
@@ -54,19 +54,20 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { TodoFilterInput } from "@/schema/todo";
 import { getTodoTags } from "@/server/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { priorityColor, statusColor } from "@/lib/color";
+import { priorityColor, statusColor } from "@/lib/brand";
 import ToDoDialog from "./todo-dialogue";
+import TodoArchive from "./todo-archive";
 
 
 interface TodoHeaderProps {
@@ -89,12 +90,12 @@ const StatusFilter: React.FC<FilterComponentProps> = ({
   filters,
   setFilters,
 }) => (
-  <div className="flex flex-col gap-2 nav-item-group">
+  <div className="flex flex-col gap-2 nav-item-group w-full">
     <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
       <CheckCircle2 className="h-3 w-3 animate-check" />
       How's it going?
     </Label>
-    <Select
+    <Select 
       value={filters.status ?? "ALL"}
       onValueChange={(value: string) =>
         setFilters((prev) => ({
@@ -104,32 +105,32 @@ const StatusFilter: React.FC<FilterComponentProps> = ({
         }))
       }
     >
-      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+      <SelectTrigger fullWidth className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
         <SelectValue placeholder="See everything there" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL" className="whitespace-nowrap px-2">
           <span className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-muted-foreground" />
-            See everything there
+            <Layers className="h-4 w-4 text-muted-foreground hidden md:block" />
+            See everything
           </span>
         </SelectItem>
         <SelectItem value="PLAN" className="whitespace-nowrap px-2">
           <span className="flex items-center gap-2">
             <Clock className={`h-4 w-4 ${statusColor.PLAN}`} />
-            What's coming up
+            What's coming
           </span>
         </SelectItem>
         <SelectItem value="PENDING" className="whitespace-nowrap px-2">
           <span className="flex items-center gap-2">
             <PlayCircle className={`h-4 w-4 ${statusColor.PENDING}`} />
-            Currently in progress
+            In progress
           </span>
         </SelectItem>
         <SelectItem value="DONE" className="whitespace-nowrap px-2">
           <span className="flex items-center gap-2">
             <CheckCheck className={`h-4 w-4 ${statusColor.DONE}`} />
-            Show me the wins
+            The wins
           </span>
         </SelectItem>
         <SelectItem value="CANCELLED" className="whitespace-nowrap px-2">
@@ -171,14 +172,14 @@ const PriorityFilter: React.FC<FilterComponentProps> = ({
         }))
       }
     >
-      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+      <SelectTrigger fullWidth className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
         <SelectValue placeholder="Anything goes" />
       </SelectTrigger>
 
       <SelectContent>
         <SelectItem value="ALL">
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <Layers className="h-4 w-4 text-muted-foreground" />
+            <Layers className="h-4 w-4 text-muted-foreground hidden md:block" />
             Anything goes here
           </span>
         </SelectItem>
@@ -229,7 +230,6 @@ const TagsMultiselect: React.FC<FilterComponentProps> = ({
     loadTags();
   }, []);
 
-  // Update parent filters state when selectedTags changes
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
@@ -321,7 +321,7 @@ const SortBySelect: React.FC<FilterComponentProps> = ({
         }))
       }
     >
-      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+      <SelectTrigger fullWidth className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
 
@@ -369,7 +369,7 @@ const SortOrderSelect: React.FC<FilterComponentProps> = ({
         }))
       }
     >
-      <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
+      <SelectTrigger fullWidth className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
         <SelectValue placeholder="Order" />
       </SelectTrigger>
 
@@ -398,7 +398,7 @@ interface ApplyGroupProps {
 
 const ApplyFiltersGroup: React.FC<ApplyGroupProps> = ({ applyFilters }) => {
   return (
-    <div className="flex flex-col gap-2 col-span-2 sm:col-span-1 xl:col-span-1 self-end">
+    <div className="flex flex-col gap-2 w-full col-span-2 sm:col-span-1 xl:col-span-1 self-end">
       {/* Invisible label for alignment */}
       <Label className="text-xs font-semibold text-transparent select-none">
         &nbsp;
@@ -418,32 +418,6 @@ const ApplyFiltersGroup: React.FC<ApplyGroupProps> = ({ applyFilters }) => {
   );
 };
 
-const MoreOptionsButton: React.FC = () => {
-  const handleMoreClick = () => {
-    // Placeholder for future feature
-    alert("More filter options coming soon!");
-  };
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={handleMoreClick}
-            variant="outline"
-            className="p-3 border-border/60 transition-all duration-300 hover:border-primary/30 group"
-          >
-            <MoreHorizontal className="group-hover:-rotate-45 transition-all duration-300" />
-            More ?
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          <p className="text-xs font-medium">More filters coming soon</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
 // --- Search and Today Mode Row ---
 interface SearchAndCreateRowProps {
   search: string;
@@ -452,8 +426,6 @@ interface SearchAndCreateRowProps {
   setTodayMode: (value: boolean) => void;
   load: (override?: TodoFilterInput) => Promise<void>;
   filters: TodoFilterInput;
-  isFiltersExpanded: boolean;
-  setIsFiltersExpanded: (v: boolean) => void;
 }
 
 const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
@@ -463,8 +435,6 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
   setTodayMode,
   load,
   filters,
-  isFiltersExpanded,
-  setIsFiltersExpanded,
 }) => (
   <div className="flex flex-col gap-4">
     <div className="flex flex-col sm:flex-row items-stretch gap-4">
@@ -505,68 +475,8 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
         </Card>
       </div>
     </div>
-
-    {/* Filters Toggle Button */}
-    <button
-      type="button"
-      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-      className="
-        w-full flex items-center gap-3
-        cursor-pointer select-none
-        transition-all duration-300
-        hover:text-primary
-      "
-    >
-      <Filter className="h-5 w-5 text-primary" />
-
-      <h3 className="text-lg font-extrabold tracking-tight">
-        Quick Filters & Sorting
-      </h3>
-
-      <div className="flex-1 h-px bg-primary/20" />
-
-      <span className="flex items-center gap-1 text-sm font-semibold">
-        {isFiltersExpanded ? "Hide" : "Show"}
-        {isFiltersExpanded ? (
-          <EyeClosed className="h-4 w-4" />
-        ) : (
-          <EyeIcon className="h-4 w-4" />
-        )}
-      </span>
-    </button>
   </div>
 );
-
-
-interface FilterAndSortSectionProps extends TodoHeaderProps {
-  isExpanded: boolean;
-  setIsExpanded: (v: boolean) => void;
-}
-
-const FilterAndSortSection: React.FC<FilterAndSortSectionProps> = ({
-  applyFilters,
-  filters,
-  setFilters,
-  isExpanded,
-}) => {
-  return (
-    <div
-      className={`
-        overflow-hidden transition-all duration-500 ease-out
-        ${isExpanded ? "h-auto opacity-100 pt-4" : "h-0 w-0 overflow-hidden opacity-0"}
-      `}
-    >
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4 items-start pt-2">
-        <StatusFilter filters={filters} setFilters={setFilters} />
-        <PriorityFilter filters={filters} setFilters={setFilters} />
-        <TagsMultiselect filters={filters} setFilters={setFilters} />
-        <SortBySelect filters={filters} setFilters={setFilters} />
-        <SortOrderSelect filters={filters} setFilters={setFilters} />
-        <ApplyFiltersGroup applyFilters={applyFilters} />
-      </div>
-    </div>
-  );
-};
 
 // Parent Component
 
@@ -581,10 +491,11 @@ export default function TodoHeader({
   load,
 }: TodoHeaderProps) {
   const [filtersExpanded, setFiltersExpanded] = React.useState(false);
+  
   return (
     <Card className="border w-full card overflow-x-hidden">
       <div className="w-full p-4 sm:p-6 pb-0">
-        {/* Top Row: Search, Today Mode, and Filters Toggle */}
+        {/* Top Row: Search, Today Mode */}
         <SearchAndCreateRow
           search={search}
           setSearch={setSearch}
@@ -592,23 +503,55 @@ export default function TodoHeader({
           setTodayMode={setTodayMode}
           load={load}
           filters={filters}
-          isFiltersExpanded={filtersExpanded}
-          setIsFiltersExpanded={setFiltersExpanded}
         />
 
-        {/* Filters Section - Only shows when expanded */}
-        <FilterAndSortSection
-          isExpanded={filtersExpanded}
-          setIsExpanded={setFiltersExpanded}
-          filters={filters}
-          setFilters={setFilters}
-          search={search}
-          setSearch={setSearch}
-          applyFilters={applyFilters}
-          todayMode={todayMode}
-          setTodayMode={setTodayMode}
-          load={load}
-        />
+        {/* Collapsible Filters Section */}
+        <Collapsible 
+          open={filtersExpanded} 
+          onOpenChange={setFiltersExpanded}
+          className="mt-4"
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="
+                w-full flex items-center gap-3
+                cursor-pointer select-none
+                transition-all duration-300
+                hover:text-primary
+              "
+            >
+              <Filter className="h-5 w-5 text-primary" />
+
+              <h3 className="text-lg font-extrabold tracking-tight">
+                Quick Filters & Sorting
+              </h3>
+
+              <div className="flex-1 h-px bg-primary/20" />
+
+              <span className="flex items-center gap-1 text-sm font-semibold">
+                {filtersExpanded ? "Hide" : "Show"}
+                {filtersExpanded ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </span>
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="pt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 items-start pt-2">
+              <StatusFilter filters={filters} setFilters={setFilters} />
+              <PriorityFilter filters={filters} setFilters={setFilters} />
+              <TagsMultiselect filters={filters} setFilters={setFilters} />
+              <SortBySelect filters={filters} setFilters={setFilters} />
+              <SortOrderSelect filters={filters} setFilters={setFilters} />
+              <TodoArchive onSuccess={load} />
+              <ApplyFiltersGroup applyFilters={applyFilters} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </Card>
   );
