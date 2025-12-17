@@ -191,8 +191,8 @@ export const TimeDisplay = ({
             flex items-center gap-1.5
             text-xs font-semibold
             text-foreground/80
-            transition-all duration-300
-            group-hover:opacity-0 group-hover:scale-90
+            transition-all duration-500 ease-out
+            group-hover:opacity-0 group-hover:scale-75
           "
         >
           <Clock size={12} className="text-primary/70" />
@@ -205,8 +205,8 @@ export const TimeDisplay = ({
             absolute inset-0
             flex flex-col items-center justify-center
             gap-2
-            opacity-0 translate-y-2
-            transition-all duration-500 ease-out
+            opacity-0 translate-y-3
+            transition-all duration-500 ease-out delay-75
             group-hover:opacity-100 group-hover:translate-y-0
           "
         >
