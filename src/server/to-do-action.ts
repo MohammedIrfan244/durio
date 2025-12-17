@@ -650,7 +650,7 @@ export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async 
 export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async (): Promise<IGetTodoTagsPayload[]> => {
   const userId = await getUserId();
   const todos = await prisma.todo.findMany({
-    where: { userId },
+    where: { userId , NOT: { status: "ARCHIVED" } },
     select: { tags: true },
   });
   const tags = todos.flatMap(todo => todo.tags);

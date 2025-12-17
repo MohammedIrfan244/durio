@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 // Lucide Icons
 import {
   Search,
@@ -72,7 +72,7 @@ import TodoArchive from "./todo-archive";
 
 interface TodoHeaderProps {
   filters: TodoFilterInput;
-  setFilters: React.Dispatch<React.SetStateAction<TodoFilterInput>>;
+  setFilters: Dispatch<SetStateAction<TodoFilterInput>>;
   search: string;
   setSearch: (value: string) => void;
   applyFilters: () => void;
@@ -211,11 +211,11 @@ const TagsMultiselect: React.FC<FilterComponentProps> = ({
   filters,
   setFilters,
 }) => {
-  const [availableTags, setAvailableTags] = React.useState<
+  const [availableTags, setAvailableTags] = useState<
     IGetTodoTagsPayload[]
   >([]);
-  const [openTags, setOpenTags] = React.useState(false);
-  const [selectedTags, setSelectedTags] = React.useState<string[]>(
+  const [openTags, setOpenTags] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>(
     filters.tags ?? []
   );
 
@@ -490,7 +490,7 @@ export default function TodoHeader({
   setTodayMode,
   load,
 }: TodoHeaderProps) {
-  const [filtersExpanded, setFiltersExpanded] = React.useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   
   return (
     <Card className="border w-full card overflow-x-hidden">
