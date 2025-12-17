@@ -236,7 +236,7 @@ export function StatsColumn({
   const quickWinStars = calculateStars(stats.overview.completedTodos);
 
   return (
-    <div className="space-y-1 h-screen overflow-auto hide-scrollbar-on-main select-none">
+    <div className="space-y-1 h-auto md:h-screen md:overflow-auto hide-scrollbar-on-main select-none">
       <Card className="p-1 bg-gradient-to-br from-primary/5 to-primary/10 animate-card-entrance">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">

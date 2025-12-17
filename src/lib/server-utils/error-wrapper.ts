@@ -1,5 +1,4 @@
 import { error as logError } from "@/lib/helper/logger";
-import { createServerLog } from "@/server/server-log";
 import { getUserId } from "./get-user";
 
 export interface ApiResponse<T> {
@@ -40,12 +39,6 @@ export function withErrorWrapper<T, Args extends unknown[]>(
         message: errorMessage,
         code: errorCode,
         stack: error?.stack,
-      });
-
-      await createServerLog({
-        level: "ERROR",
-        message: `Error: ${errorMessage}, Code: ${errorCode}`,
-        userId: error?.status === 401 ? undefined : await getUserId(),
       });
 
       return {

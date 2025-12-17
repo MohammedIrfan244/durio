@@ -36,6 +36,7 @@ import TodoArchiveCard from "./todo-archive-card";
 import TodoBulkDeleteDialogue from "./todo-bulk-delete-dialogue";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { useDebounce } from "@/hooks/use-debounce"; // ← USE YOUR HOOK
+import TodoArchiveCardSkeletonList from "@/components/skelton/todo/todo-archived-card-skelton";
 
 interface TodoArchiveProps {
   onSuccess: () => void;
@@ -210,12 +211,7 @@ export default function TodoArchive({ onSuccess }: TodoArchiveProps) {
               {/* LIST */}
               <div className="max-h-[50vh] overflow-y-auto hide-scrollbar-on-main pr-2 space-y-16">
                 {isLoading ? (
-                  <div className="flex flex-col items-center py-16 text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin mb-3" />
-                    <p className="text-sm">
-                      {debouncedSearch ? "Searching..." : "Loading archived todos..."}
-                    </p>
-                  </div>
+                  <TodoArchiveCardSkeletonList />
                 ) : archivedTodos.length === 0 ? (
                   <div className="flex flex-col items-center py-16 text-muted-foreground">
                     <Package className="h-16 w-16 mb-4 opacity-30" />
