@@ -30,6 +30,15 @@ export const navItems: NavItem[] = [
     color: "#60A5FA",
     animationClass: "animate-check"
   },
+    {
+    label: "My Notes",
+    url: "/notes",
+    icon: <StickyNote size={18} />,
+    description: "Catching those random brainstorms before they fly away.",
+    color: "#F472B6",
+    animationClass: "animate-note"
+  },
+
   {
     label: "My Calendar",
     url: "/calendar",
@@ -109,14 +118,6 @@ export const navItems: NavItem[] = [
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
     animationClass: "animate-hourglass"
-  },
-  {
-    label: "My Notes",
-    url: "/notes",
-    icon: <StickyNote size={18} />,
-    description: "Catching those random brainstorms before they fly away.",
-    color: "#F472B6",
-    animationClass: "animate-note"
   },
   {
     label: "Resources Stash",

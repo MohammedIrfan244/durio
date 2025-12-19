@@ -19,6 +19,8 @@ model User {
   notifications Notification[]
 }
 
+// Todo Section 
+
 //  ENUMS - TODO
 
 enum TodoStatus {
@@ -102,6 +104,44 @@ model TodoStreak {
   longest       Int      @default(0)
   lastCompleted DateTime?
 }
+
+
+// Nots Section
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //  NOTIFICATIONS
 

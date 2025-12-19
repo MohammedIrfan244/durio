@@ -35,7 +35,7 @@ import { withClientAction } from "@/lib/helper/with-client-action";
 import TodoArchiveCard from "./todo-archive-card";
 import TodoBulkDeleteDialogue from "./todo-bulk-delete-dialogue";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { useDebounce } from "@/hooks/use-debounce"; // ← USE YOUR HOOK
+import { useDebounce } from "@/hooks/use-debounce";
 import TodoArchiveCardSkeletonList from "@/components/skelton/todo/todo-archived-card-skelton";
 
 interface TodoArchiveProps {
@@ -255,7 +255,6 @@ export default function TodoArchive({ onSuccess }: TodoArchiveProps) {
         isSoft={false}
         onSuccess={async () => {
           setArchivedTodos([]);
-          toast.success("All archived todos deleted permanently");
           onSuccess?.();
         }}
       />

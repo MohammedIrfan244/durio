@@ -37,7 +37,7 @@ export default function TodoBulkDeleteDialogue({
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async () => {
-    if (!ids.length) return;
+    if (!ids.length && isSoft) return;
 
     setIsDeleting(true);
 
