@@ -42,7 +42,7 @@ export default function TodoDetailedPopupSkeleton({
         <Separator />
 
         {/* ---------------- BODY ---------------- */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto hide-scrollbar-on-main">
           {/* Status selector */}
           <div className="space-y-2 p-6 lg:px-8 pb-0">
             <Skeleton className="h-4 w-40" />

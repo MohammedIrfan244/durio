@@ -108,13 +108,13 @@ const TodoHeaderSection: React.FC<CommonProps> = ({ todo }) => {
   return (
     <div className="px-6 pt-6 pb-4">
       <div className="flex items-start justify-between gap-4 mb-3">
-        <h2 className="text-2xl font-semibold leading-tight flex-1">
+        <h2 className="text-2xl font-semibold leading-tight flex-1 break-words whitespace-normal max-w-full">
           {formatName(todo.title)}
         </h2>
       </div>
 
       {todo.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4 break-words whitespace-normal">
           {todo.description}
         </p>
       )}
@@ -360,7 +360,7 @@ const ChecklistColumn: React.FC<CommonProps & {
                 <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
               )}
               <span
-                className={`text-left flex-1 ${
+                className={`text-left flex-1 break-words whitespace-normal ${
                   item.marked ? "line-through text-muted-foreground" : ""
                 }`}
               >
@@ -399,7 +399,7 @@ const TagsSection: React.FC<CommonProps> = ({ todo }) => {
             <Badge
               key={idx}
               variant="secondary"
-              className={`px-2.5 py-0.5 text-xs font-normal ${getColorForTag(tag)}`}
+              className={`px-2.5 py-0.5 text-xs font-normal  break-words whitespace-normal max-w-full ${getColorForTag(tag)}`}
             >
               {tag}
             </Badge>
@@ -529,7 +529,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
 
       <Separator />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden break-words hide-scrollbar-on-main">
         {/* Status Update Section */}
         <StatusUpdateSection 
           todo={todo} 
@@ -568,7 +568,7 @@ export default function TodoDetailedPopup({
 }: TodoDetailedProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 px-2">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 px-2 overflow-x-hidden">
         <DialogTitle className="sr-only">Todo Details</DialogTitle>
         <DataFetchingWrapper todoId={todoId} onUpdate={onUpdate} />
       </DialogContent>
