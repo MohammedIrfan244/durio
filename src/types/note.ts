@@ -1,49 +1,50 @@
-// types/note.ts
+export type INoteStatus = 'ACTIVE' | 'ARCHIVED' | 'DELETED';
 
-export interface Note {
-    id: string;
-    title: string;
-    content: string;
-    color: string;
-    createdAt: Date;
-    updatedAt: Date;
+export interface INote {
+	id: string;
+	userId: string;
+	folderId?: string | null;
+	heading: string;
+	description: string;
+	status: INoteStatus;
+	color?: string | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-export interface CreateNote {
-    title: string;
-    content: string;
-    color?: string;
+export interface INoteFolder {
+	id: string;
+	userId: string;
+	name: string;
+	color: string;
+	icon?: string | null;
+	notes?: INote[];
+    _count?: {
+        notes: number;
+    };
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-export interface UpdateNote {
-    id: string;
-    title: string;
-    content: string;
-    color?: string;
+export interface IGetNoteList {
+	id: string;
+	heading: string;
+	description: string;
+	status: INoteStatus;
+	folderId?: string | null;
+	color?: string | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-export interface DeleteNote {
-    id: string;
+export interface IGetArchivedNoteList {
+	id: string;
+	heading: string;
 }
 
-export interface GetNotes {
-    searchQuery?: string;
-}
+export type IGetArchivedNoteListPayload = IGetArchivedNoteList[];
 
-export interface GetNote {
-    id: string;
-}
-
-// Action responses
-
-export interface ActionResponse {
-    success: boolean;
-    message: string;
-    data?: Note[];
-}
-
-export interface SingleNoteResponse {
-    success: boolean;
-    message: string;
-    data?: Note;
+export interface IGetNoteListPayload {
+	active: IGetNoteList[];
+    folders : INoteFolder[]
 }

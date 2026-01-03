@@ -10,13 +10,15 @@ datasource db {
 //  USER
 
 model User {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  name       String?
-  email      String        @unique
-  todos      Todo[]
-  todoStreak TodoStreak?   // streak only for todos
-  createdAt  DateTime      @default(now())
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String         @unique
+  todos         Todo[]
+  todoStreak    TodoStreak? // streak only for todos
+  createdAt     DateTime       @default(now())
   notifications Notification[]
+  noteFolders   NoteFolder[]
+  notes         Note[]
 }
 
 // Todo Section 
@@ -49,22 +51,22 @@ enum RenewInterval {
 //  TODO
 
 model Todo {
-  id     String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId String   @db.ObjectId
-  user   User     @relation(fields: [userId], references: [id])
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 
   title       String
   description String?
   status      TodoStatus
   priority    Priority?
   priorityInt Int
-  tags        String[] @default([])
+  tags        String[]   @default([])
 
-  dueDate     DateTime?
-  dueTime     String?
+  dueDate DateTime?
+  dueTime String?
 
   // Recurring
-  renewStart   DateTime?
+  renewStart    DateTime?
   renewInterval RenewInterval?
   renewEvery    Int?
   renewCustom   String?
@@ -82,12 +84,12 @@ model Todo {
 //  CHECKLIST ITEMS
 
 model ChecklistItem {
-  id     String   @id @default(auto()) @map("_id") @db.ObjectId
-  todoId String   @db.ObjectId
-  todo   Todo     @relation(fields: [todoId], references: [id])
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  todoId String @db.ObjectId
+  todo   Todo   @relation(fields: [todoId], references: [id])
 
   text   String
-  marked Boolean  @default(false)
+  marked Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,64 +98,75 @@ model ChecklistItem {
 //  TODO STREAK
 
 model TodoStreak {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @unique @db.ObjectId
-  user          User     @relation(fields: [userId], references: [id])
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 
-  count         Int      @default(0)
-  longest       Int      @default(0)
+  count         Int       @default(0)
+  longest       Int       @default(0)
   lastCompleted DateTime?
 }
 
+// Notes Section
 
-// Nots Section
+enum NoteStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
 
+model NoteFolder {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 
+  name  String
+  color String
+  icon  String?
+  status NoteStatus @default(ACTIVE)
 
+  notes Note[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([userId])
+}
 
+model Note {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 
+  folderId String?     @db.ObjectId
+  folder   NoteFolder? @relation(fields: [folderId], references: [id])
 
+  heading     String
+  description String
 
+  status NoteStatus @default(ACTIVE)
+  color  String?
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  @@index([userId])
+  @@index([folderId])
+  @@index([status])
+}
 
 
 
 //  NOTIFICATIONS
 
 model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 
-  message   String
-  date      DateTime // when to notify
-  read      Boolean  @default(false)
+  message String
+  date    DateTime // when to notify
+  read    Boolean  @default(false)
 
   createdAt DateTime @default(now())
 }
-

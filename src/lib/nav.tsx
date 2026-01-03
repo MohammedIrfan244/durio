@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
     label: "My Notes",
     url: "/notes",
     icon: <StickyNote size={18} />,
-    description: "Catching those random brainstorms before they fly away.",
+    description: "Catching those random brainstorms.",
     color: "#F472B6",
     animationClass: "animate-note"
   },

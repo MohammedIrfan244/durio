@@ -34,7 +34,7 @@ import {
 
 import { Calendar } from "@/components/ui/calendar";
 import { createTodoSchema } from "@/schema/todo";
-import type { CreateTodoInput, UpdateTodoInput } from "@/schema/todo";
+import type { CreateTodoInput } from "@/schema/todo";
 import { IPriority, IRenewInterval } from "@/types/todo";
 import { createTodo, updateTodo, getTodoById } from "@/server/to-do-action";
 import { toast } from "sonner";
@@ -557,18 +557,40 @@ export default function ToDoDialog({
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
       let res;
+      // Convert dueDate and dueTime to UTC ISO string if present
+      let dueDateUTC: string | undefined = undefined;
+      if (data.dueDate) {
+        // If dueTime is present, combine date and time
+        let dateObj = new Date(data.dueDate);
+        if (data.dueTime) {
+          // Use same parsing logic as server
+          const parts = data.dueTime.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i);
+          if (parts) {
+            let [_, hourStr, minuteStr, period] = parts;
+            let hours = parseInt(hourStr, 10);
+            const minutes = parseInt(minuteStr, 10);
+            if (period.toUpperCase() === 'PM' && hours < 12) {
+              hours += 12;
+            } else if (period.toUpperCase() === 'AM' && hours === 12) {
+              hours = 0;
+            }
+            dateObj.setUTCHours(hours, minutes, 0, 0);
+          }
+        }
+        dueDateUTC = dateObj.toISOString();
+      }
+      const payload = {
+        ...data,
+        dueDate: dueDateUTC,
+        checklist: data.checklist?.map((item) => ({ text: item.text })),
+      };
       if (todoId) {
         // Update operation
-        const payload: UpdateTodoInput = {
-          id: todoId,
-          ...data,
-          checklist: data.checklist?.map((item) => ({ text: item.text })),
-        };
-        res = await withClientAction(() => updateTodo(payload), true);
+        res = await withClientAction(() => updateTodo({ id: todoId, ...payload }), true);
         toast.success("Nice! Todo updated 🎉");
       } else {
         // Create operation
-        res = await withClientAction(() => createTodo(data), true);
+        res = await withClientAction(() => createTodo(payload), true);
         toast.success("Nice! Todo added 🎉");
         reset(); 
       }

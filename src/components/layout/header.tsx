@@ -73,7 +73,7 @@ export default function Header() {
   const handleFlag = async (path: string) => {
     setLoading(true);
     const response = await withClientAction(() => flagTimestamp(path), true);
-    if (response === "DONE") toast.success("Timestamp Flagged");
+    if (response === "DONE") toast.success("Your datas has been updated!");
     setLoading(false);
   };
 
@@ -84,8 +84,20 @@ export default function Header() {
 
     const updateClock = () => {
       const now = new Date();
-      setTime(now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }));
-      setDate(now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }));
+      setTime(
+        now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      );
+      setDate(
+        now.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })
+      );
 
       const hrs = now.getHours();
       if (3 <= hrs && hrs < 12) setGreeting("Good Morning");
@@ -106,42 +118,54 @@ export default function Header() {
     <Card className="border card">
       <CardContent className="px-6 flex items-center justify-between relative">
         <NavSection title={title} description={description} />
-        
-        <TimeDisplay 
-          greeting={greeting} 
-          username={username} 
-          date={date} 
-          time={time} 
+
+        <TimeDisplay
+          greeting={greeting}
+          username={username}
+          date={date}
+          time={time}
         />
 
         <div className="flex items-center gap-3 shrink-0">
-          <ActionButton 
-            loading={loading} 
-            onClick={() => handleFlag(pathname || "/")} 
+          <ActionButton
+            loading={loading}
+            onClick={() => handleFlag(pathname || "/")}
           />
           <ModeToggle />
-          <UserMenu 
-            username={username} 
-            userEmail={userEmail} 
-            theme={theme} 
-            onLogout={() => setConfirmLogout(true)} 
+          <UserMenu
+            username={username}
+            userEmail={userEmail}
+            theme={theme}
+            onLogout={() => setConfirmLogout(true)}
           />
         </div>
       </CardContent>
 
-      <LogoutConfirmDialog open={confirmLogout} onOpenChange={setConfirmLogout} />
+      <LogoutConfirmDialog
+        open={confirmLogout}
+        onOpenChange={setConfirmLogout}
+      />
     </Card>
   );
 }
 
 /* --- SUB-COMPONENTS --- */
 
-const NavSection = ({ title, description }: { title: string; description: string }) => (
+const NavSection = ({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) => (
   <div className="flex items-center gap-4 shrink-0">
     <div className="hover:scale-105 active:scale-95 transition-transform duration-300">
       <SidebarTrigger className="text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer" />
     </div>
-    <Separator orientation="vertical" className="h-6 hidden sm:block opacity-30" />
+    <Separator
+      orientation="vertical"
+      className="h-6 hidden sm:block opacity-30"
+    />
     <div className="flex flex-col justify-between group cursor-default">
       <h1 className="text-sm md:text-base font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors duration-300">
         {title}
@@ -211,7 +235,7 @@ export const TimeDisplay = ({
           "
         >
           {/* Greeting */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-500">
             <Sparkles
               size={10}
               className="text-yellow-500/80 transition-transform duration-700 group-hover:rotate-180"
@@ -226,7 +250,7 @@ export const TimeDisplay = ({
           </div>
 
           {/* Date & time */}
-          <div className="flex items-center gap-3 text-xs font-semibold text-foreground/80">
+          <div className="flex items-center gap-3 text-xs font-semibold text-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-500">
             <span className="flex items-center gap-1.5">
               <Calendar size={12} className="text-primary/70" />
               {date}
@@ -245,7 +269,13 @@ export const TimeDisplay = ({
   );
 };
 
-const ActionButton = ({ loading, onClick }: { loading: boolean; onClick: () => void }) => (
+const ActionButton = ({
+  loading,
+  onClick,
+}: {
+  loading: boolean;
+  onClick: () => void;
+}) => (
   <TooltipProvider delayDuration={150}>
     <Tooltip>
       <TooltipTrigger asChild>
@@ -254,10 +284,15 @@ const ActionButton = ({ loading, onClick }: { loading: boolean; onClick: () => v
           onClick={onClick}
           className="h-9 px-3 border-border/60 flex items-center settings-button gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
         >
-          <LoaderPinwheelIcon size={16} className={clsx(loading ? "animate-spin" : "settings-icon")} />
+          <LoaderPinwheelIcon
+            size={16}
+            className={clsx(loading ? "animate-spin" : "settings-icon")}
+          />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs">Update your current datas</TooltipContent>
+      <TooltipContent side="bottom" className="text-xs">
+        Update your current datas
+      </TooltipContent>
     </Tooltip>
   </TooltipProvider>
 );
@@ -265,15 +300,24 @@ const ActionButton = ({ loading, onClick }: { loading: boolean; onClick: () => v
 const UserMenu = ({ username, userEmail, theme, onLogout }: any) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="outline" className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer">
+      <Button
+        variant="outline"
+        className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
+      >
         <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
           <User size={14} />
         </div>
         <span className="text-sm font-medium hidden sm:block">{username}</span>
-        <ChevronDown size={12} className="text-muted-foreground/70 hidden sm:block transition-transform duration-300 group-data-[state=open]:rotate-180" />
+        <ChevronDown
+          size={12}
+          className="text-muted-foreground/70 hidden sm:block transition-transform duration-300 group-data-[state=open]:rotate-180"
+        />
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-64 p-2 animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden">
+    <DropdownMenuContent
+      align="end"
+      className="w-64 p-2 animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
+    >
       {theme === "pookie" && <PookieFlowers />}
       {theme === "natural" && <NaturalDecor />}
       {theme === "gothic" && <GothicDecor />}
@@ -282,17 +326,32 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: any) => (
 
       <DropdownMenuLabel className="font-normal p-2 relative z-10">
         <div className="flex flex-col space-y-1">
-          <p className="text-sm font-semibold leading-none flex items-center gap-2"><User size={14} className="text-primary" />{username}</p>
-          <p className="text-xs leading-none text-muted-foreground flex items-center gap-2"><Mail size={14} />{userEmail}</p>
+          <p className="text-sm font-semibold leading-none flex items-center gap-2">
+            <User size={14} className="text-primary" />
+            {username}
+          </p>
+          <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">
+            <Mail size={14} />
+            {userEmail}
+          </p>
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator className="relative z-10" />
-      <DropdownMenuItem onClick={() => (window.location.href = "/settings")} className="cursor-pointer py-2.5 focus:bg-accent settings-button group relative z-10">
-        <Settings size={16} className="mr-2 text-muted-foreground settings-icon group-hover:text-foreground transition-colors" />
+      <DropdownMenuItem
+        onClick={() => (window.location.href = "/settings")}
+        className="cursor-pointer py-2.5 focus:bg-accent settings-button group relative z-10"
+      >
+        <Settings
+          size={16}
+          className="mr-2 text-muted-foreground settings-icon group-hover:text-foreground transition-colors"
+        />
         <span>Account Settings</span>
       </DropdownMenuItem>
       <DropdownMenuSeparator className="relative z-10" />
-      <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 py-2.5 logout-button relative z-10" onClick={onLogout}>
+      <DropdownMenuItem
+        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 py-2.5 logout-button relative z-10"
+        onClick={onLogout}
+      >
         <LogOut size={16} className="mr-2 logout-icon" />
         <span>Log out</span>
       </DropdownMenuItem>
