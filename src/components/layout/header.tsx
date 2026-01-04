@@ -41,6 +41,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useDifficulty, DIFFICULTY_LABELS, Difficulty } from "@/hooks/use-difficulty";
+import { Check, ChevronsUpDown, Gamepad2 } from "lucide-react";
 
 // Decorations & Dialogs
 import PookieFlowers from "../decoration/pookie-flowers";
@@ -297,64 +304,113 @@ const ActionButton = ({
   </TooltipProvider>
 );
 
-const UserMenu = ({ username, userEmail, theme, onLogout }: any) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button
-        variant="outline"
-        className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
-      >
-        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-          <User size={14} />
-        </div>
-        <span className="text-sm font-medium hidden sm:block">{username}</span>
-        <ChevronDown
-          size={12}
-          className="text-muted-foreground/70 hidden sm:block transition-transform duration-300 group-data-[state=open]:rotate-180"
-        />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent
-      align="end"
-      className="w-64 p-2 animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
-    >
-      {theme === "pookie" && <PookieFlowers />}
-      {theme === "natural" && <NaturalDecor />}
-      {theme === "gothic" && <GothicDecor />}
-      {theme === "dark" && <DarkDecor />}
-      {theme === "light" && <LightDecor />}
+const UserMenu = ({ username, userEmail, theme, onLogout }: any) => {
+  const { difficulty, setDifficulty, mounted } = useDifficulty();
+  const [isOpen, setIsOpen] = useState(false);
 
-      <DropdownMenuLabel className="font-normal p-2 relative z-10">
-        <div className="flex flex-col space-y-1">
-          <p className="text-sm font-semibold leading-none flex items-center gap-2">
-            <User size={14} className="text-primary" />
-            {username}
-          </p>
-          <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">
-            <Mail size={14} />
-            {userEmail}
-          </p>
+  if (!mounted) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
+        >
+          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+            <User size={14} />
+          </div>
+          <span className="text-sm font-medium hidden sm:block">{username}</span>
+          <ChevronDown
+            size={12}
+            className="text-muted-foreground/70 hidden sm:block transition-transform duration-300 group-data-[state=open]:rotate-180"
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-64 p-2 animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
+      >
+        {theme === "pookie" && <PookieFlowers />}
+        {theme === "natural" && <NaturalDecor />}
+        {theme === "gothic" && <GothicDecor />}
+        {theme === "dark" && <DarkDecor />}
+        {theme === "light" && <LightDecor />}
+
+        <DropdownMenuLabel className="font-normal p-2 relative z-10">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-semibold leading-none flex items-center gap-2">
+              <User size={14} className="text-primary" />
+              {username}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">
+              <Mail size={14} />
+              {userEmail}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="relative z-10" />
+        
+        {/* Difficulty Selection */}
+        <div className="py-1 relative z-10 nav-item-group">
+            <Collapsible
+                open={isOpen}
+                onOpenChange={setIsOpen}
+                className="w-full"
+            >
+                <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer group">
+                        <div className="flex items-center gap-4 text-muted-foreground group-hover:text-foreground">
+                            <Gamepad2 className="animate-journal" size={16} />
+                            <span className="font-medium text-foreground">Vibe check</span>
+                        </div>
+                        <ChevronsUpDown size={12} className="text-muted-foreground" />
+                    </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1 mt-1 ml-2 border-l pl-2">
+                    {(Object.keys(DIFFICULTY_LABELS) as Difficulty[]).map((level) => (
+                        <div
+                            key={level}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setDifficulty(level);
+                            }}
+                            className={clsx(
+                                "flex items-center justify-between px-2 py-1.5 text-xs rounded-sm cursor-pointer transition-colors",
+                                difficulty === level 
+                                    ? "bg-primary/10 text-primary font-medium" 
+                                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                        >
+                            <span>{DIFFICULTY_LABELS[level]}</span>
+                            {difficulty === level && <Check size={12} />}
+                        </div>
+                    ))}
+                </CollapsibleContent>
+            </Collapsible>
         </div>
-      </DropdownMenuLabel>
-      <DropdownMenuSeparator className="relative z-10" />
-      <DropdownMenuItem
-        onClick={() => (window.location.href = "/settings")}
-        className="cursor-pointer py-2.5 focus:bg-accent settings-button group relative z-10"
-      >
-        <Settings
-          size={16}
-          className="mr-2 text-muted-foreground settings-icon group-hover:text-foreground transition-colors"
-        />
-        <span>Account Settings</span>
-      </DropdownMenuItem>
-      <DropdownMenuSeparator className="relative z-10" />
-      <DropdownMenuItem
-        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 py-2.5 logout-button relative z-10"
-        onClick={onLogout}
-      >
-        <LogOut size={16} className="mr-2 logout-icon" />
-        <span>Log out</span>
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+
+        <DropdownMenuSeparator className="relative z-10" />
+
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/settings")}
+          className="cursor-pointer py-2.5 focus:bg-accent settings-button group relative z-10"
+        >
+          <Settings
+            size={16}
+            className="mr-2 text-muted-foreground settings-icon group-hover:text-foreground transition-colors"
+          />
+          <span>Account Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="relative z-10" />
+        <DropdownMenuItem
+          className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 py-2.5 logout-button relative z-10"
+          onClick={onLogout}
+        >
+          <LogOut size={16} className="mr-2 logout-icon" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
