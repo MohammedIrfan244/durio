@@ -124,22 +124,14 @@ export default function TodoArchive({ onSuccess }: TodoArchiveProps) {
   return (
     <>
       <Drawer open={open} onOpenChange={setOpen}>
-        <div className="flex flex-col gap-2 nav-item-group w-full">
-          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 tracking-wider">
-            <PackageOpen className="h-3 w-3 animate-zap" />
-            Clean & Restore
-          </Label>
-
-          <DrawerTrigger asChild>
+        <DrawerTrigger asChild>
           <Button
-            variant="outline"
-            className="border-border/60 w-full transition-all duration-300 hover:border-primary/30 group flex items-center gap-2 justify-start"
+            className="bg-secondary/30 border border-border/40 transition-all duration-300 hover:bg-secondary/50 hover:border-primary/20 group flex items-center gap-2 text-foreground"
           >
             <Archive className="group-hover:-rotate-45 transition-all duration-300" />
-            Archived Todos
+            <span className="hidden sm:inline">Archived Todos</span>
           </Button>
         </DrawerTrigger>
-        </div>
 
         <DrawerContent className="max-h-[85vh] border-t border-border">
           <div className="mx-auto w-full max-w-4xl">

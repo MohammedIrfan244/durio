@@ -391,6 +391,25 @@ const SortOrderSelect: React.FC<FilterComponentProps> = ({
   </div>
 );
 
+// --- Focus On Today Filter ---
+const FocusOnTodayFilter: React.FC<{ todayMode: boolean; setTodayMode: (val: boolean) => void }> = ({
+  todayMode,
+  setTodayMode,
+}) => (
+  <div className="flex flex-col gap-2 nav-item-group">
+    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
+      <Clock className="h-3 w-3 animate-pulse" />
+      Today Mode
+    </Label>
+    <Button variant="secondary" className="flex items-center gap-2 h-9 border border-border/60 over:border-primary/30 transition-all duration-300">
+      <Switch id="focus-today-filter" checked={todayMode} onCheckedChange={setTodayMode} />
+      <Label htmlFor="focus-today-filter" className="text-sm font-medium cursor-pointer">
+        Focus on Today
+      </Label>
+    </Button>
+  </div>
+);
+
 // --- Apply Filters and More Button Group ---
 interface ApplyGroupProps {
   applyFilters: () => void;
@@ -422,8 +441,6 @@ const ApplyFiltersGroup: React.FC<ApplyGroupProps> = ({ applyFilters }) => {
 interface SearchAndCreateRowProps {
   search: string;
   setSearch: (value: string) => void;
-  todayMode: boolean;
-  setTodayMode: (value: boolean) => void;
   load: (override?: TodoFilterInput) => Promise<void>;
   filters: TodoFilterInput;
 }
@@ -431,8 +448,6 @@ interface SearchAndCreateRowProps {
 const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
   search,
   setSearch,
-  todayMode,
-  setTodayMode,
   load,
   filters,
 }) => (
@@ -451,28 +466,7 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
 
       <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
         <ToDoDialog onSaved={() => load(filters)} />
-        <Card
-          className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
-                 duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
-          onClick={() => setTodayMode(!todayMode)}
-        >
-          <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
-            {/* Label */}
-            <Label
-              htmlFor="today-mode"
-              className="text-sm font-bold text-foreground/80 cursor-pointer 
-                     transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
-            >
-              Focus on Today
-            </Label>
-            {/* Switch */}
-            <Switch
-              id="today-mode"
-              checked={todayMode}
-              onCheckedChange={setTodayMode}
-            />
-          </CardContent>
-        </Card>
+        <TodoArchive onSuccess={() => load(filters)} />
       </div>
     </div>
   </div>
@@ -499,8 +493,6 @@ export default function TodoHeader({
         <SearchAndCreateRow
           search={search}
           setSearch={setSearch}
-          todayMode={todayMode}
-          setTodayMode={setTodayMode}
           load={load}
           filters={filters}
         />
@@ -547,7 +539,7 @@ export default function TodoHeader({
               <TagsMultiselect filters={filters} setFilters={setFilters} />
               <SortBySelect filters={filters} setFilters={setFilters} />
               <SortOrderSelect filters={filters} setFilters={setFilters} />
-              <TodoArchive onSuccess={load} />
+              <FocusOnTodayFilter todayMode={todayMode} setTodayMode={setTodayMode} />
               <ApplyFiltersGroup applyFilters={applyFilters} />
             </div>
           </CollapsibleContent>
