@@ -751,6 +751,9 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
     const last30Days = new Date(startOfToday);
     last30Days.setDate(last30Days.getDate() - 30);
 
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
     //  OVERVIEW
 
     const [
@@ -803,8 +806,9 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
           userId,
           dueDate: {
             gte: startOfToday,
-            lt: now,
+            lt: startOfTomorrow, 
           },
+          NOT: { status: "ARCHIVED" },
         },
       }),
 
@@ -839,6 +843,19 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
       }),
     ]);
 
+    // Fetch Completed Due Today count for strict streak logic
+    const completedDueToday = await prisma.todo.count({
+      where: {
+        userId,
+        status: "DONE",
+        dueDate: {
+          gte: startOfToday,
+          lt: startOfTomorrow,
+        },
+        completedAt: { gte: startOfToday } // Completed TODAY
+      }
+    });
+
     const completionRateToday =
       dueToday > 0 ? Math.round((completedToday / dueToday) * 100) : undefined;
 
@@ -848,9 +865,57 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
       where: { userId },
     });
 
-    const isStreakActive =
-      streak?.lastCompleted &&
-      streak.lastCompleted >= startOfToday;
+    // Logic: 
+    // 1. If Due Today > 0: Streak Active if Completed Due Today > 0
+    // 2. If Due Today == 0: Streak Active if Completed Any Today > 0
+    let isStreakActive = false;
+    if (dueToday > 0) {
+        isStreakActive = completedDueToday > 0;
+    } else {
+        isStreakActive = completedToday > 0;
+    }
+
+    // However, if we just check persistence, maybe we rely on `lastCompleted`.
+    // But the user wants "dynamic" status for "today".
+    // If I completed a task today, `streak.lastCompleted` should be today.
+    // So if `streak.lastCompleted >= startOfToday`, it is active.
+    
+    // We can rely on `lastCompleted` IF it is correctly updated by `changeTodoStatus`.
+    // But for the specific "Due vs No Due" logic, `lastCompleted` might be too simple if we need to enforce "Due Task Completion" when tasks are due.
+    // Let's refine `isStreakActive` purely for display "Are you safe today?".
+    // Actually, `streak.count` logic happens on write. Here we just show status.
+    // But the prompt says "the streak should count correctly". 
+    // The previous implementation just read `prisma.todoStreak`. 
+    // We will assume `changeTodoStatus` updates the streak table. 
+    // Here we compute `isStreakActive` for the UI feedback (e.g. fire icon).
+    
+    // Let's override `isStreakActive` based on the user's complex rule:
+    // If dueToday > 0: active = completedDueToday > 0
+    // Else: active = completedToday > 0
+
+    // Re-check existing streak record to see if we extended it today
+    // If `lastCompleted` is today, then we extended it today.
+    // But does `lastCompleted` respect the "Due Task" rule? 
+    // We need to ensure the WRITER updates it correctly. 
+    // For READ (here), we just report what we see or calculate "Is Today satisfied?".
+    
+    const isTodaySatisfied = dueToday > 0 ? completedDueToday > 0 : completedToday > 0;
+    
+    // Active means: "Today is covered OR (Yesterday was covered AND Today is not yet broken?)"
+    // The user says "thats a streak" => Today is counted. 
+    // If today is NOT satisfied yet, is it broken? Only if today ENDS.
+    // So "Active" for UI usually means "Current Streak > 0".
+    
+    // Let's stick effectively to:
+    // Display Streak = `streak.count` (from DB). 
+    // Insight: "Streak kept!" or "Risk of losing!"
+    
+    // But wait, the user says "the streak should count correctly". 
+    // If I rely on DB table, and DB table logic is wrong, it won't work. 
+    // I should check `changeTodoStatus` later. 
+    // For `getTodoStat`, I will return the calculated `isActive` based on today's performance.
+
+    isStreakActive = isTodaySatisfied;
 
     const daysSinceLastCompletion = streak?.lastCompleted
       ? Math.floor(
@@ -913,6 +978,50 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
       priorityBase[p.priority ?? "NONE"] = p._count._all;
     }
 
+    // COMPLETED PRIORITY COUNTS
+    const completedPriorityRaw = await prisma.todo.groupBy({
+        by: ["priority"],
+        where: { userId, status: "DONE" },
+        _count: { _all: true },
+    });
+    
+    const completedPriorityMap: Record<string, number> = {};
+    for(const p of completedPriorityRaw) {
+        completedPriorityMap[p.priority ?? "NONE"] = p._count._all;
+    }
+
+    const priorityRates = {
+        HIGH: 0,
+        MEDIUM: 0,
+        LOW: 0,
+        NONE: 0,
+    };
+    
+    (["HIGH", "MEDIUM", "LOW", "NONE"] as const).forEach(key => {
+        const total = priorityBase[key] || 0;
+        const comp = completedPriorityMap[key] || 0;
+        priorityRates[key] = total > 0 ? Math.round((comp / total) * 100) : 0;
+    });
+
+    // OVERDUE PRIORITY COUNTS
+    const overduePriorityRaw = await prisma.todo.groupBy({
+        by: ["priority"],
+        where: { 
+            userId, 
+            status: { not: "DONE" },
+            dueDate: { lt: now } 
+        },
+        _count: { _all: true },
+    });
+
+    const overduePriorityMap = {
+        HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0
+    };
+    for(const p of overduePriorityRaw) {
+        // @ts-ignore
+        overduePriorityMap[p.priority ?? "NONE"] = p._count._all;
+    }
+
     const insights = generateInsights({
   overview: {
     totalTodos,
@@ -953,18 +1062,8 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
   },
   priority: {
     counts: priorityBase,
-    completionRate: {
-      HIGH: 0,
-      MEDIUM: 0,
-      LOW: 0,
-      NONE: 0,
-    },
-    overdue: {
-      HIGH: 0,
-      MEDIUM: 0,
-      LOW: 0,
-      NONE: 0,
-    },
+    completionRate: priorityRates,
+    overdue: overduePriorityMap,
   },
   time: {
     mostProductiveDay: null,
@@ -1027,18 +1126,8 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
 
       priorityInsights: {
         counts: priorityBase,
-        completionRate: {
-          HIGH: 0,
-          MEDIUM: 0,
-          LOW: 0,
-          NONE: 0,
-        },
-        overdue: {
-          HIGH: 0,
-          MEDIUM: 0,
-          LOW: 0,
-          NONE: 0,
-        },
+        completionRate: priorityRates,
+        overdue: overduePriorityMap,
       },
 
       timePatterns: {

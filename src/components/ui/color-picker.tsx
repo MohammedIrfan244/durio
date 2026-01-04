@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Check, Paintbrush, Plus } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ColorPickerProps {
   value?: string;
@@ -88,17 +94,25 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                    )}
                  </button>
                ))}
-               <button
-                 type="button"
-                   className={cn(
-                     "h-8 w-8 rounded-full border border-dashed border-muted-foreground/50 flex items-center justify-center transition-all hover:border-primary hover:text-primary",
-                     !value && "border-primary text-primary"
-                   )}
-                   onClick={() => onChange("")}
-                   title="Clear color"
-               >
-                  <div className="h-0.5 w-full bg-destructive rotate-45 transform scale-x-75 origin-center" />
-               </button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "h-8 w-8 rounded-full border border-dashed border-muted-foreground/50 flex items-center justify-center transition-all hover:border-primary hover:text-primary",
+                          !value && "border-primary text-primary"
+                        )}
+                        onClick={() => onChange("")}
+                      >
+                        <div className="h-0.5 w-full bg-destructive rotate-45 transform scale-x-75 origin-center" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Clear color</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
              </div>
           </div>
 

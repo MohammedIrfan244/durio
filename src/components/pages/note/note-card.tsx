@@ -5,6 +5,12 @@ import { Edit2, Trash2, FolderInput, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { truncateText } from "@/lib/helper/etcetra";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NoteCardProps {
   note: INote;
@@ -44,7 +50,7 @@ export function NoteCard({
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ 
         rotate: 1,
-        transition: { type: "spring", stiffness: 300, damping: 20 }
+        transition: { type: "spring", stiffness: 300    }
       }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className={cn(
@@ -147,42 +153,68 @@ export function NoteCard({
               </>
             ) : (
               <>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-all"
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onEdit?.(note); 
-                  }}
-                  title="Edit"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 transition-all" 
-                  title="Move to Folder" 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onMove?.(note); 
-                  }}
-                >
-                  <FolderInput className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-all" 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onDelete?.(note); 
-                  }}
-                  title="Delete"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              onEdit?.(note); 
+                            }}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit note ✏️</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 transition-all active:scale-95" 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              onMove?.(note); 
+                            }}
+                          >
+                            <FolderInput className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Move to folder 📂</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-all active:scale-95" 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              onDelete?.(note); 
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete note 🗑️</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
               </>
             )}
           </motion.div>

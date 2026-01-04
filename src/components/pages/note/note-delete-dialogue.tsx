@@ -11,7 +11,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { deleteNote } from "@/server/note-action";
+import { deleteNote } from "@/server/actions/note-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
 
 interface NoteDeleteDialogueProps {

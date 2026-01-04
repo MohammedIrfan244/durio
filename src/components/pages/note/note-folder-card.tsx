@@ -4,6 +4,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NoteFolderCardProps {
   folder: INoteFolder;
@@ -147,24 +153,48 @@ export function NoteFolderCard({ folder, isSelected, onClick, onEdit, onDelete, 
             ) : (
               <>
                 {onEdit && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300" 
-                    onClick={() => onEdit(folder)}
-                  >
-                    <Edit2 className="h-3 w-3" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300 active:scale-95" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(folder);
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit Folder ✏️</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
                 {onDelete && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6 text-destructive hover:bg-destructive/10 transition-all duration-300" 
-                    onClick={() => onDelete(folder)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 text-destructive hover:bg-destructive/10 transition-all duration-300 active:scale-95" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(folder);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete Folder 🗑️</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </>
             )}

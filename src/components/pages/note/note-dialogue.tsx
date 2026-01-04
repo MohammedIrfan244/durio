@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CreateNoteSchema } from "@/schema/note";
 import type { CreateNoteInput } from "@/schema/note";
-import { createNote, updateNote, getNoteById } from "@/server/note-action";
+import { createNote, updateNote, getNoteById } from "@/server/actions/note-action";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 

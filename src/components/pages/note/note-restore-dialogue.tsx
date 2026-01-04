@@ -9,8 +9,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-
-import { Button } from "@/components/ui/button";
 import React from "react";
 
 interface NoteRestoreDialogProps {

@@ -131,6 +131,11 @@ export default function TodoBoard({
     setStatsLoading(false);
   };
 
+  const handleRefresh = () => {
+    fetchTodos();
+    fetchStats();
+  };
+
   useEffect(() => {
     fetchStats();
   }, []);
@@ -171,7 +176,7 @@ export default function TodoBoard({
         loading={loading}
         title="PLAN"
         todos={plan}
-        fetchTodos={fetchTodos}
+        fetchTodos={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}
@@ -184,7 +189,7 @@ export default function TodoBoard({
         loading={loading}
         title="PENDING"
         todos={pending}
-        fetchTodos={fetchTodos}
+        fetchTodos={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}
@@ -197,7 +202,7 @@ export default function TodoBoard({
         loading={loading}
         title="DONE"
         todos={done}
-        fetchTodos={fetchTodos}
+        fetchTodos={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}
@@ -212,7 +217,7 @@ export default function TodoBoard({
           todoId={selectedId}
           isOpen={openDetail}
           setOpen={setOpenDetail}
-          onUpdate={fetchTodos}
+          onUpdate={handleRefresh}
         />
       )}
 
@@ -221,7 +226,7 @@ export default function TodoBoard({
         todoId={selectedId}
         isOpen={openDelete}
         setOpen={setOpenDelete}
-        onSuccess={fetchTodos}
+        onSuccess={handleRefresh}
       />
 
       {openEdit && selectedId && (
@@ -232,7 +237,7 @@ export default function TodoBoard({
           onSaved={() => {
             setOpenEdit(false);
             setSelectedId(null);
-            fetchTodos();
+            handleRefresh();
           }}
         />
       )}
@@ -244,7 +249,7 @@ export default function TodoBoard({
         isSoft={true}
         onSuccess={() => {
           clearSelection();
-          fetchTodos();
+          handleRefresh();
         }}
       />
     </div>

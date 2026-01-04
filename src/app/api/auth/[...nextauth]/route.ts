@@ -11,41 +11,6 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // 1. Check Auth Intent
-      const { getAuthIntent, clearAuthIntent } = await import("@/server/auth-intent");
-      // @ts-ignore
-      const intent = await getAuthIntent();
-
-      const existingUser = await prisma.user.findUnique({
-        where: { email: user.email! },
-      });
-
-      if (intent === "login") {
-        if (!existingUser) {
-          // If trying to login but no text-user, ideally show error.
-          // NextAuth URL error: /api/auth/signin?error=AccessDenied
-          // checking constraint logic...
-          // For now we just return false to deny.
-          return "/auth/login?error=AccountNotFound"; 
-        }
-        return true;
-      }
-
-      if (intent === "register") {
-        if (existingUser) {
-           return "/auth/login?error=AccountExists";
-        }
-        // Allow creation
-        return true; 
-      }
-      
-      // If no intent (e.g. direct link or legacy or auto), default to...
-      // If user exists, allow login. If not, maybe block?
-      // Since we want explicit, let's block creation if no intent.
-      if (!existingUser) {
-          return "/auth/login?error=InvalidIntent";
-      }
-
       return true;
     },
     async session({ session, token }) {

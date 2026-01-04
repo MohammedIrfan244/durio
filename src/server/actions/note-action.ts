@@ -1,8 +1,8 @@
 "use server";
 import { Prisma } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { CreateNoteSchema, UpdateNoteSchema, DeleteNoteSchema, CreateFolderSchema, UpdateFolderSchema, DeleteFolderSchema, CreateNoteInput } from "../schema/note";
-import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload, IGetNoteListPayload } from "../types/note";
+import { prisma } from "@/lib/prisma";
+import { CreateNoteSchema, UpdateNoteSchema, DeleteNoteSchema, CreateFolderSchema, UpdateFolderSchema, DeleteFolderSchema, CreateNoteInput } from "@/schema/note";
+import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload, IGetNoteListPayload } from "@/types/note";
 import { withErrorWrapper } from "@/lib/server-utils/error-wrapper"; 
 import { getUserId } from "@/lib/server-utils/get-user"; 
 
@@ -151,7 +151,7 @@ export const updateNote = withErrorWrapper<INote, [any]>(async (input) => {
 // Move note to folder
 export const moveNote = withErrorWrapper<INote, [any]>(async (input) => {
     // Import dynamically to avoid circular dependencies if any are present in schema import
-    const { MoveNoteSchema } = await import("../schema/note");
+    const { MoveNoteSchema } = await import("@/schema/note");
 	const validatedInput = MoveNoteSchema.parse(input);
 	const userId = await getUserId();
 	

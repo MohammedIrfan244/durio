@@ -31,6 +31,12 @@ import {
   PenTool, Pen
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface IconPickerProps {
   value?: string;
@@ -97,20 +103,27 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
                         if (!Icon) return null;
                         
                         return (
-                            <div 
-                                key={iconName}
-                                className={cn(
-                                    "flex items-center justify-center p-2 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
-                                    value === iconName && "bg-primary text-primary-foreground hover:bg-primary/90"
-                                )}
-                                onClick={() => {
-                                    onChange(iconName);
-                                    setIsOpen(false);
-                                }}
-                                title={iconName}
-                            >
-                                <Icon className="h-5 w-5" />
-                            </div>
+                            <TooltipProvider key={iconName}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div 
+                                            className={cn(
+                                                "flex items-center justify-center p-2 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
+                                                value === iconName && "bg-primary text-primary-foreground hover:bg-primary/90"
+                                            )}
+                                            onClick={() => {
+                                                onChange(iconName);
+                                                setIsOpen(false);
+                                            }}
+                                        >
+                                            <Icon className="h-5 w-5" />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{iconName}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )
                     })}
                 </div>

@@ -37,40 +37,16 @@ export default function Login() {
         <CardContent className="pt-4">
 
           {/* Google Sign-In Button */}
-          {/* Google Sign-In Buttons */}
+          {/* Google Sign-In Button */}
           <div className="flex flex-col gap-3 w-full">
             <Button
               variant="default"
-              onClick={async () => {
-                const { setRegisterIntent } = await import("@/server/actions/auth-intent-action");
-                await setRegisterIntent();
-                signIn("google");
-              }}
+              onClick={() => signIn("google")}
               className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
             >
               <span className="font-medium text-primary-foreground">
-                Create Account with Google
-              </span>
-            </Button>
-            
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink-0 mx-4 text-xs text-muted-foreground">OR</span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
-
-            <Button
-              variant="outline"
-              onClick={async () => {
-                const { setLoginIntent } = await import("@/server/actions/auth-intent-action");
-                await setLoginIntent();
-                signIn("google");
-              }}
-              className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
-            >
-              <span className="text-sm font-medium text-foreground">
-                Login with 
-                &nbsp;
+                Continue with 
+                 &nbsp;
                 <span className="text-blue-500 font-semibold text-base">G</span>
                 <span className="text-red-500 font-semibold text-base">o</span>
                 <span className="text-yellow-500 font-semibold text-base">o</span>
