@@ -19,6 +19,9 @@ model User {
   notifications Notification[]
   noteFolders   NoteFolder[]
   notes         Note[]
+  
+  timezone      String? // e.g. "Asia/Kolkata"
+  displayName   String?
 }
 
 // Todo Section 

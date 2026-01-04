@@ -36,7 +36,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { createTodoSchema } from "@/schema/todo";
 import type { CreateTodoInput } from "@/schema/todo";
 import { IPriority, IRenewInterval } from "@/types/todo";
-import { createTodo, updateTodo, getTodoById } from "@/server/to-do-action";
+import { createTodo, updateTodo, getTodoById } from "@/server/actions/to-do-action";
 import { toast } from "sonner";
 import {
   CheckSquare,

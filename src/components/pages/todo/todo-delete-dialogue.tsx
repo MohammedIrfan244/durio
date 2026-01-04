@@ -11,7 +11,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { softDeleteTodo , deleteTodo } from "@/server/to-do-action";
+import { softDeleteTodo , deleteTodo } from "@/server/actions/to-do-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
 
 interface TodoDeleteDialogueProps {

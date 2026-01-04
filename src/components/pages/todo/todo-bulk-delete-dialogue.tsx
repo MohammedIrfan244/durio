@@ -14,7 +14,7 @@ import { withClientAction } from "@/lib/helper/with-client-action";
 import {
   bulkDeleteTodos,
   bulkSoftDeleteTodos,
-} from "@/server/to-do-action";
+} from "@/server/actions/to-do-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 

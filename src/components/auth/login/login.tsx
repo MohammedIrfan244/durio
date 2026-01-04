@@ -30,30 +30,56 @@ export default function Login() {
             Welcome to <span className="title">{APP_NAME}</span>
           </CardTitle>
           <CardDescription>
-            Your plan matter bro, let&apos;s get you signed in!
+            Your plan matters. Login or create an account to get started!
           </CardDescription>
         </CardHeader>
 
         <CardContent className="pt-4">
 
           {/* Google Sign-In Button */}
-          <Button
-            variant="outline"
-            onClick={() => signIn("google")}
-            className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
-          >
-            <span className="text-sm font-medium text-foreground">
-              Sign in with 
-              &nbsp;
-              &nbsp;
-              <span className="text-blue-500 font-semibold text-base">G</span>
-              <span className="text-red-500 font-semibold text-base">o</span>
-              <span className="text-yellow-500 font-semibold text-base">o</span>
-              <span className="text-blue-500 font-semibold text-base">g</span>
-              <span className="text-green-500 font-semibold text-base">l</span>
-              <span className="text-red-500 font-semibold text-base -rotate- inline-block">e</span>
-            </span>
-          </Button>
+          {/* Google Sign-In Buttons */}
+          <div className="flex flex-col gap-3 w-full">
+            <Button
+              variant="default"
+              onClick={async () => {
+                const { setRegisterIntent } = await import("@/server/actions/auth-intent-action");
+                await setRegisterIntent();
+                signIn("google");
+              }}
+              className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
+            >
+              <span className="font-medium text-primary-foreground">
+                Create Account with Google
+              </span>
+            </Button>
+            
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-border"></div>
+              <span className="flex-shrink-0 mx-4 text-xs text-muted-foreground">OR</span>
+              <div className="flex-grow border-t border-border"></div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const { setLoginIntent } = await import("@/server/actions/auth-intent-action");
+                await setLoginIntent();
+                signIn("google");
+              }}
+              className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
+            >
+              <span className="text-sm font-medium text-foreground">
+                Login with 
+                &nbsp;
+                <span className="text-blue-500 font-semibold text-base">G</span>
+                <span className="text-red-500 font-semibold text-base">o</span>
+                <span className="text-yellow-500 font-semibold text-base">o</span>
+                <span className="text-blue-500 font-semibold text-base">g</span>
+                <span className="text-green-500 font-semibold text-base">l</span>
+                <span className="text-red-500 font-semibold text-base -rotate- inline-block">e</span>
+              </span>
+            </Button>
+          </div>
 
           {/* Policy Text */}
           <p className="text-[11px] text-muted-foreground mt-6 text-center leading-normal">

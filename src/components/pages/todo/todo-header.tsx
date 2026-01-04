@@ -62,7 +62,7 @@ import {
 } from "@/components/ui/collapsible";
 
 import { TodoFilterInput } from "@/schema/todo";
-import { getTodoTags } from "@/server/to-do-action";
+import { getTodoTags } from "@/server/actions/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { priorityColor, statusColor } from "@/lib/brand";

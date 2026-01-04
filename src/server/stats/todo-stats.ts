@@ -3,13 +3,14 @@ import { prisma } from "@/lib/prisma"
 import { withErrorWrapper } from "@/lib/server-utils/error-wrapper"
 import { getUserId } from "@/lib/server-utils/get-user"
 import { ITodoStatsResponsePayload, Weekday } from "@/types/todo"
-import { getTodoDateRanges } from "@/lib/server-utils/todo-date-range"
+import { getUserTimezone, getUserDateRanges } from "@/lib/server-utils/date-utils"
 import { generateInsights } from "@/lib/server-utils/generate-insight"
 
 export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []>(
   async (): Promise<ITodoStatsResponsePayload | null> => {
     const userId = await getUserId()
-    const { now, startOfToday, startOfTomorrow, startOfWeek, startOfLast30Days, daysElapsedThisWeek } = getTodoDateRanges()
+    const timezone = await getUserTimezone(userId);
+    const { now, startOfToday, startOfTomorrow, startOfWeek, startOfLast30Days, daysElapsedThisWeek } = getUserDateRanges(timezone)
 
     // 1. Initial check
     const totalCount = await prisma.todo.count({ where: { userId } })

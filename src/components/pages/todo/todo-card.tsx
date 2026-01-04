@@ -2,7 +2,7 @@
 
 import { IGetTodoList, ITodoStatusChangeable } from "@/types/todo";
 import { formatDate } from "@/lib/helper/date-formatter";
-import { changeTodoStatus } from "@/server/to-do-action";
+import { changeTodoStatus } from "@/server/actions/to-do-action";
 import { ChangeTodoStatusInput } from "@/schema/todo";
 import { useTransition } from "react";
 import { priorityColor, statusColor } from "@/lib/brand";

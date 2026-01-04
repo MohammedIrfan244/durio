@@ -5,7 +5,7 @@ import {
   getTodoById,
   markChecklistItem,
   changeTodoStatus,
-} from "@/server/to-do-action";
+} from "@/server/actions/to-do-action";
 import type { ITodo, ITodoStatusChangeable } from "@/types/todo";
 import { Button } from "@/components/ui/button";
 import {

@@ -2,6 +2,7 @@
 import React from "react";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "../theme-provider";
+import TimezoneOnboarding from "../auth/timezone-onboarding";
 
 function SessionProviderWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ function SessionProviderWrapper({ children }: { children: React.ReactNode }) {
         enableSystem
       >
         {children}
+        <TimezoneOnboarding />
       </ThemeProvider>
     </SessionProvider>
   );

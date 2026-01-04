@@ -14,7 +14,7 @@ import {
     restoreAllFromArchive,
     moveNote,
     restoreNoteFolder,
-} from "@/server/note-action";
+} from "@/server/actions/note-action";
 import { NoteHeader } from "./note-header";
 import { FolderShelfSkeleton } from "@/components/skelton/note/folder-shelf-skeleton";
 import { NoteGridSkeleton } from "@/components/skelton/note/note-grid-skeleton";
@@ -88,13 +88,11 @@ export default function Note() {
                 // Default View
                 const foldersRes = await getFolders();
                 setFolders(foldersRes.data || []);
-                // Only fetch root notes (not in any folder) when no folder is selected
-                const mod = await import("@/server/note-action");
+                const mod = await import("@/server/actions/note-action");
                 if (selectedFolderId) {
                   const notesRes = await mod.getNotes(selectedFolderId);
                   setActiveNotes(notesRes.data as unknown as INote[] || []);
                 } else {
-                  // Fetch only notes with folderId: null
                   const notesRes = await mod.getNotes(undefined);
                   setActiveNotes(notesRes.data as unknown as INote[] || []);
                 }
@@ -183,7 +181,7 @@ export default function Note() {
                // I'll reuse the effect logic by toggling something or just force calling the internal fetch
                // Simplest: just call loadData() but loadData might be stale for active view if I used the separate effect.
                // I'll make loadData comprehensive or just reload page? No, reload state.
-               const mod = await import("@/server/note-action");
+               const mod = await import("@/server/actions/note-action");
                const res = await mod.getNotes(selectedFolderId || undefined);
                setActiveNotes(res.data as unknown as INote[] || []);
           } else {

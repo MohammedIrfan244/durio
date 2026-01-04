@@ -29,7 +29,7 @@ import {
   getArchivedTodos,
   restoreAllFromArchive,
   searchArchivedTodos,
-} from "@/server/to-do-action";
+} from "@/server/actions/to-do-action";
 import { IGetArchivedTodoListPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import TodoArchiveCard from "./todo-archive-card";
