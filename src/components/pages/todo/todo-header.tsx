@@ -522,7 +522,7 @@ export default function TodoHeader({
               <div className="flex-1 h-px bg-primary/20" />
 
               <span className="flex items-center gap-1 text-sm font-semibold">
-                {filtersExpanded ? "Hide" : "Show"}
+                {filtersExpanded ? "Less" : "More"}
                 {filtersExpanded ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (

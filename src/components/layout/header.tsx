@@ -41,13 +41,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useDifficulty, DIFFICULTY_LABELS, Difficulty } from "@/hooks/use-difficulty";
-import { Check, ChevronsUpDown, Gamepad2 } from "lucide-react";
 
 // Decorations & Dialogs
 import PookieFlowers from "../decoration/pookie-flowers";
@@ -304,11 +297,14 @@ const ActionButton = ({
   </TooltipProvider>
 );
 
-const UserMenu = ({ username, userEmail, theme, onLogout }: any) => {
-  const { difficulty, setDifficulty, mounted } = useDifficulty();
-  const [isOpen, setIsOpen] = useState(false);
+interface UserMenuProps {
+  username: string;
+  userEmail: string;
+  theme?: string;
+  onLogout: () => void;
+}
 
-  if (!mounted) return null;
+const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
 
   return (
     <DropdownMenu>
@@ -350,45 +346,6 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: any) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="relative z-10" />
-        
-        {/* Difficulty Selection */}
-        <div className="py-1 relative z-10 nav-item-group">
-            <Collapsible
-                open={isOpen}
-                onOpenChange={setIsOpen}
-                className="w-full"
-            >
-                <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer group">
-                        <div className="flex items-center gap-4 text-muted-foreground group-hover:text-foreground">
-                            <Gamepad2 className="animate-journal" size={16} />
-                            <span className="font-medium text-foreground">Vibe check</span>
-                        </div>
-                        <ChevronsUpDown size={12} className="text-muted-foreground" />
-                    </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-1 mt-1 ml-2 border-l pl-2">
-                    {(Object.keys(DIFFICULTY_LABELS) as Difficulty[]).map((level) => (
-                        <div
-                            key={level}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setDifficulty(level);
-                            }}
-                            className={clsx(
-                                "flex items-center justify-between px-2 py-1.5 text-xs rounded-sm cursor-pointer transition-colors",
-                                difficulty === level 
-                                    ? "bg-primary/10 text-primary font-medium" 
-                                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                            )}
-                        >
-                            <span>{DIFFICULTY_LABELS[level]}</span>
-                            {difficulty === level && <Check size={12} />}
-                        </div>
-                    ))}
-                </CollapsibleContent>
-            </Collapsible>
-        </div>
 
         <DropdownMenuSeparator className="relative z-10" />
 

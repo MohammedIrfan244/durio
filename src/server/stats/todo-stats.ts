@@ -23,7 +23,15 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []
         prisma.todo.count({ where: { userId, status: { in: ["PLAN", "PENDING"] } } }),
         prisma.todo.count({ where: { userId, status: "DONE" } }),
         prisma.todo.count({ where: { userId, status: { in: ["CANCELLED", "ARCHIVED"] } } }),
-        prisma.todo.count({ where: { userId, status: { in: ["PLAN", "PENDING"] }, dueDate: { lt: now } } }),
+        prisma.todo.count({ 
+          where: { 
+            userId, 
+            OR: [
+              { status: "OVERDUE" },
+              { status: { in: ["PLAN", "PENDING"] }, dueDate: { lt: now } }
+            ]
+          } 
+        }),
       ]),
       // Today/Week Stats
       Promise.all([
@@ -63,7 +71,7 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []
     const statsPayload: ITodoStatsResponsePayload = {
       overview: { totalTodos: totalCount, activeTodos, completedTodos, cancelledOrArchived, overdueTodos },
       today: { 
-        dueToday, overdueNow: overdueTodos, completedToday, completedThisWeek, 
+        dueToday: dueToday + overdueTodos, overdueNow: overdueTodos, completedToday, completedThisWeek, 
         createdToday, createdThisWeek, 
         completionRateToday: dueToday > 0 ? Math.round((completedTodayOfDueToday / dueToday) * 100) : undefined 
       },
