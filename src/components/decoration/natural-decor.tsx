@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function LeafSVG() {
   return (
@@ -14,6 +14,14 @@ function LeafSVG() {
 
 export default function NaturalDecor({ leaves = 8 }: { leaves?: number }) {
   const items = Array.from({ length: leaves });
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>

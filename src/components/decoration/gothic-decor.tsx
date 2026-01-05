@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function BatSVG() {
   return (
@@ -12,6 +12,14 @@ function BatSVG() {
 export default function GothicDecor({ embers = 14, bats = 6 }) {
   const emberItems = Array.from({ length: embers });
   const batItems = Array.from({ length: bats });
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>

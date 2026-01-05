@@ -1,8 +1,15 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function DarkDecor({ stars = 40 }: { stars?: number }) {
   const items = Array.from({ length: stars });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>

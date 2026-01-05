@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function PetalSVG({ white }: { white: boolean }) {
   return (
@@ -14,6 +14,14 @@ function PetalSVG({ white }: { white: boolean }) {
 
 export default function PookieFlowers({ count = 24 }: { count?: number }) {
   const petals = Array.from({ length: count });
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>
