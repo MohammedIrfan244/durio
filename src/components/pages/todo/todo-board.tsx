@@ -26,7 +26,6 @@ import { Card } from "@/components/ui/card";
 import { StatsColumn } from "./todo-streak";
 import { NoTodos } from "@/components/skelton/todo/no-todo-skeoton";
 import TodoBulkDeleteDialogue from "./todo-bulk-delete-dialogue";
-import { toast } from "sonner";
 
 interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";

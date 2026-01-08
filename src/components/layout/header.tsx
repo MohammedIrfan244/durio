@@ -115,7 +115,7 @@ export default function Header() {
   if (!mounted) return <Card className="border bg-background h-16" />;
 
   return (
-    <Card className="border card">
+    <Card className="border card header-pattern">
       <CardContent className="px-6 flex items-center justify-between relative">
         <NavSection title={title} description={description} />
 

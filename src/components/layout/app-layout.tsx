@@ -30,11 +30,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Header />
           <main
             style={{
-              background: "transparent",
+              backgroundColor: "transparent",
               backdropFilter: "blur(24px)",
               WebkitBackdropFilter: "blur(24px)",
             }}
-            className="flex-1 overflow-y-auto hide-scrollbar-on-main"
+            className="flex-1 overflow-y-auto hide-scrollbar-on-main main-content-pattern"
           >
             {children}
           </main>

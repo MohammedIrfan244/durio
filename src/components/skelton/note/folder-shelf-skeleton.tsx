@@ -4,8 +4,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export function FolderShelfSkeleton() {
   return (
-    <div className="mb-8 py-2">
-       <div className="mb-4">
+    <div className="py-2">
+       <div className="mb-2">
          <Skeleton className="h-7 w-32 rounded-md" />
        </div>
        

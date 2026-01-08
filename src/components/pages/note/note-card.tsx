@@ -39,7 +39,7 @@ export function NoteCard({
   onMove,
   isArchivedView
 }: NoteCardProps) {
-  const noteColor = note.color || "#fbbf24"; // Default yellow sticky note
+  const noteColor = note.color || "#fbbf24";
   const maxCollapsedLength = 150;
   const shouldTruncate = note.description.length > maxCollapsedLength;
 
@@ -48,13 +48,9 @@ export function NoteCard({
       layout
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ 
-        rotate: 1,
-        transition: { type: "spring", stiffness: 300    }
-      }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className={cn(
-        "group relative flex flex-col rounded-lg transition-all duration-300",
+        "group relative flex flex-col rounded-lg hover:scale-[1.02] hover:rotate-1 transition-all duration-100 ease-in-out",
         "hover:shadow-md",
         !selectionMode && "cursor-pointer",
         isSelected && "ring-2 ring-primary"
@@ -64,8 +60,8 @@ export function NoteCard({
         borderColor: `${noteColor}40`,
         borderWidth: "1px",
         borderStyle: "solid",
-        minHeight: "280px", // Increased min-height for vertical A4 feel
-        aspectRatio: "1/1.4" // A4 aspect ratio approximation
+        minHeight: "280px",
+        aspectRatio: "1/1.4"
       }}
       onClick={selectionMode ? onToggleSelect : onToggleExpand}
     >

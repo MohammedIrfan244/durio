@@ -175,12 +175,7 @@ export default function Note() {
           setSelectionMode(false);
           setConfirmBulkDelete(false);
           loadData(); // Reload
-          // Or separate reload
           if(!debouncedSearch && !archiveMode) {
-               // manual reload trigger? relying on useEffect deps might not be enough if state didn't change
-               // I'll reuse the effect logic by toggling something or just force calling the internal fetch
-               // Simplest: just call loadData() but loadData might be stale for active view if I used the separate effect.
-               // I'll make loadData comprehensive or just reload page? No, reload state.
                const mod = await import("@/server/actions/note-action");
                const res = await mod.getNotes(selectedFolderId || undefined);
                setActiveNotes(res.data as unknown as INote[] || []);
@@ -240,18 +235,17 @@ export default function Note() {
         onOpenCreateFolder={handleCreateFolder}
         onBulkDelete={handleBulkDelete}
         onRestoreAll={handleRestoreAll}
-        // onBulkRestore // Implement if needed
         headerTitle={selectedFolderId ? folders.find(f => f.id === selectedFolderId)?.name : "Notes"}
         onBack={selectedFolderId ? () => setSelectedFolderId(null) : undefined}
       />
 
       {(loading && !debouncedSearch) ? (
-          <div className="space-y-6">
+          <>
               <FolderShelfSkeleton />
               <NoteGridSkeleton />
-          </div>
+          </>
       ) : (
-          <div className="space-y-6"> 
+          <>
             
             {/* Folder Shelf logic ... keeping same */}
             {!archiveMode && !search && (
@@ -275,7 +269,7 @@ export default function Note() {
             )}
             
             {(archiveMode && folders.length > 0) && (
-                 <div className="mb-4">
+                 <>
                      <h3 className="tex-sm font-muted mb-2">Archived Folders</h3>
                      <FolderShelf 
                         folders={folders}
@@ -285,7 +279,7 @@ export default function Note() {
                         onDeleteFolder={handleDeleteFolder} 
                         onRestoreFolder={handleRestoreFolder}
                      />
-                 </div>
+                 </>
             )}
 
             <NoteGrid
@@ -299,7 +293,7 @@ export default function Note() {
                 onMoveNote={handleMoveNote} 
                 isArchivedView={archiveMode}
             />
-          </div>
+          </>
       )}
 
       {/* Dialogs */}
