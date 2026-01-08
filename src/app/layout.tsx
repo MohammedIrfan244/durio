@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import {
   Geist,
   Geist_Mono,
-  Pacifico,
-  Lato,
+  Patrick_Hand,
+  Mali,
+  DynaPuff,
 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -24,15 +25,21 @@ const geistMono = Geist_Mono({
 });
 
 // NEW FONTS
-const pacifico = Pacifico({
+const patrickHand = Patrick_Hand({
   variable: "--font-heading",
   weight: "400",
   subsets: ["latin"],
 });
 
-const lato = Lato({
+const mali = Mali({
   variable: "--font-body",
-  weight: ["300", "400", "700"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  subsets: ["latin"],
+});
+
+const dynaPuff = DynaPuff({
+  variable: "--font-bubbly",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -48,8 +55,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`
           ${geistSans.variable}
           ${geistMono.variable}
-          ${pacifico.variable}
-          ${lato.variable}
+          ${patrickHand.variable}
+          ${mali.variable}
+          ${dynaPuff.variable}
           antialiased
         `}
       >

@@ -27,13 +27,13 @@ export function FolderShelf({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4 group nav-item-group">
+      <div className="flex items-center group nav-item-group">
         <h2 className="text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-primary">
           Your Folders
         </h2>
       </div>
       
-      <ScrollArea className="w-full whitespace-nowrap pb-4">
+      <ScrollArea className="w-full whitespace-nowrap pb-2">
         <div className="flex w-max space-x-4 px-1 items-end py-2 relative">
           {/* All Notes Home Card */}
           <motion.div

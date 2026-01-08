@@ -44,12 +44,21 @@ export default function Sidebar() {
           {isOpen ? (
             <Link
               href="/"
-              className="flex flex-col border-b pb-4 pt-2 space-y-1"
+              className="flex flex-col border-b cursor-pointer pb-4 pt-2 space-y-1"
             >
               <h2
-                className={`text-2xl md:text-3xl font-bold md:font-extrabold text-accent-foreground tracking-tight title-animate ${jakarta.className}`}
+                style={{ fontFamily: "var(--font-bubbly)" }}
+                className={`text-2xl md:text-3xl lg:text-4xl cursor-pointer font-bold md:font-extrabold text-accent-foreground tracking-tight bubbly-text cursor-default`}
               >
-                {APP_NAME}
+                {APP_NAME.split("").map((char, index) => (
+                  <span
+                    key={index}
+                    className="letter-bubble"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </span>
+                ))}
               </h2>
               <p className="text-xs md:text-sm tracking-tight text-muted-foreground mt-1">
                 Your personal daily companion
@@ -58,7 +67,8 @@ export default function Sidebar() {
           ) : (
             <Link
               href="/"
-              className="text-2xl font-bold text-foreground tracking-tight transform -translate-x-1 title"
+              style={{ fontFamily: "var(--font-bubbly)" }}
+              className="text-2xl md:text-3xl lg:text-4xl font-bold cursor-pointer text-foreground tracking-tigh transform -translate-x-1 title"
             >
               <h1>{APP_NAME[0]}</h1>
             </Link>
