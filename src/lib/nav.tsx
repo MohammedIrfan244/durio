@@ -1,7 +1,7 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
   Calculator, Image as ImageIcon, Moon, Heart, Zap, 
-  PenLine, Rocket, BookOpen, Archive, Hourglass 
+  PenLine, Rocket, BookOpen, Archive, Hourglass, SmilePlus 
 } from "lucide-react";
 
 export interface NavItem {
@@ -134,5 +134,13 @@ export const navItems: NavItem[] = [
     description: "Math? We just need fast answers.",
     color: "#818CF8",
     animationClass: "animate-calc"
+  },
+  {
+    label: "Talk with DURIA",
+    url: "/duria",
+    icon: <SmilePlus size={18} />,
+    description: "Your friendly AI companion.",
+    color: "#22D3EE",
+    animationClass: "animate-smile"
   }
 ];

@@ -894,6 +894,10 @@ body {
   animation: calc-press 0.6s ease-in-out;
 }
 
+.nav-item-group:hover .animate-smile {
+  animation: emoji-wiggle 0.8s ease-in-out;
+}
+
 
 /* ---------------------------
    THEMED SIDEBAR DECORATIONS
@@ -1164,23 +1168,27 @@ body {
 
 @keyframes moon-glide {
   0% {
-    transform: translateX(0) translateY(0);
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
   }
 
-  25% {
-    transform: translateX(40%) translateY(-4px);
+  20% {
+    transform: translateX(-20%) translateY(-5px) rotate(5deg) scale(1.02);
   }
 
-  50% {
-    transform: translateX(80%) translateY(2px);
+  40% {
+    transform: translateX(-50%) translateY(5px) rotate(-3deg) scale(0.98);
   }
 
-  75% {
-    transform: translateX(40%) translateY(-3px);
+  60% {
+    transform: translateX(-80%) translateY(-3px) rotate(3deg) scale(1.02);
+  }
+
+  80% {
+    transform: translateX(-50%) translateY(4px) rotate(-5deg) scale(0.98);
   }
 
   100% {
-    transform: translateX(0) translateY(0);
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
   }
 }
 
@@ -1199,7 +1207,8 @@ body {
 .dark-moon {
   position: absolute;
   top: 1%;
-  left: 0;
+  right: 0;
+  left: auto;
   width: 55px;
   height: 55px;
   border-radius: 999px;
