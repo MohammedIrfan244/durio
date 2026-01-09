@@ -30,7 +30,12 @@ The project follows a **Feature-Based Architecture** within the Next.js App Rout
 
 ```
 src/
-├── app/                  # App Router: Folder-system based routing organized by feature
+├── app/                  # App Router
+│   ├── (main)/           # Route Group for Authenticated App (Sidebar/Header)
+│   │   ├── todo/         # Feature routes inherit MainLayout
+│   │   └── ...
+│   ├── layout.tsx        # Root Layout (Providers only)
+│   └── not-found.tsx     # 404 Page (No Sidebar)
 ├── components/           # React Components: UI, Shared, and Feature-specific
 ├── hooks/                # Custom React Hooks
 ├── lib/                  # Utilities, Helper Functions, and Configuration
@@ -50,13 +55,20 @@ src/
 
 ### 1. `src/app` (Routing)
 Routes are defined here. Each folder represents a route segment. We use a **Feature-First** approach:
--   **Feature Folders**: 
-`books`,
-`notes`,
-`todo`,
-`calendar`,
-`workout`,
-etc., contain their own `page.tsx` and sometimes `layout.tsx`.
+
+#### `(main)` Route Group
+We use a **Route Group** `(main)` to wrap the authenticated application.
+-   **Purpose**: To apply the Sidebar/Header layout (`AppLayout`) *only* to main features (`todo`, `notes`, etc.).
+-   **Benefit**: This allows pages like **404 (`not-found.tsx`)** or **Auth** pages to exist at the root level without inheriting the sidebar.
+
+#### Feature Folders
+Inside `src/app/(main)/`, you will find:
+-   `books`
+-   `notes`
+-   `todo`
+-   `calendar`
+-   `workout`
+-   ... containing their own `page.tsx`.
 
 
 

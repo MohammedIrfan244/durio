@@ -9,7 +9,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import AppLayout from "@/components/layout/app-layout";
+
 import SessionProviderWrapper from "@/components/layout/session-provider";
 import { APP_NAME } from "@/lib/brand";
 
@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}
       >
         <SessionProviderWrapper>
-          <AppLayout>{children}</AppLayout>
+          {children}
         </SessionProviderWrapper>
         <Toaster position="bottom-right" richColors />
       </body>
