@@ -291,7 +291,7 @@ const ActionButton = ({
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="text-xs">
-        Update your current datas
+        Update your current Data
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>

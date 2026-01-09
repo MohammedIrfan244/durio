@@ -18,7 +18,7 @@ export const FocusOnTodayFilter: React.FC<FocusOnTodayFilterProps> = ({
       <Clock className="h-3 w-3 group-hover:rotate-[1.5turn] transition-all duration-600 ease-out" />
       Today Mode
     </Label>
-    <Button as="div" variant="outline" className="flex items-center gap-2 h-9 border border-border/60 bg-secondary/60 backdrop-blur-sm hover:bg-secondary/80 hover:border-primary/50 transition-all duration-300">
+    <Button variant="outline" className="flex items-center gap-2 h-9 border border-border/60 bg-secondary/60 backdrop-blur-sm hover:bg-secondary/80 hover:border-primary/50 transition-all duration-300">
       <Switch id="focus-today-filter" checked={todayMode} onCheckedChange={setTodayMode} />
       <Label htmlFor="focus-today-filter" className="text-sm font-medium cursor-pointer group-hover:text-primary transition-colors duration-300 group-hover:font-bold">
         Focus on Today
