@@ -292,6 +292,7 @@ export default function Note() {
                 onRestoreNote={handleRestoreNote}
                 onMoveNote={handleMoveNote} 
                 isArchivedView={archiveMode}
+                isSearch={!!debouncedSearch}
             />
           </>
       )}

@@ -126,7 +126,7 @@ export default function Header() {
           time={time}
         />
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex gap-3 shrink-0">
           <ActionButton
             loading={loading}
             onClick={() => handleFlag(pathname || "/")}

@@ -106,18 +106,19 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
                             <TooltipProvider key={iconName}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div 
-                                            className={cn(
-                                                "flex items-center justify-center p-2 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors",
-                                                value === iconName && "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            )}
-                                            onClick={() => {
+                                        <CommandItem 
+                                            value={iconName}
+                                            onSelect={() => {
                                                 onChange(iconName);
                                                 setIsOpen(false);
                                             }}
+                                            className={cn(
+                                                "flex items-center justify-center p-2 rounded-md cursor-pointer transition-colors aria-selected:bg-accent aria-selected:text-accent-foreground",
+                                                value === iconName && "bg-primary text-primary-foreground aria-selected:bg-primary aria-selected:text-primary-foreground"
+                                            )}
                                         >
                                             <Icon className="h-5 w-5" />
-                                        </div>
+                                        </CommandItem>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>{iconName}</p>

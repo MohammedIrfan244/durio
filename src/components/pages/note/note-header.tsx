@@ -58,10 +58,10 @@ export function NoteHeader({
     <SectionHeaderWrapper className="mb-6">
         <div className="flex flex-col gap-4">
           {/* Top Row: Back Button, Search & Primary Actions */}
-          <div className="flex flex-col sm:flex-row items-stretch gap-4">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
             
-            {/* Search Bar with Back Button */}
-            <div className="flex-1 relative group nav-item-group flex items-center gap-2">
+            {/* Search Bar with Back Button - LINE 1 on Mobile */}
+            <div className="order-1 md:order-none flex-1 relative group nav-item-group flex items-center gap-2 w-full">
               {onBack && (
                 <Button 
                   variant="ghost" 
@@ -80,51 +80,53 @@ export function NoteHeader({
               />
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
+            {/* Right Side Actions Wrapper */}
+            <div className="contents md:flex md:flex-row md:items-center md:justify-between md:gap-2 md:w-auto">
               
-              {/* Add Menu - Primary Action */}
+              {/* Add Menu - Primary Action - LINE 3 on Mobile (Full Width) */}
               {!archiveMode && !selectionMode && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button className="gap-2 font-semibold group shadow-md hover:shadow-lg transition-all duration-300">
-                      <Plus className="h-5 w-5 group-hover:rotate-180 ease-out transition-transform duration-600" />
-                      <span className="hidden sm:inline">Add New</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={onOpenCreateFolder} className="gap-2 cursor-pointer py-2">
-                      <div className="p-1 rounded bg-orange-100 dark:bg-orange-900/30">
-                        <FolderPlus className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">Folder</span>
-                        <span className="text-xs text-muted-foreground">Group your notes</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onOpenCreateNote} className="gap-2 cursor-pointer py-2">
-                      <div className="p-1 rounded bg-blue-100 dark:bg-blue-900/30">
-                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">Note</span>
-                        <span className="text-xs text-muted-foreground">Create a new note</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="order-3 md:order-none w-full md:w-auto mt-2 md:mt-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="w-full md:w-auto gap-2 font-semibold group shadow-md hover:shadow-lg transition-all duration-300">
+                        <Plus className="h-5 w-5 group-hover:rotate-180 ease-out transition-transform duration-600" />
+                        <span className="inline">Add New</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={onOpenCreateFolder} className="gap-2 cursor-pointer py-2">
+                        <div className="p-1 rounded bg-orange-100 dark:bg-orange-900/30">
+                          <FolderPlus className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium">Folder</span>
+                          <span className="text-xs text-muted-foreground">Group your notes</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onOpenCreateNote} className="gap-2 cursor-pointer py-2">
+                        <div className="p-1 rounded bg-blue-100 dark:bg-blue-900/30">
+                          <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium">Note</span>
+                          <span className="text-xs text-muted-foreground">Create a new note</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               )}
 
-              {/* Mode Toggle Cards */}
-              <div className="flex items-center gap-2 flex-1 md:flex-initial">
+              {/* Mode Toggle Cards - LINE 2 on Mobile */}
+              <div className="order-2 md:order-none flex items-center gap-2 w-full md:w-auto md:flex-initial overflow-x-auto pb-1 md:pb-0 scrollbar-none">
                 
                 {/* Selection Mode Card */}
                 <Card
-                  className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
-                         duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
+                  className="flex-1 min-w-[140px] md:min-w-0 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
+                         duration-300 hover:bg-secondary/50 hover:border-primary/20 group my-auto"
                   onClick={() => setSelectionMode(!selectionMode)}
                 >
-                  <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
+                  <CardContent className="flex items-center justify-between gap-3 py-0 px-2 h-full">
                     <Label
                       className="text-sm font-bold text-foreground/80 cursor-pointer 
                              transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap pointer-events-none"
@@ -133,7 +135,7 @@ export function NoteHeader({
                     </Label>
                     <Switch
                       checked={selectionMode}
-                      className="pointer-events-none"
+                      className="pointer-events-none scale-75 md:scale-100"
                     />
                   </CardContent>
                 </Card>
@@ -141,24 +143,24 @@ export function NoteHeader({
                 {/* Archive Mode Card */}
                 {!selectionMode && (
                   <Card
-                    className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
-                           duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
+                    className="flex-1 min-w-[140px] md:min-w-0 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
+                           duration-300 hover:bg-secondary/50 hover:border-primary/20 group my-auto"
                     onClick={() => {
                       setArchiveMode(!archiveMode);
                       if (onBack) onBack();
                       setSelectionMode(false);
                     }}
                   >
-                    <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
+                    <CardContent className="flex items-center justify-between gap-3 py-0 px-2 h-full">
                       <Label
                         className="text-sm font-bold text-foreground/80 cursor-pointer 
                                transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap pointer-events-none"
                       >
-                        {archiveMode ? "Active Notes" : "Archive"}
+                        {archiveMode ? "Active" : "Archive"}
                       </Label>
                       <Switch
                         checked={archiveMode}
-                        className="pointer-events-none"
+                        className="pointer-events-none scale-75 md:scale-100"
                       />
                     </CardContent>
                   </Card>

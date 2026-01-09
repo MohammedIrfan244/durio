@@ -2,6 +2,7 @@ import { useState } from "react";
 import { INote } from "@/types/note";
 import { NoteCard } from "./cards/note-card";
 import Masonry from "react-masonry-css";
+import { NoNotes } from "@/components/skelton/note/no-notes";
 
 interface NoteGridProps {
   notes: INote[];
@@ -13,6 +14,7 @@ interface NoteGridProps {
   onRestoreNote?: (note: INote) => void;
   onMoveNote?: (note: INote) => void;
   isArchivedView?: boolean;
+  isSearch?: boolean;
 }
 
 export function NoteGrid({
@@ -24,7 +26,8 @@ export function NoteGrid({
   onDeleteNote,
   onRestoreNote,
   onMoveNote,
-  isArchivedView
+  isArchivedView,
+  isSearch
 }: NoteGridProps) {
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
 
@@ -42,9 +45,13 @@ export function NoteGrid({
 
   if (notes.length === 0) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed text-muted-foreground">
-        <p>{isArchivedView ? "No archived notes" : "No notes found"}</p>
-      </div>
+      <NoNotes 
+        variant={
+          isSearch ? 'search' : 
+          isArchivedView ? 'archive' : 
+          'default'
+        } 
+      />
     );
   }
 

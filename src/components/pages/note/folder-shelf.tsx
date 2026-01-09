@@ -33,8 +33,8 @@ export function FolderShelf({
         </h2>
       </div>
       
-      <ScrollArea className="w-full whitespace-nowrap pb-2">
-        <div className="flex w-max space-x-4 px-1 items-end py-2 relative">
+      <ScrollArea className="w-full whitespace-nowrap pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex w-max space-x-4 pr-4 sm:pr-1 items-end py-2 relative">
           {/* All Notes Home Card */}
           <motion.div
             whileHover={{ y: -4 }}

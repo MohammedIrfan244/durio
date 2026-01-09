@@ -9,8 +9,8 @@ export function FolderShelfSkeleton() {
          <Skeleton className="h-7 w-32 rounded-md" />
        </div>
        
-       <ScrollArea className="w-full whitespace-nowrap pb-4">
-        <div className="flex w-max space-x-4 px-1 items-end py-2">
+       <ScrollArea className="w-full whitespace-nowrap pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex w-max space-x-4 pr-4 sm:pr-1 items-end py-2">
           {/* Mock All Notes Card */}
           <Skeleton className="h-[100px] w-[110px] rounded-xl" />
           

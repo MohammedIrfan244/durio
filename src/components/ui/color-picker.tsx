@@ -84,9 +84,6 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                    style={{ backgroundColor: color }}
                    onClick={() => {
                      onChange(color);
-                     // keep open for tweaking or close? User might usually just pick one. 
-                     // Let's keep it user controlled or I can close.
-                     // I'll leave it open so they can verify.
                    }}
                  >
                    {value === color && (
