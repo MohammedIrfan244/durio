@@ -53,15 +53,16 @@ export function NoteCard({
         "group relative flex flex-col rounded-lg hover:scale-[1.02] hover:rotate-1 transition-all duration-100 ease-in-out",
         "hover:shadow-md",
         !selectionMode && "cursor-pointer",
-        isSelected && "ring-2 ring-primary"
+        isSelected && "ring-2 ring-primary",
+        // Responsive Height & Aspect Ratio
+        "md:min-h-[280px] md:aspect-[1/1.4]",
+        isExpanded ? "min-h-[280px]" : "min-h-[140px]"
       )}
       style={{
         backgroundColor: `${noteColor}15`,
         borderColor: `${noteColor}40`,
         borderWidth: "1px",
         borderStyle: "solid",
-        minHeight: "280px",
-        aspectRatio: "1/1.4"
       }}
       onClick={selectionMode ? onToggleSelect : onToggleExpand}
     >
@@ -90,7 +91,7 @@ export function NoteCard({
         {/* Description */}
         <div className={cn(
           "text-sm text-foreground/80 break-words whitespace-pre-wrap transition-all duration-300",
-          !isExpanded && shouldTruncate && "line-clamp-4"
+          !isExpanded && shouldTruncate && "line-clamp-2 md:line-clamp-4"
         )}>
           {isExpanded 
             ? note.description 

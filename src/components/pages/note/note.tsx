@@ -246,8 +246,6 @@ export default function Note() {
           </>
       ) : (
           <>
-            
-            {/* Folder Shelf logic ... keeping same */}
             {!archiveMode && !search && (
                 <FolderShelf 
                     folders={folders}
