@@ -1,0 +1,16 @@
+{
+    "todo":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1767853518/light_v0xalx.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1767853518/dark_udwtgw.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1767853519/pooki_erguhx.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1767853518/goth_daoshm.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1767853519/nature_db4scg.png"
+    },
+    "notes":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1767928844/light_teymli.jpg",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1767928843/dark_rztbkl.jpg",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1767928844/pookie_qv8ggv.jpg",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1767928844/gothic_gdtify.jpg",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1767928844/natural_qcinr0.jpg"
+    }
+}

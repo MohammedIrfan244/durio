@@ -21,6 +21,7 @@ import {
     RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 
 interface NoteHeaderProps {
   search: string;
@@ -56,8 +57,7 @@ export function NoteHeader({
   onBack
 }: NoteHeaderProps) {
   return (
-    <Card className="border w-full card overflow-x-hidden mb-6">
-      <div className="w-full p-4 sm:p-6 pb-4">
+    <SectionHeaderWrapper className="mb-6">
         <div className="flex flex-col gap-4">
           {/* Top Row: Back Button, Search & Primary Actions */}
           <div className="flex flex-col sm:flex-row items-stretch gap-4">
@@ -239,7 +239,6 @@ export function NoteHeader({
             </div>
           )}
         </div>
-      </div>
-    </Card>
+    </SectionHeaderWrapper>
   );
 }

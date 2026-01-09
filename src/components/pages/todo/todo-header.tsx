@@ -26,7 +26,6 @@ import {
   ArrowDown,
   EyeOff,
   Eye,
-  Archive
 } from "lucide-react";
 
 // Shadcn UI Components
@@ -41,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Popover,
   PopoverTrigger,
@@ -67,6 +65,7 @@ import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { priorityColor, statusColor } from "@/lib/brand";
 import ToDoDialog from "./todo-dialogue";
+import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import TodoArchive from "./todo-archive";
 
 
@@ -472,8 +471,6 @@ const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
   </div>
 );
 
-// Parent Component
-
 export default function TodoHeader({
   filters,
   setFilters,
@@ -485,10 +482,8 @@ export default function TodoHeader({
   load,
 }: TodoHeaderProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  
   return (
-    <Card className="border w-full card overflow-x-hidden">
-      <div className="w-full p-4 sm:p-6 pb-0">
+    <SectionHeaderWrapper>
         {/* Top Row: Search, Today Mode */}
         <SearchAndCreateRow
           search={search}
@@ -544,7 +539,6 @@ export default function TodoHeader({
             </div>
           </CollapsibleContent>
         </Collapsible>
-      </div>
-    </Card>
+    </SectionHeaderWrapper>
   );
 }
