@@ -13,7 +13,7 @@ export const FocusOnTodayFilter: React.FC<FocusOnTodayFilterProps> = ({
   todayMode,
   setTodayMode,
 }) => (
-  <div className="flex flex-col gap-2 group">
+  <div className="flex flex-col gap-2 group col-span-2 sm:col-span-1">
     <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
       <Clock className="h-3 w-3 group-hover:rotate-[1.5turn] transition-all duration-600 ease-out" />
       Today Mode

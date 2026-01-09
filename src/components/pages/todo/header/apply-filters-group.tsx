@@ -9,7 +9,7 @@ interface ApplyFiltersGroupProps {
 
 export const ApplyFiltersGroup: React.FC<ApplyFiltersGroupProps> = ({ applyFilters }) => {
   return (
-    <div className="flex flex-col gap-2 w-full col-span-2 sm:col-span-1 xl:col-span-1 self-end">
+    <div className="flex flex-col gap-2 w-full col-span-1">
       {/* Invisible label for alignment */}
       <Label className="text-xs font-semibold text-transparent select-none">
         &nbsp;
