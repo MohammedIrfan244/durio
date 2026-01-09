@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { MONGOID } from "./mongo";
 
+// Shared Enums
+export const TodoStatusEnum = z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]);
+export type TodoStatus = z.infer<typeof TodoStatusEnum>;
+
+export const TodoPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH"]);
+export type TodoPriority = z.infer<typeof TodoPriorityEnum>;
+
+export const RenewIntervalEnum = z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"]);
+export type RenewInterval = z.infer<typeof RenewIntervalEnum>;
+
 // TODO THINGS
 
 // Schema for creating a new to-do item
@@ -15,7 +25,7 @@ export const createTodoSchema = z.object({
     .max(300, "Description cannot exceed 300 characters")
     .optional(),
 
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  priority: TodoPriorityEnum.optional(),
 
   tags: z.array(z.string()).optional(),
 
@@ -23,7 +33,7 @@ export const createTodoSchema = z.object({
   dueTime: z.string().optional(),
 
   renewStart: z.union([z.string(), z.date()]).optional(),
-  renewInterval: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"]).optional(),
+  renewInterval: RenewIntervalEnum.optional(),
   renewEvery: z.number().optional(),
   renewCustom: z.string().optional(),
 
@@ -38,15 +48,13 @@ export const createTodoSchema = z.object({
     )
     .optional(),
 
-  status: z
-    .enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"])
-    .optional(),
+  status: TodoStatusEnum.optional(),
 });
 
 // Schema for filtering and sorting to-do items
 export const todoFilterSchema = z.object({
-  status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]).optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  status: TodoStatusEnum.optional(),
+  priority: TodoPriorityEnum.optional(),
   tags: z.array(z.string()).optional(),
   query : z.string().max(100, "Search query too long").optional(),
   sortBy: z
@@ -71,12 +79,12 @@ export const updateTodoSchema = z.object({
     .min(1, "Title is required")
     .max(100, "Title cannot exceed 100 characters"),
   description: z.string().max(300, "Description cannot exceed 300 characters").optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  priority: TodoPriorityEnum.optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.union([z.string(), z.date()]).optional(),
   dueTime: z.string().optional(),
   renewStart: z.union([z.string(), z.date()]).optional(),
-  renewInterval: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"]).optional(),
+  renewInterval: RenewIntervalEnum.optional(),
   renewEvery: z.number().optional(),
   renewCustom: z.string().optional(),
   checklist: z
@@ -89,9 +97,7 @@ export const updateTodoSchema = z.object({
           .max(200, "Checklist item too long"),
       })
     ).optional(),
-  status: z
-    .enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"])
-    .optional(),
+  status: TodoStatusEnum.optional(),
 });
 
 // Schema for deleting a to-do item
@@ -113,7 +119,7 @@ export const changeTodoStatusSchema = z.object({
 // Schema for bulk changing the status of to-do items
 export const bulkChangeTodoStatusSchema = z.object({
   ids: z.array(MONGOID).min(1, "At least one ID must be provided"),
-  status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]),
+  status: TodoStatusEnum,
 });
 
 // Schema for marking/unmarking a checklist item

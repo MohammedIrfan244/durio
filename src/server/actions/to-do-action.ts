@@ -1,7 +1,7 @@
 "use server";
-import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
+import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
 import { prisma } from "@/lib/prisma";
-import { getUserId } from "@/lib/server-utils/get-user";
+import { getUserId } from "@/lib/server/get-user";
 import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload, OverviewStats, TodayStats, StreakStats, PriorityInsights, TimePatternStats, PersonalInsight, IGetArchivedTodoListPayload } from "@/types/todo";
 import { 
   createTodoSchema, 
@@ -27,109 +27,17 @@ import {
   SearchArchiveTodosInput
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
-import { getUserTimezone, getUserDateRanges } from "@/lib/server-utils/date-utils";
-import { differenceInCalendarDays } from "date-fns";
+import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
+import { isRenewalDay, generateInsights } from "@/lib/logic/todo-insights";
 
-// Helper function to check if a date is a renewal day
-function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null, userStartOfToday: Date): boolean {
-  if (!renewStart || !renewInterval || !renewEvery) return false;
 
-  // renewStart should already be stored as UTC representing user's 00:00 (if created correctly)
-  // or if created in legacy, safely assume 00:00 UTC?
-  
-  const daysDifference = differenceInCalendarDays(userStartOfToday, renewStart);
-
-  if (daysDifference < 0) return false; // Hasn't started yet
-
-  switch (renewInterval) {
-    case "DAILY":
-      return daysDifference % renewEvery === 0;
-    case "WEEKLY":
-      return daysDifference % (renewEvery * 7) === 0;
-    case "MONTHLY":
-      // Simplified: check if it's the right day of month. 
-      // Harder with exact days. Using just 30 days approximation for legacy compatibility or...
-      // Ideally should check calendar date.
-      // But preserving existing logic:
-      return daysDifference % (renewEvery * 30) === 0; 
-    case "YEARLY":
-      return daysDifference % (renewEvery * 365) === 0;
-    default:
-      return false;
-  }
-}
 
 function getPrioritySortValue(priority?: string): number {
   if(!priority)return 0;
   return prioritySortValues[priority as IPriority];
 }
 
-function generateInsights(input: {
-  overview: OverviewStats
-  today: TodayStats
-  streak: StreakStats
-  priority: PriorityInsights
-  time: TimePatternStats
-}): PersonalInsight[] {
-  const insights: PersonalInsight[] = [];
 
-  if (input.streak.current.isActive && input.streak.current.count >= 7) {
-    insights.push({
-      id: "strong-streak",
-      type: "POSITIVE",
-      message: "You are maintaining a strong and consistent daily streak.",
-    });
-  }
-
-  if (!input.streak.current.isActive && input.streak.current.count > 0) {
-    insights.push({
-      id: "streak-broken",
-      type: "WARNING",
-      message:
-        "Your streak has been broken. Completing at least one task today will restart it.",
-    });
-  }
-
-  if (input.overview.overdueTodos > 0) {
-    insights.push({
-      id: "overdue-pressure",
-      type: "WARNING",
-      message: "Overdue tasks are adding pressure to your workflow.",
-    });
-  }
-
-  if (
-    input.priority.counts.HIGH > 0 &&
-    input.priority.overdue.HIGH === 0
-  ) {
-    insights.push({
-      id: "high-priority-control",
-      type: "POSITIVE",
-      message:
-        "You are staying on top of high-priority tasks without letting them slip.",
-    });
-  }
-
-  if (input.today.completedThisWeek > input.today.createdThisWeek) {
-    insights.push({
-      id: "backlog-reduction",
-      type: "POSITIVE",
-      message:
-        "You are reducing your backlog by completing more tasks than you create.",
-    });
-  }
-
-  if (insights.length === 0) {
-    insights.push({
-      id: "neutral-state",
-      type: "NEUTRAL",
-      message:
-        "Your activity is stable. Small consistent actions will improve your momentum.",
-    });
-  }
-
-  return insights;
-}
 
 export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (input: CreateTodoInput): Promise<ITodo> => {
   const validatedInput = createTodoSchema.parse(input);
@@ -139,22 +47,10 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
 
   const priorityInt = getPrioritySortValue(validatedInput.priority);
 
-  // Helper to parse input date to User's Start of Day in UTC
-  // If input is "2024-01-01", we want the UTC timestamp that represents 2024-01-01 00:00 in user's timezone.
-  const parseToUserDate = async (val: string | Date | undefined) => {
-    if (!val) return undefined;
-    if (val instanceof Date) return val; // Already a date (assume UTC or handled)
-    
-    // It's a string.
-    // If we use date-fns-tz mechanism:
-    const { fromZonedTime } = await import("date-fns-tz");
-    // Append time if missing? Assuming input is YYYY-MM-DD
-    // If we just do fromZonedTime(val, timezone), it interprets val as being in that timezone.
-    return fromZonedTime(val, timezone); 
-  };
 
-  const dueDate = await parseToUserDate(validatedInput.dueDate);
-  const renewStart = await parseToUserDate(validatedInput.renewStart);
+
+  const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
+  const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
   const todo = await prisma.todo.create({
     data: {
@@ -316,16 +212,10 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     priorityInt = getPrioritySortValue(validatedInput.priority);
   }
 
-  // Helper to parse input date to User's Start of Day in UTC
-  const parseToUserDate = async (val: string | Date | undefined) => {
-    if (!val) return undefined;
-    if (val instanceof Date) return val; 
-    const { fromZonedTime } = await import("date-fns-tz");
-    return fromZonedTime(val, timezone); 
-  };
 
-  const dueDate = await parseToUserDate(validatedInput.dueDate);
-  const renewStart = await parseToUserDate(validatedInput.renewStart);
+
+  const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
+  const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
   const todo = await prisma.todo.update({
     where: { id: validatedInput.id },
@@ -874,46 +764,8 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
     } else {
         isStreakActive = completedToday > 0;
     }
-
-    // However, if we just check persistence, maybe we rely on `lastCompleted`.
-    // But the user wants "dynamic" status for "today".
-    // If I completed a task today, `streak.lastCompleted` should be today.
-    // So if `streak.lastCompleted >= startOfToday`, it is active.
-    
-    // We can rely on `lastCompleted` IF it is correctly updated by `changeTodoStatus`.
-    // But for the specific "Due vs No Due" logic, `lastCompleted` might be too simple if we need to enforce "Due Task Completion" when tasks are due.
-    // Let's refine `isStreakActive` purely for display "Are you safe today?".
-    // Actually, `streak.count` logic happens on write. Here we just show status.
-    // But the prompt says "the streak should count correctly". 
-    // The previous implementation just read `prisma.todoStreak`. 
-    // We will assume `changeTodoStatus` updates the streak table. 
-    // Here we compute `isStreakActive` for the UI feedback (e.g. fire icon).
-    
-    // Let's override `isStreakActive` based on the user's complex rule:
-    // If dueToday > 0: active = completedDueToday > 0
-    // Else: active = completedToday > 0
-
-    // Re-check existing streak record to see if we extended it today
-    // If `lastCompleted` is today, then we extended it today.
-    // But does `lastCompleted` respect the "Due Task" rule? 
-    // We need to ensure the WRITER updates it correctly. 
-    // For READ (here), we just report what we see or calculate "Is Today satisfied?".
     
     const isTodaySatisfied = dueToday > 0 ? completedDueToday > 0 : completedToday > 0;
-    
-    // Active means: "Today is covered OR (Yesterday was covered AND Today is not yet broken?)"
-    // The user says "thats a streak" => Today is counted. 
-    // If today is NOT satisfied yet, is it broken? Only if today ENDS.
-    // So "Active" for UI usually means "Current Streak > 0".
-    
-    // Let's stick effectively to:
-    // Display Streak = `streak.count` (from DB). 
-    // Insight: "Streak kept!" or "Risk of losing!"
-    
-    // But wait, the user says "the streak should count correctly". 
-    // If I rely on DB table, and DB table logic is wrong, it won't work. 
-    // I should check `changeTodoStatus` later. 
-    // For `getTodoStat`, I will return the calculated `isActive` based on today's performance.
 
     isStreakActive = isTodaySatisfied;
 

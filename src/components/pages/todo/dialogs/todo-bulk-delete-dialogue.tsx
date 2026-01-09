@@ -10,35 +10,51 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { withClientAction } from "@/lib/helper/with-client-action";
-import { deleteNoteFolder } from "@/server/actions/note-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
+import {
+  bulkDeleteTodos,
+  bulkSoftDeleteTodos,
+} from "@/server/actions/to-do-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface FolderDeleteDialogueProps {
-  folderId: string | null;
+interface TodoBulkDeleteDialogueProps {
+  ids: string[];
   isOpen: boolean;
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  isSoft?: boolean;
+  isSoft: boolean;
 }
 
-export default function FolderDeleteDialogue({
-  folderId,
+export default function TodoBulkDeleteDialogue({
+  ids,
   isOpen,
   setOpen,
   onSuccess,
-  isSoft = false,
-}: FolderDeleteDialogueProps) {
+  isSoft,
+}: TodoBulkDeleteDialogueProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async () => {
-    if (!folderId) return;
+    if (!ids.length && isSoft) return;
+
     setIsDeleting(true);
-    await withClientAction(() => deleteNoteFolder({ id: folderId, softDelete: isSoft }), true);
+
+    await withClientAction(
+      () =>
+        isSoft
+          ? bulkSoftDeleteTodos({ ids })
+          : bulkDeleteTodos(),
+      true
+    );
+
     setIsDeleting(false);
     setShowSuccess(true);
     onSuccess();
+
+    toast.success(isSoft ? "Archived!" : "Deleted!");
+
     setTimeout(() => {
       setShowSuccess(false);
       setOpen(false);
@@ -68,34 +84,45 @@ export default function FolderDeleteDialogue({
                   <Trash2 className="h-5 w-5 text-destructive" />
                 </div>
                 <AlertDialogTitle className="text-xl">
-                  {isSoft ? "Archive Folder" : "Delete Folder"}
+                  Hold up...
                 </AlertDialogTitle>
               </div>
             </AlertDialogHeader>
+
             <div className="space-y-2">
               <p className="text-base">
-                Are you sure you want to {isSoft ? "archive" : "delete"} this folder?
+                You’re about to {isSoft ? "archive" : "delete"}{" "}
+                <strong>{isSoft ? ids.length : 'all'}</strong> todos.
               </p>
               <p className="text-sm text-muted-foreground">
                 {isSoft
-                  ? "This folder and its notes will be archived."
-                  : "This action is permanent and cannot be undone. All notes in this folder will also be deleted."}
+                  ? "These todos will be moved to archive."
+                  : "This action is permanent and cannot be undone."}
               </p>
             </div>
+
             <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel disabled={isDeleting} className="transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95">
+              <AlertDialogCancel
+                disabled={isDeleting}
+                className="transition-all duration-300 hover:scale-105 active:scale-95"
+              >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="flex items-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 group">
+
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex items-center transition-all duration-300 hover:scale-105 active:scale-95 group"
+              >
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isSoft ? "Archiving..." : "Deleting..."}
+                    Processing...
                   </>
                 ) : (
                   <>
                     <Trash2 className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
-                    Yes, {isSoft ? "archive" : "delete"} it
+                    Yes, {isSoft ? "archive" : "delete"} all
                   </>
                 )}
               </AlertDialogAction>

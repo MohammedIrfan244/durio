@@ -39,9 +39,9 @@ export default function LogoutConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="cursor-pointer bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-secondary/50">Cancel</AlertDialogCancel>
           <AlertDialogAction
-          className="cursor-pointer"
+            className="cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-red-500/20 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={handleLogout}
           >
             Log out

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { MONGOID } from "./mongo";
 
-const NoteStatusEnum = z.enum(['ACTIVE', 'ARCHIVED', 'DELETED']);
+export const NoteStatusEnum = z.enum(['ACTIVE', 'ARCHIVED', 'DELETED']);
+export type NoteStatus = z.infer<typeof NoteStatusEnum>;
 
 export const CreateNoteSchema = z.object({
   heading: z.string().min(1, "Heading is required").max(100),

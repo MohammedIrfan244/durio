@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
     Plus, 
-    Search, 
     Archive, 
     CheckSquare, 
     Trash2, 
@@ -22,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
+import { HeaderSearch } from "@/components/shared/header-search";
 
 interface NoteHeaderProps {
   search: string;
@@ -53,7 +52,6 @@ export function NoteHeader({
   onBulkDelete,
   onBulkRestore,
   onRestoreAll,
-  headerTitle,
   onBack
 }: NoteHeaderProps) {
   return (
@@ -75,15 +73,11 @@ export function NoteHeader({
                 </Button>
               )}
               
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={archiveMode ? "Search in archive..." : "What are you looking for?"}
-                  className="pl-10 bg-background border-border/60 transition-all duration-300 hover:border-primary/30 focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
+              <HeaderSearch 
+                value={search}
+                onChange={setSearch}
+                placeholder={archiveMode ? "Search in archive..." : "What are you looking for?"}
+              />
             </div>
 
             {/* Right Side Actions */}

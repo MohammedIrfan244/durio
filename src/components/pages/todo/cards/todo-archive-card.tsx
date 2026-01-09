@@ -7,12 +7,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { withClientAction } from "@/lib/helper/with-client-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
 import { restoreFromArchive } from "@/server/actions/to-do-action";
 import { RestoreTodoFromArchiveInput } from "@/schema/todo";
 import { IGetArchivedTodoList } from "@/types/todo";
-import { formatName } from "@/lib/helper/name-formatter";
-import TodoDeleteDialogue from "./todo-delete-dialogue";
+import { formatName } from "@/lib/utils/name-formatter";
+import TodoDeleteDialogue from "../dialogs/todo-delete-dialogue";
 
 interface TodoArchiveCardProps {
   todo: IGetArchivedTodoList;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useUserClient } from "@/lib/helper/get-user-client";
+import { useUserClient } from "@/lib/utils/get-user-client";
 import {
   LogOut,
   Mail,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { navItems } from "@/lib/nav";
-import { formatName } from "@/lib/helper/name-formatter";
+import { formatName } from "@/lib/utils/name-formatter";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "next-themes";
 import { flagTimestamp } from "@/server/flag-time-stamp";
-import { withClientAction } from "@/lib/helper/with-client-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
 import { toast } from "sonner";
 import clsx from "clsx";
 import {

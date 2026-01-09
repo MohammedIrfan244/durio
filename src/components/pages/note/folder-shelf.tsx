@@ -1,5 +1,5 @@
 import { INoteFolder } from "@/types/note";
-import { NoteFolderCard } from "./note-folder-card";
+import { NoteFolderCard } from "./cards/note-folder-card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Home, Sparkles } from "lucide-react";

@@ -41,7 +41,7 @@ const NameAndColorSection: React.FC<{ form: FolderFormContext }> = ({ form }) =>
     <>
       <div className="space-y-2">
         <Label className="text-sm font-medium">Folder Name</Label>
-        <Input {...register("name")} placeholder="Folder name" className="text-sm h-10" />
+        <Input {...register("name")} placeholder="Folder name" className="text-sm h-10 bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300" />
         {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
       </div>
       
@@ -155,7 +155,7 @@ export default function FolderDialog({ folderId, trigger, onSaved, open: externa
           <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
             <NameAndColorSection form={form} />
             <DialogFooter className="gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6 text-sm">Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300">Cancel</Button>
               <Button type="submit" disabled={isPending} className="h-10 px-6 text-sm">
                 {isPending ? <span className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</span> : folderId ? "Update Folder" : "Create Folder"}
               </Button>

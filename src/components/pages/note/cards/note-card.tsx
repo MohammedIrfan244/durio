@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, FolderInput, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { truncateText } from "@/lib/helper/etcetra";
+import { truncateText } from "@/lib/utils/etcetra";
 import {
   Tooltip,
   TooltipContent,

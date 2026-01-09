@@ -10,35 +10,43 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { withClientAction } from "@/lib/helper/with-client-action";
-import { deleteNote } from "@/server/actions/note-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
+import { softDeleteTodo , deleteTodo } from "@/server/actions/to-do-action";
 import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
 
-interface NoteDeleteDialogueProps {
-  noteId: string | null;
+interface TodoDeleteDialogueProps {
+  todoId: string | null;
   isOpen: boolean;
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
+  isSoft : boolean
 }
 
-export default function NoteDeleteDialogue({
-  noteId,
+export default function TodoDeleteDialogue({
+  todoId,
   isOpen,
   setOpen,
   onSuccess,
-  isSoftDelete = false,
-}: NoteDeleteDialogueProps & { isSoftDelete?: boolean }) {
+  isSoft
+}: TodoDeleteDialogueProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async () => {
-    if (!noteId) return;
+    if (!todoId) return;
+
     setIsDeleting(true);
-    // If isSoftDelete is true, pass softDelete: true to the server action
-    await withClientAction(() => deleteNote({ id: noteId, softDelete: isSoftDelete }), true);
+
+    if(isSoft){
+      await withClientAction(() => softDeleteTodo({ id: todoId }), true);
+    }else{
+      await withClientAction(() => deleteTodo({ id: todoId }), true);
+    }
+
     setIsDeleting(false);
     setShowSuccess(true);
     onSuccess();
+
     setTimeout(() => {
       setShowSuccess(false);
       setOpen(false);
@@ -57,7 +65,7 @@ export default function NoteDeleteDialogue({
               </div>
             </div>
             <p className="text-lg font-medium animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {isSoftDelete ? "Archived!" : "Deleted!"}
+              {isSoft ? "Archived!" : "Deleted!"}
             </p>
           </div>
         ) : (
@@ -68,35 +76,42 @@ export default function NoteDeleteDialogue({
                   <Trash2 className="h-5 w-5 text-destructive" />
                 </div>
                 <AlertDialogTitle className="text-xl">
-                  {isSoftDelete ? "Archive Note" : "Delete Note"}
+                  Hey, wait a sec...
                 </AlertDialogTitle>
               </div>
             </AlertDialogHeader>
+
             <div className="space-y-2">
               <p className="text-base">
-                {isSoftDelete 
-                  ? "Are you sure you want to archive this note? You can restore it later."
-                  : "Are you sure you want to delete this note?"
-                }
+                Are you sure you want to delete this todo?
               </p>
-              {!isSoftDelete && (
-                <p className="text-sm text-muted-foreground">This action is permanent and cannot be undone.</p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                {isSoft ? "This todo will be archived instead of permanently deleted." : "Just checking because, you know, we can't bring it back once it's gone. No pressure though!"}
+              </p>
             </div>
+
             <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel disabled={isDeleting} className="transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95">
-                Cancel
+              <AlertDialogCancel
+                disabled={isDeleting}
+                className="transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
+              >
+                Nah, keep it
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="flex items-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 group">
+
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex items-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 group"
+              >
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isSoftDelete ? "Archiving..." : "Deleting..."}
+                    Deleting...
                   </>
                 ) : (
                   <>
                     <Trash2 className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
-                    {isSoftDelete ? "Yes, archive it" : "Yes, delete it"}
+                    Yeah, delete it
                   </>
                 )}
               </AlertDialogAction>

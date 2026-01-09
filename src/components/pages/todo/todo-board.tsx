@@ -6,10 +6,10 @@ import {
   ITodoStatsResponsePayload,
 } from "@/types/todo";
 import { useEffect, useState } from "react";
-import TodoDetailedDialogue from "./todo-detailed-popup";
-import TodoDeleteDialogue from "./todo-delete-dialogue";
-import ToDoDialog from "./todo-dialogue";
-import TodoCard from "./todo-card";
+import TodoDetailedDialogue from "./dialogs/todo-detailed-popup";
+import TodoDeleteDialogue from "./dialogs/todo-delete-dialogue";
+import ToDoDialog from "./dialogs/todo-dialogue";
+import TodoCard from "./cards/todo-card";
 import { cn } from "@/lib/utils";
 import {
   statusBgColorBoard,
@@ -19,13 +19,13 @@ import {
 
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { withClientAction } from "@/lib/helper/with-client-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
 import { getTodoStat } from "@/server/stats/todo-stats";
 import { TodoColumnSkeleton } from "@/components/skelton/todo/todo-card-skelton";
 import { Card } from "@/components/ui/card";
 import { StatsColumn } from "./todo-streak";
 import { NoTodos } from "@/components/skelton/todo/no-todo-skeoton";
-import TodoBulkDeleteDialogue from "./todo-bulk-delete-dialogue";
+import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 
 interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";

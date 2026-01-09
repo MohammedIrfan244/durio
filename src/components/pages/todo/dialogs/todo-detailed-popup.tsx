@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { withClientAction } from "@/lib/helper/with-client-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
 import {
   getTodoById,
   markChecklistItem,
@@ -42,11 +42,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { statusColor, priorityColor } from "@/lib/brand";
-import { formatDate } from "@/lib/helper/date-formatter";
+import { formatDate } from "@/lib/utils/date-formatter";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatName } from "@/lib/helper/name-formatter";
+import { formatName } from "@/lib/utils/name-formatter";
 import TodoDetailedPopupSkeleton from "@/components/skelton/todo/todo-detail-skelton";
 
 // --- TYPES ---
@@ -189,7 +189,7 @@ const StatusUpdateSection: React.FC<CommonProps & {
         }
         disabled={isDisabled}
       >
-        <SelectTrigger className="w-full h-10 bg-muted/50 border-0 hover:bg-muted">
+        <SelectTrigger className="w-full h-10 bg-secondary/30 border-border/40 hover:bg-secondary/50 backdrop-blur-sm transition-all duration-300">
           <SelectValue>
             {updatingStatus ? (
               <span className="flex items-center gap-2 text-muted-foreground">
@@ -436,6 +436,7 @@ const FooterTimestamps: React.FC<CommonProps> = ({ todo }) => (
     </div>
   </div>
 );
+
 
 // Data Fetching and State Wrapper
 const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) => {

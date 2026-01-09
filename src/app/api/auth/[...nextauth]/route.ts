@@ -19,13 +19,6 @@ const handler = NextAuth({
         });
 
         if (!authUser) {
-          // This should ideally not happen if signIn callback works correctly for blocking
-          // But if it does, we create user? No, we should have created it in signIn if needed or let NextAuth adapter do it.
-          // Since we use manual provider logic here without adapter?
-          // Wait, the original code had manual creation in session callback.
-          // We should MOVE that to signIn or ensure it happens.
-          
-          // Original logic:
           const newUser = await prisma.user.create({
             data: {
               name: session.user?.name || "No Name",

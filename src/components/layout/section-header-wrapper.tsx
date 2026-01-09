@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -28,7 +29,7 @@ export function SectionHeaderWrapper({
             src={backgroundImage}
             alt="Header Background"
             fill
-            className="object-cover opacity-50 transition-all duration-700 ease-in-out animate-ken-burns"
+            className="object-cover opacity-20 transition-all duration-700 ease-in-out animate-ken-burns"
           />
           <div className="absolute inset-0 bg-background/50 mix-blend-overlay" />
           <div className="absolute inset-0 bg-primary/5 mix-blend-overlay" />

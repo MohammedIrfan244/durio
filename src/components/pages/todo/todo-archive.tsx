@@ -31,9 +31,9 @@ import {
   searchArchivedTodos,
 } from "@/server/actions/to-do-action";
 import { IGetArchivedTodoListPayload } from "@/types/todo";
-import { withClientAction } from "@/lib/helper/with-client-action";
-import TodoArchiveCard from "./todo-archive-card";
-import TodoBulkDeleteDialogue from "./todo-bulk-delete-dialogue";
+import { withClientAction } from "@/lib/utils/with-client-action";
+import TodoArchiveCard from "./cards/todo-archive-card";
+import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { useDebounce } from "@/hooks/use-debounce";
 import TodoArchiveCardSkeletonList from "@/components/skelton/todo/todo-archived-card-skelton";

@@ -1,4 +1,4 @@
-import { error as logError } from "@/lib/helper/logger";
+import { error as logError } from "@/lib/utils/logger";
 import { getUserId } from "./get-user";
 
 export interface ApiResponse<T> {

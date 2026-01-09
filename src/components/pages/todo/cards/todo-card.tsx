@@ -1,12 +1,12 @@
 "use client";
 
 import { IGetTodoList, ITodoStatusChangeable } from "@/types/todo";
-import { formatDate } from "@/lib/helper/date-formatter";
+import { formatDate } from "@/lib/utils/date-formatter";
 import { changeTodoStatus } from "@/server/actions/to-do-action";
 import { ChangeTodoStatusInput } from "@/schema/todo";
 import { useTransition } from "react";
 import { priorityColor, statusColor } from "@/lib/brand";
-import { withClientAction } from "@/lib/helper/with-client-action";
+import { withClientAction } from "@/lib/utils/with-client-action";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatName } from "@/lib/helper/name-formatter";
+import { formatName } from "@/lib/utils/name-formatter";
 
 interface TodoCardProps {
   todo: IGetTodoList;

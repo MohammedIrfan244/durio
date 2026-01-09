@@ -1,6 +1,6 @@
 import { toast } from "sonner";
-import { error as logError } from "@/lib/helper/logger";
-import type { ApiResponse } from "@/lib/server-utils/error-wrapper";
+import { error as logError } from "@/lib/utils/logger";
+import type { ApiResponse } from "@/lib/server/error-wrapper";
 
 export async function withClientAction<T>(
   fn: () => Promise<ApiResponse<T>>,

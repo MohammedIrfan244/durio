@@ -1,6 +1,6 @@
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { startOfDay, startOfWeek, subDays, differenceInCalendarDays, addDays } from "date-fns";
-import { getUser } from "@/lib/server-utils/get-user";
+import { getUser } from "@/lib/server/get-user";
 
 export async function getUserTimezone(userId?: string): Promise<string> {
 
@@ -56,4 +56,11 @@ export function getUserDateRanges(timezone: string) {
 export function isDueTodayInUserTime(dueDate: Date, timezone: string): boolean {
   const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
   return dueDate >= startOfToday && dueDate < startOfTomorrow;
+}
+export async function parseToUserDate(val: string | Date | undefined, timezone: string): Promise<Date | undefined> {
+  if (!val) return undefined;
+  if (val instanceof Date) return val; 
+  
+  // It's a string, so we convert it to the user's timezone
+  return fromZonedTime(val, timezone); 
 }

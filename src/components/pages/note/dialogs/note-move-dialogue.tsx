@@ -65,8 +65,8 @@ export function NoteMoveDialog({
                 <Label
                   htmlFor="folder-root"
                   className={cn(
-                    "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all",
-                    selectedFolderId === null && "border-primary bg-primary/5"
+                    "flex flex-col items-center justify-between rounded-md border-2 border-muted/50 bg-secondary/30 backdrop-blur-sm p-4 hover:bg-secondary/50 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all",
+                    selectedFolderId === null && "border-primary bg-primary/10"
                   )}
                 >
                     <div className="flex items-center gap-3 w-full">
@@ -84,8 +84,8 @@ export function NoteMoveDialog({
                 <Label
                   htmlFor={`folder-${folder.id}`}
                   className={cn(
-                    "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all",
-                    selectedFolderId === folder.id && "border-primary bg-primary/5"
+                    "flex flex-col items-center justify-between rounded-md border-2 border-muted/50 bg-secondary/30 backdrop-blur-sm p-4 hover:bg-secondary/50 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all",
+                    selectedFolderId === folder.id && "border-primary bg-primary/10"
                   )}
                 >
                     <div className="flex items-center gap-3 w-full">

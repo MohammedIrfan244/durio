@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { INote } from "@/types/note";
-import { NoteCard } from "./note-card";
+import { NoteCard } from "./cards/note-card";
 import Masonry from "react-masonry-css";
 
 interface NoteGridProps {

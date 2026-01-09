@@ -3,8 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CreateNoteSchema, UpdateNoteSchema, DeleteNoteSchema, CreateFolderSchema, UpdateFolderSchema, DeleteFolderSchema, CreateNoteInput } from "@/schema/note";
 import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload, IGetNoteListPayload } from "@/types/note";
-import { withErrorWrapper } from "@/lib/server-utils/error-wrapper"; 
-import { getUserId } from "@/lib/server-utils/get-user"; 
+import { withErrorWrapper } from "@/lib/server/error-wrapper"; 
+import { getUserId } from "@/lib/server/get-user"; 
 
 export const createNote = withErrorWrapper<INote, [CreateNoteInput]>(async (input) => {
 	const validatedInput = CreateNoteSchema.parse(input);

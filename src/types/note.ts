@@ -1,4 +1,6 @@
-export type INoteStatus = 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+import { NoteStatus } from "@/schema/note";
+
+export type INoteStatus = NoteStatus;
 
 export interface INote {
 	id: string;

@@ -1,8 +1,8 @@
 "use server";
 
-import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
+import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
 import { prisma } from "@/lib/prisma";
-import { getUserId } from "@/lib/server-utils/get-user";
+import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";
 
 const updateUserProfileSchema = z.object({

@@ -1,10 +1,10 @@
 'use server'
 import { prisma } from "@/lib/prisma"
-import { withErrorWrapper } from "@/lib/server-utils/error-wrapper"
-import { getUserId } from "@/lib/server-utils/get-user"
+import { withErrorWrapper } from "@/lib/server/error-wrapper"
+import { getUserId } from "@/lib/server/get-user"
 import { ITodoStatsResponsePayload, Weekday } from "@/types/todo"
-import { getUserTimezone, getUserDateRanges } from "@/lib/server-utils/date-utils"
-import { generateInsights } from "@/lib/server-utils/generate-insight"
+import { getUserTimezone, getUserDateRanges } from "@/lib/server/date-utils"
+import { generateInsights } from "@/lib/server/generate-insight"
 
 export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []>(
   async (): Promise<ITodoStatsResponsePayload | null> => {

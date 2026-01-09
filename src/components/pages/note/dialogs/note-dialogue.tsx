@@ -41,7 +41,7 @@ const TitleAndDescriptionSection: React.FC<{ form: NoteFormContext }> = ({ form 
     <>
       <div className="space-y-2">
         <Label className="text-sm font-medium">Title</Label>
-        <Input {...register("heading")} placeholder="Note title" className="text-sm h-10" />
+        <Input {...register("heading")} placeholder="Note title" className="text-sm h-10 bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300" />
         {errors.heading && <p className="text-destructive text-xs">{errors.heading.message}</p>}
       </div>
       
@@ -61,7 +61,7 @@ const TitleAndDescriptionSection: React.FC<{ form: NoteFormContext }> = ({ form 
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">Description</Label>
-        <Textarea {...register("description")} placeholder="Write your note..." className="min-h-[80px] resize-y text-sm" />
+        <Textarea {...register("description")} placeholder="Write your note..." className="min-h-[80px] resize-y text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300" />
         {errors.description && <p className="text-destructive text-xs">{errors.description.message}</p>}
       </div>
     </>
@@ -156,7 +156,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
           <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
             <TitleAndDescriptionSection form={form} />
             <DialogFooter className="gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6 text-sm">Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300">Cancel</Button>
               <Button type="submit" disabled={isPending} className="h-10 px-6 text-sm">
                 {isPending ? <span className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</span> : noteId ? "Update Note" : "Create Note"}
               </Button>

@@ -93,7 +93,7 @@ export default function TimezoneOnboarding() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Timezone</label>
             <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300">
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">

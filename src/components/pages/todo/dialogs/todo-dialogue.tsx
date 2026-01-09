@@ -50,9 +50,9 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { formatDate } from "@/lib/helper/date-formatter";
-import { withClientAction } from "@/lib/helper/with-client-action";
-import { today } from "@/lib/helper/today";
+import { formatDate } from "@/lib/utils/date-formatter";
+import { withClientAction } from "@/lib/utils/with-client-action";
+import { today } from "@/lib/utils/today";
 import TodoDialogSkeleton from "@/components/skelton/todo/todo-dialogue-skelton";
 
 type Props = {
@@ -64,52 +64,6 @@ type Props = {
 };
 
 type TodoFormContext = UseFormReturn<CreateTodoInput>;
-
-// Title and Description
-const TitleAndDescriptionSection: React.FC<{ form: TodoFormContext }> = ({
-  form,
-}) => {
-  const { register, formState: { errors } } = form;
-  return (
-    <>
-      {/* Title */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2 text-sm font-medium">
-          <CheckSquare className="w-3.5 h-3.5" />
-          What do you need to do?
-        </Label>
-        <Input
-          {...register("title")}
-          placeholder="e.g., grab some coffee beans"
-          className="text-sm h-10"
-        />
-        {errors.title && (
-          <p className="text-destructive text-xs">
-            {errors.title.message}
-          </p>
-        )}
-      </div>
-
-      {/* Description */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2 text-sm font-medium">
-          <FileText className="w-3.5 h-3.5" />
-          Any extra details?
-        </Label>
-        <Textarea
-          {...register("description")}
-          placeholder="Add notes, links, whatever helps..."
-          className="min-h-[80px] resize-y text-sm"
-        />
-        {errors.description && (
-          <p className="text-destructive text-xs">
-            {errors.description.message}
-          </p>
-        )}
-      </div>
-    </>
-  );
-};
 
 // Priority, Renew, and Tags Input
 const MetadataRow: React.FC<{ form: TodoFormContext }> = ({ form }) => {
@@ -131,7 +85,7 @@ const MetadataRow: React.FC<{ form: TodoFormContext }> = ({ form }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {/* Priority */}
       <div className="space-y-2">
         <Label className="flex items-center gap-2 text-sm font-medium">
@@ -142,55 +96,106 @@ const MetadataRow: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           value={watch("priority") || ""}
           onValueChange={(v: string) => setValue("priority", v as IPriority, { shouldValidate: true })}
         >
-          <SelectTrigger className="h-10 text-sm">
+          <SelectTrigger className="h-10 text-xs bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300">
             <SelectValue placeholder="Pick one" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="LOW" className="text-sm">Chill – whenever</SelectItem>
-            <SelectItem value="MEDIUM" className="text-sm">Normal</SelectItem>
-            <SelectItem value="HIGH" className="text-sm">Pretty urgent!</SelectItem>
+            <SelectItem value="LOW" className="text-xs">Chill – whenever</SelectItem>
+            <SelectItem value="MEDIUM" className="text-xs">Normal</SelectItem>
+            <SelectItem value="HIGH" className="text-xs">Pretty urgent!</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* RENEW INTERVAL */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-2 text-sm font-medium">
-          <Repeat className="w-3.5 h-3.5" />
-          Does this repeat?
-        </Label>
+        <Label className="flex items-center gap-2 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+  <Repeat className="w-3.5 h-3.5" />
+  Does this repeat?
+</Label>
+
         <Select
           value={watch("renewInterval") || ""}
           onValueChange={(v: string) => setValue("renewInterval", v as IRenewInterval, { shouldValidate: true })}
         >
-          <SelectTrigger className="h-10 text-sm">
+          <SelectTrigger className="h-10 text-xs bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-xs transition-all duration-300">
             <SelectValue placeholder="Nope, just once" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="DAILY" className="text-sm">Every day</SelectItem>
-            <SelectItem value="WEEKLY" className="text-sm">Every week</SelectItem>
-            <SelectItem value="MONTHLY" className="text-sm">Every month</SelectItem>
-            <SelectItem value="YEARLY" className="text-sm">Every year</SelectItem>
-            <SelectItem value="CUSTOM" className="text-sm">Custom schedule</SelectItem>
+            <SelectItem value="DAILY" className="text-xs">Every day</SelectItem>
+            <SelectItem value="WEEKLY" className="text-xs">Every week</SelectItem>
+            <SelectItem value="MONTHLY" className="text-xs">Every month</SelectItem>
+            <SelectItem value="YEARLY" className="text-xs">Every year</SelectItem>
+            <SelectItem value="CUSTOM" className="text-xs">Custom schedule</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Tags Input */}
-      <div className="space-y-2">
+      <div className="space-y-2 sm:col-span-2 md:col-span-1">
         <Label className="flex items-center gap-2 text-sm font-medium">
           <Tag className="w-3.5 h-3.5" />
           Tags (optional)
         </Label>
         <Input
-          placeholder="Type and hit Enter"
-          onKeyDown={addTag}
-          className="h-10 text-sm"
-        />
+  placeholder="Type and hit Enter"
+  onKeyDown={addTag}
+  className="h-9.5 text-xs placeholder:text-xs bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300"
+/>
+
       </div>
     </div>
   );
 };
+
+// ... (previous helper components remain similar but with updated input styles)
+
+// Title and Description
+const TitleAndDescriptionSection: React.FC<{ form: TodoFormContext }> = ({
+  form,
+}) => {
+  const { register, formState: { errors } } = form;
+  return (
+    <>
+      {/* Title */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-sm font-medium">
+          <CheckSquare className="w-3.5 h-3.5" />
+          What do you need to do?
+        </Label>
+        <Input
+          {...register("title")}
+          placeholder="e.g., grab some coffee beans"
+          className="text-sm h-10 bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300"
+        />
+        {errors.title && (
+          <p className="text-destructive text-xs">
+            {errors.title.message}
+          </p>
+        )}
+      </div>
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-sm font-medium">
+          <FileText className="w-3.5 h-3.5" />
+          Any extra details?
+        </Label>
+        <Textarea
+          {...register("description")}
+          placeholder="Add notes, links, whatever helps..."
+          className="min-h-[80px] resize-y text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300"
+        />
+        {errors.description && (
+          <p className="text-destructive text-xs">
+            {errors.description.message}
+          </p>
+        )}
+      </div>
+    </>
+  );
+};
+
 
 // Tags Display
 const TagsDisplay: React.FC<{ form: TodoFormContext }> = ({ form }) => {
@@ -249,7 +254,7 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
             <Button
               type="button"
               variant="outline"
-              className="w-full justify-start text-left h-10 text-sm"
+              className="w-full justify-start text-left h-10 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300"
             >
               <CalendarIcon className="w-3.5 h-3.5 mr-2" />
               {dueDateValue
@@ -362,7 +367,7 @@ const TimeSelect: React.FC<{
 
   return (
     <Select value={currentValue} onValueChange={updateTime}>
-      <SelectTrigger className="h-10 text-sm" disabled={disabled}>
+      <SelectTrigger className="h-10 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300" disabled={disabled}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -408,7 +413,7 @@ const ChecklistSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
                   <Input
                     {...field}
                     placeholder={`Step ${i + 1}`}
-                    className="flex-1 h-9 text-sm"
+                    className="flex-1 h-9 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300"
                   />
                 )}
               />

@@ -21,15 +21,15 @@ import { NoteGridSkeleton } from "@/components/skelton/note/note-grid-skeleton";
 import { FolderShelf } from "./folder-shelf";
 
 import { NoteGrid } from "./note-grid";
-import NoteDialog from "./note-dialogue";
-import FolderDialog from "./folder-dialogue";
+import NoteDialog from "./dialogs/note-dialogue";
+import FolderDialog from "./dialogs/folder-dialogue";
 import { toast } from "sonner";
-import { NoteRestoreDialog } from "./note-restore-dialogue";
-import { NoteMoveDialog } from "./note-move-dialogue";
-import { FolderRestoreDialog } from "./folder-restore-dialogue";
-import NoteDeleteDialog from "./note-delete-dialogue";
-import FolderDeleteDialog from "./folder-delete-dialogue";
-import NoteBulkDeleteDialog from "./note-bulk-delete-dialogue";
+import { NoteRestoreDialog } from "./dialogs/note-restore-dialogue";
+import { NoteMoveDialog } from "./dialogs/note-move-dialogue";
+import { FolderRestoreDialog } from "./dialogs/folder-restore-dialogue";
+import NoteDeleteDialog from "./dialogs/note-delete-dialogue";
+import FolderDeleteDialog from "./dialogs/folder-delete-dialogue";
+import NoteBulkDeleteDialog from "./dialogs/note-bulk-delete-dialogue";
 
 export default function Note() {
   // --- State ---
