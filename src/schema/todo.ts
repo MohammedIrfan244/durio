@@ -64,6 +64,8 @@ export const todoFilterSchema = z.object({
       "PRIORITY",
     ]).optional(),
   sortOrder: z.enum(["ASC", "DESC"]).optional(),
+  page: z.number().min(1).optional(),
+  limit: z.number().min(1).max(100).optional(),
 });
 
 // Schema for getting a specific to-do item by ID

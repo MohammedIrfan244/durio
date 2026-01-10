@@ -26,38 +26,102 @@ import { Card } from "@/components/ui/card";
 import { StatsColumn } from "./todo-streak";
 import { NoTodos } from "@/components/skelton/todo/no-todo-skeoton";
 import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
+import { getTodayTodos, getTodoList } from "@/server/actions/to-do-action";
+import { TodoFilterInput } from "@/schema/todo";
 
 interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";
-  todos: IGetTodoList[];
-  fetchTodos: () => void;
+  filters: TodoFilterInput;
+  todayMode: boolean;
+  triggerRefresh: number; // Increment to force refresh
   setSelectedId: (id: string | null) => void;
   setOpenDetail: (open: boolean) => void;
   setOpenDelete: (open: boolean) => void;
   setOpenEdit: (open: boolean) => void;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
-  loading: boolean;
+  onRefreshBoard: () => void; // Call parent to refresh other columns if needed
 }
 
 function TodoColumn({
   title,
-  todos,
-  fetchTodos,
+  filters,
+  todayMode,
+  triggerRefresh,
   setSelectedId,
   setOpenDetail,
   setOpenDelete,
   setOpenEdit,
   selectedIds,
   onToggleSelect,
-  loading,
+  onRefreshBoard
 }: TodoColumnProps) {
   const statusKey = title as keyof typeof statusToneBoard;
+  const [todos, setTodos] = useState<IGetTodoList[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  if (loading) return <TodoColumnSkeleton title={title} count={4} />;
-  if (todos.length === 0) return <NoTodos status={title} />;
+  // Initial Fetch / Filters Change
+  useEffect(() => {
+    fetchTodos(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, todayMode, triggerRefresh]);
+
+  const fetchTodos = async (pageNum: number, reset: boolean) => {
+    if (loading && !reset && pageNum > 1) return; // Prevent duplicate fetch
+    
+    setLoading(true);
+    try {
+      if (todayMode) {
+        // Today mode doesn't support pagination per status yet, fetches all
+        const action = getTodayTodos;
+        const res = await withClientAction<IGetTodoListPayload>(() => action());
+        if (res) {
+          const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
+          setTodos(list);
+          setHasMore(false); 
+        }
+      } else {
+        // Normal mode with pagination
+        const limit = 10;
+        const res = await withClientAction<IGetTodoListPayload>(() => 
+          getTodoList({ ...filters, status: title, page: pageNum, limit })
+        );
+        
+        if (res) {
+          const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
+          
+          if (reset) {
+            setTodos(list);
+          } else {
+            setTodos(prev => [...prev, ...list]);
+          }
+          
+          setHasMore(list.length === limit);
+          setPage(pageNum);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+      // Simple infinite scroll trigger
+      if (scrollHeight - scrollTop <= clientHeight + 50 && hasMore && !loading && !todayMode) {
+          fetchTodos(page + 1, false);
+      }
+  };
+
+  if (loading && todos.length === 0) return <TodoColumnSkeleton title={title} count={4} />;
+  if (todos.length === 0 && !loading) return <NoTodos status={title} />; // Should ensure NoTodos inside Card? Or keeps layout?
+  // Original layout uses Card as wrapper. Let's keep it.
+
   return (
     <Card
+      onScroll={handleScroll}
       className={cn(
         " p-2 border nav-item-group",
         statusBgColorBoard[statusKey],
@@ -73,7 +137,7 @@ function TodoColumn({
         {title}
       </h2>
 
-      <div className="space-y-2">
+      <div className="space-y-2 pb-4">
         {todos.map((t) => (
           <TodoCard
             key={t.id}
@@ -92,26 +156,30 @@ function TodoColumn({
               setSelectedId(id);
               setOpenDelete(true);
             }}
-            fetchTodos={fetchTodos}
+            fetchTodos={onRefreshBoard} // If card updates, we might want to refresh.
           />
         ))}
+        {loading && todos.length > 0 && (
+             <div className="text-center py-2 text-xs text-muted-foreground">Loading more...</div>
+        )}
       </div>
     </Card>
   );
 }
 
 interface TodoBoardProps {
-  todos: IGetTodoListPayload;
-  fetchTodos: () => void;
-  loading: boolean;
+  filters: TodoFilterInput;
+  todayMode: boolean;
+  refreshTrigger: number;
+  onRefresh: () => void;
 }
 
 export default function TodoBoard({
-  todos,
-  fetchTodos,
-  loading,
+  filters,
+  todayMode,
+  refreshTrigger,
+  onRefresh,
 }: TodoBoardProps) {
-  const { plan, pending, done } = todos;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -131,13 +199,12 @@ export default function TodoBoard({
   };
 
   const handleRefresh = () => {
-    fetchTodos();
-    fetchStats();
+    onRefresh();
   };
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [refreshTrigger]); // re-fetch stats when trigger changes
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -172,10 +239,11 @@ export default function TodoBoard({
       )}
 
       <TodoColumn
-        loading={loading}
         title="PLAN"
-        todos={plan}
-        fetchTodos={handleRefresh}
+        filters={filters}
+        todayMode={todayMode}
+        triggerRefresh={refreshTrigger}
+        onRefreshBoard={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}
@@ -185,10 +253,11 @@ export default function TodoBoard({
       />
 
       <TodoColumn
-        loading={loading}
         title="PENDING"
-        todos={pending}
-        fetchTodos={handleRefresh}
+        filters={filters}
+        todayMode={todayMode}
+        triggerRefresh={refreshTrigger}
+        onRefreshBoard={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}
@@ -198,10 +267,11 @@ export default function TodoBoard({
       />
 
       <TodoColumn
-        loading={loading}
         title="DONE"
-        todos={done}
-        fetchTodos={handleRefresh}
+        filters={filters}
+        todayMode={todayMode}
+        triggerRefresh={refreshTrigger}
+        onRefreshBoard={handleRefresh}
         setSelectedId={setSelectedId}
         setOpenDetail={setOpenDetail}
         setOpenDelete={setOpenDelete}

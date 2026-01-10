@@ -122,11 +122,22 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
 
     const prismaSortOrder = validatedFilters.sortOrder?.toLowerCase() || "desc";
 
+    // Pagination logic
+    const page = validatedFilters.page || 1;
+    const limit = validatedFilters.limit || 100; // Default limit if not specified
+    const skip = (page - 1) * limit;
+
     const todos = await prisma.todo.findMany({
       where: { AND: andConditions , NOT: { status: "ARCHIVED" } },
       orderBy: {
         [prismaSortField]: prismaSortOrder,
       },
+      skip: validatedFilters.status ? skip : undefined, // Only paginate if status is specific (optimization?) or just always paginate if page is sent?
+      // User strategy implies fetching per status. If we fetch all, pagination is complex across groups.
+      // If status IS provided, we paginate. If NOT provided (legacy/overview), we might want to return all or apply limit?
+      // For safety, let's strictly paginate only if page parameters are explicitly provided OR if status is provided.
+      // But user wants "10 per page" for todo columns.
+      take: validatedFilters.status ? limit : undefined, 
     });
 
     const grouped: IGetTodoListPayload = {

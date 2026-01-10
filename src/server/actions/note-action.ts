@@ -23,29 +23,39 @@ export const createNote = withErrorWrapper<INote, [CreateNoteInput]>(async (inpu
 	return note as INote;
 });
 
-export const getFolders = withErrorWrapper<INoteFolder[], []>(async () => {
+export const getFolders = withErrorWrapper<INoteFolder[], [{ page?: number; limit?: number } | undefined]>(async (input) => {
 	const userId = await getUserId();
+    const page = input?.page || 1;
+    const limit = input?.limit || 20;
+    const skip = (page - 1) * limit;
+
 	const folders = await prisma.noteFolder.findMany({
 		where: { 
-      userId,
-      status: "ACTIVE"
-    },
+          userId,
+          status: "ACTIVE"
+        },
 		orderBy: { createdAt: "desc" },
-    include: {
-      _count: {
-        select: {
-          notes: {
-            where: { status: "ACTIVE" }
-          }
+        skip,
+        take: limit,
+        include: {
+        _count: {
+            select: {
+            notes: {
+                where: { status: "ACTIVE" }
+            }
+            }
         }
-      }
     }
 	});
 	return folders as unknown as INoteFolder[];
 });
 
-export const getNotes = withErrorWrapper<IGetNoteList[], [string | undefined]>(async (folderId) => {
+export const getNotes = withErrorWrapper<IGetNoteList[], [{ folderId?: string; page?: number; limit?: number } | undefined]>(async (input) => {
 	const userId = await getUserId();
+    const folderId = input?.folderId;
+    const page = input?.page || 1;
+    const limit = input?.limit || 20;
+    const skip = (page - 1) * limit;
 
 	const whereClause : Prisma.NoteWhereInput = {
 		userId,
@@ -64,6 +74,8 @@ export const getNotes = withErrorWrapper<IGetNoteList[], [string | undefined]>(a
 	const notes = await prisma.note.findMany({
 		where: whereClause,
 		orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
 	});
 	return notes as IGetNoteList[];
 });

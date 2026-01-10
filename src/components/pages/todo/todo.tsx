@@ -10,15 +10,8 @@ import TodoHeader from "./todo-header";
 import TodoBoard from "./todo-board";
 
 function Todo() {
-  const [todos, setTodos] = useState<IGetTodoListPayload>({
-    plan: [],
-    pending: [],
-    done: [],
-  });
-
+  // Moved state management to columns, but we need filters here
   const [todayMode, setTodayMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-
 
   const [filters, setFilters] = useState<TodoFilterInput>({
     status: undefined,
@@ -30,41 +23,36 @@ function Todo() {
   });
 
   const [search, setSearch] = useState("");
+  // Note: debouncedSearch is actually needed by the columns, so we pass it down?
+  // Or we pass 'search' and they debounce it?
+  // Better to debounce here and pass 'debouncedSearch' as 'query' in filters.
   const debouncedSearch = useDebounce(search, 300);
 
-  const load = async (override?: TodoFilterInput) => {
-    setLoading(true);
-    const finalFilters = override ?? filters;
-    const action = todayMode ? getTodayTodos : getTodoList;
+  // We no longer fetch "todos" big object here. 
+  // We just pass the current filters to the board.
+  
+  // Refresh trigger state
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const response = await withClientAction<IGetTodoListPayload>(() =>
-      action(finalFilters)
-    );
-
-    if (response) setTodos(response);
-    setLoading(false);
+  const handleRefresh = async () => {
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const applyFilters = () => {
-    load({
-      ...filters,
-      query: search || undefined,
-    });
+      // Logic if needed, currently effects handle filter changes
   };
 
-  useEffect(() => {
-    load({
+  // Construct effective filters
+  const effectiveFilters: TodoFilterInput = {
       ...filters,
       query: debouncedSearch || undefined,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, todayMode]);
+  };
 
   return (
     <div className="section-wrapper">
       <TodoHeader
         applyFilters={applyFilters}
-        load={load}
+        load={handleRefresh} 
         filters={filters}
         setFilters={setFilters}
         search={search}
@@ -73,7 +61,12 @@ function Todo() {
         setTodayMode={setTodayMode}
       />
 
-      <TodoBoard loading={loading} fetchTodos={load} todos={todos} />
+      <TodoBoard 
+          filters={effectiveFilters} 
+          todayMode={todayMode}
+          refreshTrigger={refreshTrigger}
+          onRefresh={handleRefresh}
+      />
     </div>
   );
 }
