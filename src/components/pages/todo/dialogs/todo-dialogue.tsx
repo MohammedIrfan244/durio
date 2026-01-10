@@ -49,6 +49,8 @@ import {
   Plus,
   X,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils/date-formatter";
 import { withClientAction } from "@/lib/utils/with-client-action";
@@ -490,6 +492,7 @@ export default function ToDoDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
@@ -644,17 +647,43 @@ export default function ToDoDialog({
             {/* Title and Description */}
             <TitleAndDescriptionSection form={form} />
 
-            {/* Priority + Renew + Tags Input Row */}
-            <MetadataRow form={form} />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMore(!showMore)}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 h-7 px-2"
+              >
+                {showMore ? (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5" />
+                    Less options
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3.5 h-3.5" />
+                    Need more?
+                  </>
+                )}
+              </Button>
+            </div>
 
-            {/* Tags Display */}
-            <TagsDisplay form={form} />
+            {showMore && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Priority + Renew + Tags Input Row */}
+                <MetadataRow form={form} />
 
-            {/* Date + Time Row */}
-            <DateTimeSection form={form} />
+                {/* Tags Display */}
+                <TagsDisplay form={form} />
 
-            {/* Checklist */}
-            <ChecklistSection form={form} />
+                {/* Date + Time Row */}
+                <DateTimeSection form={form} />
+
+                {/* Checklist */}
+                <ChecklistSection form={form} />
+              </div>
+            )}
 
             {/* Footer Buttons */}
             <DialogFooterButtons isPending={isPending} setOpen={setOpen} />
