@@ -129,7 +129,7 @@ export default function TodoArchive({ onSuccess }: TodoArchiveProps) {
             className="bg-secondary/30 border border-border/40 transition-all duration-300 hover:bg-secondary/50 hover:border-primary/20 group flex items-center gap-2 text-foreground"
           >
             <Archive className="group-hover:-rotate-45 transition-all duration-300" />
-            <span className="hidden sm:inline">Archived Todos</span>
+            <span>Archived Todos</span>
           </Button>
         </DrawerTrigger>
 

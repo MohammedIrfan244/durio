@@ -616,7 +616,7 @@ export default function ToDoDialog({
           {trigger ? (
             trigger
           ) : (
-            <Button className="transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0 group">
+            <Button className="transition-transform w-full duration-300 hover:-translate-y-0.5 active:translate-y-0 group">
               <Plus className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-1000 ease-out" />{" "}
               New Todo
             </Button>

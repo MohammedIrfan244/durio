@@ -3,6 +3,7 @@ import ToDoDialog from "../dialogs/todo-dialogue";
 import TodoArchive from "../todo-archive";
 import { HeaderSearch } from "@/components/shared/header-search";
 import { TodoFilterInput } from "@/schema/todo";
+import { QuickTodoDrawer } from "../quick-todo/quick-todo-drawer";
 
 interface SearchAndCreateRowProps {
   search: string;
@@ -26,9 +27,19 @@ export const SearchAndCreateRow: React.FC<SearchAndCreateRowProps> = ({
         placeholder="What are you looking for?"
       />
 
-      <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
-        <ToDoDialog onSaved={() => load(filters)} />
-        <TodoArchive onSuccess={() => load(filters)} />
+      <div className="grid grid-cols-2 md:flex md:flex-row items-center gap-2 w-full md:w-auto">
+        <div className="contents md:hidden">
+            {/* Mobile Order: Archive, Quick, Dialog (Full) */}
+        </div>
+        <div className="col-span-1 md:w-auto order-1 md:order-none">
+             <TodoArchive onSuccess={() => load(filters)} />
+        </div>
+        <div className="col-span-1 md:w-auto order-2 md:order-none">
+             <QuickTodoDrawer />
+        </div>
+        <div className="col-span-2 md:w-auto order-3 md:order-none">
+             <ToDoDialog onSaved={() => load(filters)} />
+        </div>
       </div>
     </div>
   </div>

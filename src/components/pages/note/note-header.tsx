@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
     Plus, 
-    Archive, 
     CheckSquare, 
     Trash2, 
     FolderPlus, 
@@ -21,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { HeaderSearch } from "@/components/shared/header-search";
+import { QuickNoteDrawer } from "./quick-note/quick-note-drawer";
 
 interface NoteHeaderProps {
   search: string;
@@ -58,10 +58,11 @@ export function NoteHeader({
     <SectionHeaderWrapper className="mb-6">
         <div className="flex flex-col gap-4">
           {/* Top Row: Back Button, Search & Primary Actions */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+          {/* Top Row: Back Button, Search & Primary Actions */}
+          <div className="grid grid-cols-[1fr_auto] md:flex md:flex-row items-center gap-4">
             
             {/* Search Bar with Back Button - LINE 1 on Mobile */}
-            <div className="order-1 md:order-none flex-1 relative group nav-item-group flex items-center gap-2 w-full">
+            <div className="order-1 md:order-none col-span-1 flex-1 relative group nav-item-group flex items-center gap-2 w-full">
               {onBack && (
                 <Button 
                   variant="ghost" 
@@ -83,9 +84,14 @@ export function NoteHeader({
             {/* Right Side Actions Wrapper */}
             <div className="contents md:flex md:flex-row md:items-center md:justify-between md:gap-2 md:w-auto">
               
+              {/* Quick Notes */}
+               <div className="order-2 md:order-none col-span-1 justify-self-end">
+                  <QuickNoteDrawer />
+               </div>
+
               {/* Add Menu - Primary Action - LINE 3 on Mobile (Full Width) */}
               {!archiveMode && !selectionMode && (
-                <div className="order-3 md:order-none w-full md:w-auto mt-2 md:mt-0">
+                <div className="order-3 md:order-none col-span-2 w-full md:w-auto mt-2 md:mt-0">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button className="w-full md:w-auto gap-2 font-semibold group shadow-md hover:shadow-lg transition-all duration-300">
@@ -118,7 +124,7 @@ export function NoteHeader({
               )}
 
               {/* Mode Toggle Cards - LINE 2 on Mobile */}
-              <div className="order-2 md:order-none flex items-center gap-2 w-full md:w-auto md:flex-initial overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+              <div className="order-2 md:order-none col-span-2 flex items-center gap-2 w-full md:w-auto md:flex-initial overflow-x-auto pb-1 md:pb-0 scrollbar-none">
                 
                 {/* Selection Mode Card */}
                 <Card

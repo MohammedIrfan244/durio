@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CreateFolderSchema } from "@/schema/note";
 import type { CreateFolderInput } from "@/schema/note";
-import { createNoteFolder, updateNoteFolder, getFolders } from "@/server/actions/note-action";
+import { createNoteFolder, updateNoteFolder, getFolders, getFolderById } from "@/server/actions/note-action";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -33,6 +33,7 @@ type FolderFormContext = UseFormReturn<CreateFolderInput>;
 import { Controller } from "react-hook-form";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { IconPicker } from "@/components/ui/icon-picker";
+import { error } from "@/lib/utils/logger";
 
 const NameAndColorSection: React.FC<{ form: FolderFormContext }> = ({ form }) => {
   const { register, control, formState: { errors } } = form;
@@ -102,11 +103,11 @@ export default function FolderDialog({ folderId, trigger, onSaved, open: externa
     const loadFolderData = async () => {
       setIsLoading(true);
       try {
-        const foldersRes = await getFolders();
-        const folders = foldersRes?.data || [];
-        const folder = folders.find((f) => f.id === folderId);
+        const folderRes = await getFolderById(folderId);
+        const folder = folderRes.data
         if (!folder) {
           toast.error("Failed to load folder");
+          error("Folder not found:", folderRes.error);
           setOpen(false);
           return;
         }

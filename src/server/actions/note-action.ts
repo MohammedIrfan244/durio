@@ -50,6 +50,14 @@ export const getFolders = withErrorWrapper<INoteFolder[], [{ page?: number; limi
 	return folders as unknown as INoteFolder[];
 });
 
+export const getFolderById = withErrorWrapper<INoteFolder | null, [string]>(async (id) => {
+	const userId = await getUserId();
+	const folder = await prisma.noteFolder.findFirst({
+		where: { id, userId },
+	});
+	return folder as INoteFolder | null;
+});
+
 export const getNotes = withErrorWrapper<IGetNoteList[], [{ folderId?: string; page?: number; limit?: number } | undefined]>(async (input) => {
 	const userId = await getUserId();
     const folderId = input?.folderId;
