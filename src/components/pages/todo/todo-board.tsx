@@ -204,7 +204,7 @@ export default function TodoBoard({
 
   useEffect(() => {
     fetchStats();
-  }, [refreshTrigger]); // re-fetch stats when trigger changes
+  }, [refreshTrigger]); 
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {

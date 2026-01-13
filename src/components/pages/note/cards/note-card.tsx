@@ -54,7 +54,6 @@ export function NoteCard({
         "hover:shadow-md",
         !selectionMode && "cursor-pointer",
         isSelected && "ring-2 ring-primary",
-        // Responsive Height & Aspect Ratio
         "md:min-h-[280px] md:aspect-[1/1.4]",
         isExpanded ? "min-h-[280px]" : "min-h-[140px]"
       )}

@@ -23,15 +23,8 @@ function Todo() {
   });
 
   const [search, setSearch] = useState("");
-  // Note: debouncedSearch is actually needed by the columns, so we pass it down?
-  // Or we pass 'search' and they debounce it?
-  // Better to debounce here and pass 'debouncedSearch' as 'query' in filters.
   const debouncedSearch = useDebounce(search, 300);
 
-  // We no longer fetch "todos" big object here. 
-  // We just pass the current filters to the board.
-  
-  // Refresh trigger state
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleRefresh = async () => {
@@ -39,10 +32,8 @@ function Todo() {
   };
 
   const applyFilters = () => {
-      // Logic if needed, currently effects handle filter changes
   };
 
-  // Construct effective filters
   const effectiveFilters: TodoFilterInput = {
       ...filters,
       query: debouncedSearch || undefined,

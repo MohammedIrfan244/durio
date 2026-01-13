@@ -85,7 +85,7 @@ export function QuickNoteDrawer() {
   return (
     <Drawer direction="top" open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="gap-2 nav-item-group">
+        <Button variant="ghost" className="gap-2 nav-item-group">
           <Zap className="h-4 w-4 animate-zap" />
           <span className="hidden sm:inline">Quick Notes</span>
         </Button>
