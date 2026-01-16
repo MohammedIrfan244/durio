@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
 
 interface QuickNoteInputProps {
@@ -18,16 +18,19 @@ export function QuickNoteInput({ value, onChange, onSubmit, isEditing, onCancelE
     <div className="space-y-2">
         <div className="flex gap-2">
         <div className="relative flex-1">
-            <Input 
+            <Textarea 
             placeholder="Type your quick note here..." 
             value={value}
             onChange={(e) => onChange(e.target.value.slice(0, 150))}
-            className="pr-16"
+            className="pr-16 min-h-[80px] resize-none"
             onKeyDown={(e) => {
-                if (e.key === "Enter") onSubmit();
+                if (e.key === "Enter" && e.shiftKey) {
+                    e.preventDefault();
+                    onSubmit();
+                }
             }}
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+            <span className="absolute right-3 bottom-2 text-xs text-muted-foreground">
             {value.length}/150
             </span>
         </div>
