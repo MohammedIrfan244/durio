@@ -21,7 +21,7 @@ export function QuickNoteInput({ value, onChange, onSubmit, isEditing, onCancelE
             <Textarea 
             placeholder="Type your quick note here..." 
             value={value}
-            onChange={(e) => onChange(e.target.value.slice(0, 150))}
+            onChange={(e) => onChange(e.target.value.slice(0, 500))}
             className="pr-16 min-h-[80px] resize-none"
             onKeyDown={(e) => {
                 if (e.key === "Enter" && e.shiftKey) {
@@ -31,7 +31,7 @@ export function QuickNoteInput({ value, onChange, onSubmit, isEditing, onCancelE
             }}
             />
             <span className="absolute right-3 bottom-2 text-xs text-muted-foreground">
-            {value.length}/150
+            {value.length}/500
             </span>
         </div>
         <Button onClick={onSubmit}>
