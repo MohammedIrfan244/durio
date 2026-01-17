@@ -77,7 +77,7 @@ export function NoteCard({
       )}
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col gap-3">
+      <div className="p-4 flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar-on-main">
         {/* Heading */}
         <h3 className={cn(
           "font-bold tracking-tight break-words transition-all duration-300",
@@ -89,8 +89,8 @@ export function NoteCard({
 
         {/* Description */}
         <div className={cn(
-          "text-sm text-foreground/80 break-words whitespace-pre-wrap transition-all duration-300",
-          !isExpanded && shouldTruncate && "line-clamp-2 md:line-clamp-4"
+          "text-sm text-foreground/80 break-words whitespace-pre-wrap transition-all duration-300 ",
+          !isExpanded && shouldTruncate && "line-clamp-2 md:line-clamp-4",
         )}>
           {isExpanded 
             ? note.description 
