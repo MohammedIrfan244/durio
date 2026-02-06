@@ -150,8 +150,6 @@ const MetadataRow: React.FC<{ form: TodoFormContext }> = ({ form }) => {
   );
 };
 
-// ... (previous helper components remain similar but with updated input styles)
-
 // Title and Description
 const TitleAndDescriptionSection: React.FC<{ form: TodoFormContext }> = ({
   form,

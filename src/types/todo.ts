@@ -115,10 +115,10 @@ export interface IGetTodoListPayload {
 
 export interface OverviewStats {
   totalTodos: number
-  activeTodos: number // PLAN + PENDING
-  completedTodos: number // DONE
-  cancelledOrArchived: number // CANCELLED + ARCHIVED
-  overdueTodos: number // current overdue count
+  activeTodos: number 
+  completedTodos: number 
+  archivedTodos: number
+  overdueTodos: number
 }
 
 export interface TodayStats {

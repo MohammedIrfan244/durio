@@ -10,7 +10,7 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []
   async (): Promise<ITodoStatsResponsePayload | null> => {
     const userId = await getUserId()
     const timezone = await getUserTimezone(userId);
-    const { now, startOfToday, startOfTomorrow, startOfWeek, startOfLast30Days, daysElapsedThisWeek } = getUserDateRanges(timezone)
+    const { startOfToday, startOfTomorrow, startOfWeek, startOfLast30Days, daysElapsedThisWeek } = getUserDateRanges(timezone)
 
     // 1. Initial check
     const totalCount = await prisma.todo.count({ where: { userId } })
@@ -20,18 +20,10 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []
     const [counts, todayStats, streakData, completedLast30, statusRaw, priorityRaw] = await Promise.all([
       // Basic Overviews
       Promise.all([
-        prisma.todo.count({ where: { userId, status: { in: ["PLAN", "PENDING"] } } }),
         prisma.todo.count({ where: { userId, status: "DONE" } }),
-        prisma.todo.count({ where: { userId, status: { in: ["CANCELLED", "ARCHIVED"] } } }),
-        prisma.todo.count({ 
-          where: { 
-            userId, 
-            OR: [
-              { status: "OVERDUE" },
-              { status: { in: ["PLAN", "PENDING"] }, dueDate: { lt: now } }
-            ]
-          } 
-        }),
+        prisma.todo.count({ where: { userId, status: { in: ["PLAN", "PENDING"] } } }),
+        prisma.todo.count({ where: { userId, status: "OVERDUE" } }),
+        prisma.todo.count({ where: { userId, status: "ARCHIVED" } }),
       ]),
       // Today/Week Stats
       Promise.all([
@@ -65,11 +57,11 @@ export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload | null, []
     });
 
     // 4. Final Assembly (mapping logic)
-    const [activeTodos, completedTodos, cancelledOrArchived, overdueTodos] = counts;
+    const [completedTodos, activeTodos, overdueTodos, archivedTodos] = counts;
     const [dueToday, completedToday, completedThisWeek, createdToday, createdThisWeek, completedTodayOfDueToday] = todayStats;
 
     const statsPayload: ITodoStatsResponsePayload = {
-      overview: { totalTodos: totalCount, activeTodos, completedTodos, cancelledOrArchived, overdueTodos },
+      overview: { totalTodos: totalCount, activeTodos, completedTodos, archivedTodos, overdueTodos },
       today: { 
         dueToday: dueToday + overdueTodos, overdueNow: overdueTodos, completedToday, completedThisWeek, 
         createdToday, createdThisWeek, 

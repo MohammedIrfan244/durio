@@ -128,7 +128,7 @@ function StatCard({
       "
     >
       <div className="flex gap-2 items-center">
-        {Icon ? (
+        {(Icon && !emoji) ? (
           <Icon className="w-4 h-4 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 group-hover:animate-icon-pulse" />
         ) : (
           <span className="text-lg transition-transform duration-300 group-hover:scale-110 group-hover:animate-emoji-bounce">
@@ -265,7 +265,7 @@ export function StatsColumn({
           <StatCard
             icon={Archive}
             label="Archived"
-            value={stats.overview.cancelledOrArchived}
+            value={stats.overview.archivedTodos}
             emoji="📦"
           />
         </CardContent>

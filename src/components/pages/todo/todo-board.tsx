@@ -33,14 +33,14 @@ interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";
   filters: TodoFilterInput;
   todayMode: boolean;
-  triggerRefresh: number; // Increment to force refresh
+  triggerRefresh: number; 
   setSelectedId: (id: string | null) => void;
   setOpenDetail: (open: boolean) => void;
   setOpenDelete: (open: boolean) => void;
   setOpenEdit: (open: boolean) => void;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
-  onRefreshBoard: () => void; // Call parent to refresh other columns if needed
+  onRefreshBoard: () => void;
 }
 
 function TodoColumn({
@@ -74,7 +74,6 @@ function TodoColumn({
     setLoading(true);
     try {
       if (todayMode) {
-        // Today mode doesn't support pagination per status yet, fetches all
         const action = getTodayTodos;
         const res = await withClientAction<IGetTodoListPayload>(() => action());
         if (res) {
@@ -83,7 +82,6 @@ function TodoColumn({
           setHasMore(false); 
         }
       } else {
-        // Normal mode with pagination
         const limit = 10;
         const res = await withClientAction<IGetTodoListPayload>(() => 
           getTodoList({ ...filters, status: title, page: pageNum, limit })

@@ -29,6 +29,7 @@ import {
 import type { Prisma } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
 import { isRenewalDay, generateInsights } from "@/lib/logic/todo-insights";
+import { el } from "date-fns/locale";
 
 
 
@@ -81,7 +82,6 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
   return todo as ITodo;
 }); 
 
-// Action to get a list of to-do items with optional filtering and sorting , done
 export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInput]>(async (filters: TodoFilterInput):Promise<IGetTodoListPayload> => {
     const validatedFilters = todoFilterSchema.parse(filters);
     const userId = await getUserId();
@@ -89,7 +89,19 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
     const andConditions: Prisma.TodoWhereInput[] = [{ userId }];
 
     if (validatedFilters.status) {
-      andConditions.push({ status: validatedFilters.status });
+      switch (validatedFilters.status) {
+        case "PLAN":
+          andConditions.push({ status: "PLAN" });
+          break;
+        case "PENDING":
+          andConditions.push({ status: { in: ["PENDING", "OVERDUE"] } });
+          break;
+        case "DONE":
+          andConditions.push({ status: { in: ["DONE", "CANCELLED"] } });
+          break;
+        default:
+          break;
+      }
     }
 
     if (validatedFilters.priority) {
@@ -132,11 +144,7 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
       orderBy: {
         [prismaSortField]: prismaSortOrder,
       },
-      skip: validatedFilters.status ? skip : undefined, // Only paginate if status is specific (optimization?) or just always paginate if page is sent?
-      // User strategy implies fetching per status. If we fetch all, pagination is complex across groups.
-      // If status IS provided, we paginate. If NOT provided (legacy/overview), we might want to return all or apply limit?
-      // For safety, let's strictly paginate only if page parameters are explicitly provided OR if status is provided.
-      // But user wants "10 per page" for todo columns.
+      skip: validatedFilters.status ? skip : undefined, 
       take: validatedFilters.status ? limit : undefined, 
     });
 
@@ -433,6 +441,7 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
     where: { id: validatedInput.checklistItemId },
     data: { marked: !checklistItem.marked },
   });
+  
   return await prisma.todo.findUniqueOrThrow({
     where: { id: validatedInput.todoId },
     include: { checklist: true },
