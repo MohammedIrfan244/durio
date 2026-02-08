@@ -55,7 +55,7 @@ import {
 import { formatDate } from "@/lib/utils/date-formatter";
 import { withClientAction } from "@/lib/utils/with-client-action";
 import { today } from "@/lib/utils/today";
-import TodoDialogSkeleton from "@/components/skelton/todo/todo-dialogue-skelton";
+import TodoDialogSkeleton from "@/components/skeleton/todo/todo-dialogue-skelton";
 
 type Props = {
   todoId?: string;

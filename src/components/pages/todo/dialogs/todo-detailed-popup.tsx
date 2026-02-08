@@ -43,7 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatName } from "@/lib/utils/name-formatter";
-import TodoDetailedPopupSkeleton from "@/components/skelton/todo/todo-detail-skelton";
+import TodoDetailedPopupSkeleton from "@/components/skeleton/todo/todo-detail-skelton";
 
 // --- TYPES ---
 interface TodoDetailedProps {

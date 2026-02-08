@@ -39,7 +39,7 @@ export function generateInsights(input: {
 }): PersonalInsight[] {
   const insights: PersonalInsight[] = [];
 
-  if (input.streak.current.isActive && input.streak.current.count >= 7) {
+  if (input.streak.active && input.streak.count >= 7) {
     insights.push({
       id: "strong-streak",
       type: "POSITIVE",
@@ -47,7 +47,7 @@ export function generateInsights(input: {
     });
   }
 
-  if (!input.streak.current.isActive && input.streak.current.count > 0) {
+  if (!input.streak.active && input.streak.count > 0) {
     insights.push({
       id: "streak-broken",
       type: "WARNING",

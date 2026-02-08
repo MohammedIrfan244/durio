@@ -46,12 +46,6 @@ export const getTodoStat = withErrorWrapper<
     yourRythm,
   });
 
-  console.log("overview", overview);
-  console.log("streak", streak);
-  console.log("weekly", weekly);
-  console.log("priorityFocus", priorityFocus);
-  console.log("yourRythm", yourRythm);
-
   return {
     overview,
     streak,
@@ -120,7 +114,7 @@ function buildStreakStats(data: {
   lastCompleted: Date | null;
 }) {
   if (!data) {
-    return { count: 0, longest: 0, lastCompleted: null, inLastThirtyDays: 0 };
+    return { count: 0, longest: 0, lastCompleted: null, active: 0, inLastThirtyDays: 0 };
   }
 
   const inLastThirtyDays = Math.min(data.active, 30);
@@ -129,6 +123,7 @@ function buildStreakStats(data: {
     count: data.count,
     longest: data.longest,
     lastCompleted: data.lastCompleted,
+    active: data.active,
     inLastThirtyDays
   };
 }

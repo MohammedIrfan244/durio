@@ -162,6 +162,7 @@ export interface StreakStats {
   count: number
   longest: number
   lastCompleted: Date | null
+  active: number
   inLastThirtyDays: number
 }
 

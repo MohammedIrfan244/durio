@@ -1,5 +1,5 @@
-import { NoStats } from "@/components/skelton/todo/no-stats-skeoton";
-import StatsColumnSkeleton from "@/components/skelton/todo/stats-column-skelton";
+import { NoStats } from "@/components/skeleton/todo/no-stats-skeoton";
+import StatsColumnSkeleton from "@/components/skeleton/todo/stats-column-skelton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ITodoStatsResponsePayload } from "@/types/todo";
 import { AlertCircle, Archive, CheckCircle2, Circle } from "lucide-react";
