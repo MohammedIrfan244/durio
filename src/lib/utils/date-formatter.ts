@@ -57,3 +57,25 @@ export function convertToLocalDate ( {utc, timeZone}:{utc: string, timeZone: str
 
   return new Date(`${localDate}T00:00:00`);
 }
+export function thisWeekDate(timeZone: string) {
+  const now = convertToLocalDate({
+    utc: new Date().toISOString(),
+    timeZone,
+  });
+
+  const dayOfWeek = now.getDay();
+  const startOfWeek = new Date(now);
+
+  startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+  return { startOfWeek, endOfWeek };
+}
+
+export function numberToDayOfWeek(num: number): string {
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return daysOfWeek[num] || "";
+}

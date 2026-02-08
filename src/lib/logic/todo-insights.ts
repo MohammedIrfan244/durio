@@ -22,10 +22,6 @@ export function isRenewalDay(renewStart: Date | null, renewInterval: string | nu
     case "WEEKLY":
       return daysDifference % (renewEvery * 7) === 0;
     case "MONTHLY":
-      // Simplified: check if it's the right day of month. 
-      // Harder with exact days. Using just 30 days approximation for legacy compatibility or...
-      // Ideally should check calendar date.
-      // But preserving existing logic:
       return daysDifference % (renewEvery * 30) === 0; 
     case "YEARLY":
       return daysDifference % (renewEvery * 365) === 0;

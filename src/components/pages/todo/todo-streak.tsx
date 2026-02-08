@@ -19,8 +19,8 @@ function AchievementBadges({
   const mutedColor = "text-muted-foreground/30";
 
   const getBadgeColor = (
-    badgeSlot: "gold" | "silver" | "bronze", 
-    currentLevel: "none" | "bronze" | "silver" | "gold"
+    badgeSlot: "gold" | "silver" | "bronze",
+    currentLevel: "none" | "bronze" | "silver" | "gold",
   ) => {
     let isActive = false;
     switch (badgeSlot) {
@@ -52,7 +52,7 @@ function AchievementBadges({
       <span
         className={`transition-all duration-300 hover:scale-125 ${getBadgeColor(
           "gold",
-          level
+          level,
         )}`}
       >
         🥇
@@ -60,7 +60,7 @@ function AchievementBadges({
       <span
         className={`transition-all duration-300 hover:scale-125 ${getBadgeColor(
           "silver",
-          level
+          level,
         )}`}
       >
         🥈
@@ -68,7 +68,7 @@ function AchievementBadges({
       <span
         className={`transition-all duration-300 hover:scale-125 ${getBadgeColor(
           "bronze",
-          level
+          level,
         )}`}
       >
         🥉
@@ -98,7 +98,7 @@ function ShineStars({
         style={{ animationDelay: `${i * 0.1}s` }}
       >
         ⭐
-      </span>
+      </span>,
     );
   }
   return <div className="flex items-center space-x-[1px]">{stars}</div>;
@@ -128,7 +128,7 @@ function StatCard({
       "
     >
       <div className="flex gap-2 items-center">
-        {(Icon && !emoji) ? (
+        {Icon && !emoji ? (
           <Icon className="w-4 h-4 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 group-hover:animate-icon-pulse" />
         ) : (
           <span className="text-lg transition-transform duration-300 group-hover:scale-110 group-hover:animate-emoji-bounce">
@@ -138,10 +138,14 @@ function StatCard({
         <p className="text-xs text-muted-foreground truncate">{label}</p>
       </div>
 
-      <p className="text-sm font-semibold transition-all duration-300 group-hover:scale-105">{value}</p>
+      <p className="text-sm font-semibold transition-all duration-300 group-hover:scale-105">
+        {value}
+      </p>
 
       {trend && (
-        <div className="text-xs font-medium text-green-600 animate-slide-in-right">{trend}</div>
+        <div className="text-xs font-medium text-green-600 animate-slide-in-right">
+          {trend}
+        </div>
       )}
     </div>
   );
@@ -169,15 +173,25 @@ function CompactRow({
       "
     >
       <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-        {emoji && <span className="transition-transform duration-300 group-hover:scale-110 group-hover:animate-emoji-wiggle">{emoji}</span>}
+        {emoji && (
+          <span className="transition-transform duration-300 group-hover:scale-110 group-hover:animate-emoji-wiggle">
+            {emoji}
+          </span>
+        )}
         {label}
         {achievementLevel ? (
           <AchievementBadges level={achievementLevel} />
         ) : (
-          medal && <span className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">{medal}</span>
+          medal && (
+            <span className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
+              {medal}
+            </span>
+          )
         )}
       </span>
-      <span className="text-xs font-medium transition-all duration-300 group-hover:scale-105">{value}</span>
+      <span className="text-xs font-medium transition-all duration-300 group-hover:scale-105">
+        {value}
+      </span>
     </div>
   );
 }
@@ -205,7 +219,10 @@ function ProgressBar({
       </div>
       {emoji && (
         <div className="text-[10px] text-muted-foreground text-right transition-transform duration-300 group-hover:scale-105">
-          <span className="inline-block group-hover:animate-emoji-bounce">{emoji}</span> {Math.round(percentage)}%
+          <span className="inline-block group-hover:animate-emoji-bounce">
+            {emoji}
+          </span>{" "}
+          {Math.round(percentage)}%
         </div>
       )}
     </div>
@@ -220,8 +237,8 @@ export function StatsColumn({
   loading: boolean;
 }) {
   const formatDay = (day: string) => day.charAt(0) + day.slice(1).toLowerCase();
-  const calculateStars = (completedCount: number) =>
-    Math.min(Math.floor(completedCount / 2) + 1, 5);
+  const calculateStars = (completed: number, total: number) =>
+    Math.max(1, Math.ceil((completed / total) * 5));
 
   const getStreakLevel = (streakCount: number) => {
     if (streakCount >= 7) return "gold";
@@ -233,14 +250,16 @@ export function StatsColumn({
   if (loading) return <StatsColumnSkeleton />;
   if (!stats) return <NoStats />;
 
-  const quickWinStars = calculateStars(stats.overview.completedTodos);
+  const quickWinStars = calculateStars(stats.overview.completedTodos, stats.overview.totalTodos);
+  console.log("stars",quickWinStars, stats.overview.completedTodos, stats.overview.totalTodos);
 
   return (
     <div className="space-y-1 h-auto md:h-screen md:overflow-auto hide-scrollbar-on-main select-none">
       <Card className="p-1 bg-gradient-to-br from-primary/5 to-primary/10 animate-card-entrance">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span className="inline-block animate-zap-pulse">⚡</span> Quick Wins
+            <span className="inline-block animate-zap-pulse">⚡</span> Quick
+            Wins
           </CardTitle>
           <ShineStars activeStars={quickWinStars} maxStars={5} />
         </CardHeader>
@@ -272,42 +291,55 @@ export function StatsColumn({
       </Card>
 
       {/* Streak */}
-      <Card className="p-1 animate-card-entrance" style={{ animationDelay: '0.1s' }}>
+      <Card
+        className="p-1 animate-card-entrance"
+        style={{ animationDelay: "0.1s" }}
+      >
         <CardHeader className="flex justify-between items-center">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span className="inline-block animate-fire-flicker">🔥</span> Your Streak
+            <span className="inline-block animate-fire-flicker">🔥</span> Your
+            Streak
           </CardTitle>
           <AchievementBadges
-            level={getStreakLevel(stats.streak.current.count)}
+            level={getStreakLevel(stats.streak.count)}
           />
         </CardHeader>
 
         <CardContent className="space-y-1">
           <div className="text-center p-0 bg-muted/40 rounded-lg group hover:bg-muted/60 transition-all duration-300">
             <p className="text-3xl font-bold text-orange-600 transition-transform duration-300 group-hover:scale-110">
-              {stats.streak.current.count}
+              {stats.streak.count}
             </p>
             <p className="text-xs text-muted-foreground">days strong</p>
             <div className="text-sm">
-              {Array.from({ length: Math.min(stats.streak.current.count, 5) }, (_, i) => (
-                <span key={i} className="inline-block animate-star-twinkle" style={{ animationDelay: `${i * 0.15}s` }}>⭐</span>
-              ))}
+              {Array.from(
+                { length: Math.min(stats.streak.count, 5) },
+                (_, i) => (
+                  <span
+                    key={i}
+                    className="inline-block animate-star-twinkle"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  >
+                    ⭐
+                  </span>
+                ),
+              )}
             </div>
           </div>
 
           <CompactRow
             label="Best run"
-            value={`${stats.streak.longest.count} days`}
+            value={`${stats.streak.longest} days`}
             medal="🥇"
           />
           <CompactRow
             label="Active days (30)"
-            value={`${stats.streak.health.activeDaysLast30}/30`}
+            value={`${stats.streak.inLastThirtyDays}/30`}
             medal="🥈"
           />
 
           <ProgressBar
-            value={stats.streak.health.percentageActiveLast30}
+            value={(stats.streak.inLastThirtyDays / 30) * 100}
             max={100}
             emoji="🔥"
             colorClass="bg-orange-600"
@@ -315,39 +347,45 @@ export function StatsColumn({
         </CardContent>
       </Card>
 
-      <Card className="p-1 animate-card-entrance" style={{ animationDelay: '0.2s' }}>
+      <Card
+        className="p-1 animate-card-entrance"
+        style={{ animationDelay: "0.2s" }}
+      >
         <CardHeader className="flex justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span className="inline-block animate-sun-rotate">☀️</span> Today & This Week
+            <span className="inline-block animate-sun-rotate">☀️</span> Today &
+            This Week
           </CardTitle>
-          <span className="text-xl inline-block hover:animate-calendar-flip">📆</span>
+          <span className="text-xl inline-block hover:animate-calendar-flip">
+            📆
+          </span>
         </CardHeader>
 
         <CardContent>
           <CompactRow
             emoji="✅"
             label="Completed today"
-            value={stats.today.completedToday}
+            value={stats.weekly.completedTodayCount}
           />
           <CompactRow
             emoji="📝"
             label="Due today"
-            value={stats.today.dueToday}
+            value={stats.weekly.dueTodayCount}
           />
           <CompactRow
             emoji="🚀"
             label="Completed this week"
-            value={stats.today.completedThisWeek}
+            value={stats.weekly.completedThisWeekCount}
           />
           <CompactRow
             emoji="➕"
             label="Created this week"
-            value={stats.today.createdThisWeek}
+            value={stats.weekly.createdThisWeekCount}
           />
 
-          {stats.today.completionRateToday !== undefined && (
+          {stats.weekly.dueTodayCount > 0 && (
             <ProgressBar
-              value={stats.today.completionRateToday}
+              value={(stats.weekly.completedTodayCount / (stats.weekly.completedTodayCount + stats.weekly.dueTodayCount)) * 100}
               max={100}
               emoji="⭐"
             />
@@ -355,40 +393,58 @@ export function StatsColumn({
         </CardContent>
       </Card>
 
-      <Card className="p-1 animate-card-entrance" style={{ animationDelay: '0.3s' }}>
+      <Card
+        className="p-1 animate-card-entrance"
+        style={{ animationDelay: "0.3s" }}
+      >
         <CardHeader className="flex justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span className="inline-block animate-target-pulse">🎯</span> Priority Focus
+            <span className="inline-block animate-target-pulse">🎯</span>{" "}
+            Priority Focus
           </CardTitle>
-          <span className="text-xl inline-block hover:animate-alert-shake">🚨</span>
+          <span className="text-xl inline-block hover:animate-alert-shake">
+            🚨
+          </span>
         </CardHeader>
 
         <CardContent>
           {(["HIGH", "MEDIUM", "LOW"] as const).map((priority, index) => {
-            const count = stats.priorityInsights.counts[priority];
-            const rate = stats.priorityInsights.completionRate[priority];
-            const overdue = stats.priorityInsights.overdue[priority];
+            let count = 0;
+            let rate = 0;
+
+            if (priority === "HIGH") {
+               count = stats.priorityFocus.highPriorityCount;
+               rate = stats.priorityFocus.highCompletionRate;
+            } else if (priority === "MEDIUM") {
+               count = stats.priorityFocus.mediumPriorityCount;
+               rate = stats.priorityFocus.mediumCompletionRate;
+            } else {
+               count = stats.priorityFocus.lowPriorityCount;
+               rate = stats.priorityFocus.lowCompletionRate;
+            }
 
             const barColor =
               priority === "HIGH"
                 ? "bg-red-500"
                 : priority === "MEDIUM"
-                ? "bg-yellow-500"
-                : "bg-blue-500";
+                  ? "bg-yellow-500"
+                  : "bg-blue-500";
 
             const emoji =
               priority === "HIGH" ? "🔴" : priority === "MEDIUM" ? "🟡" : "🔵";
 
             return (
-              <div key={priority} className="space-y-0 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div
+                key={priority}
+                className="space-y-0 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
                 <CompactRow
                   emoji={emoji}
                   label={`${
                     priority.charAt(0) + priority.slice(1).toLowerCase()
                   } tasks`}
-                  value={`${count} / ${rate}% done ${
-                    overdue > 0 ? ` • ${overdue} ⚠️` : ""
-                  }`}
+                  value={`${count} / ${rate.toFixed(1)}% done`}
                 />
 
                 <ProgressBar value={rate} max={100} colorClass={barColor} />
@@ -398,27 +454,33 @@ export function StatsColumn({
         </CardContent>
       </Card>
 
-      <Card className="p-1 animate-card-entrance" style={{ animationDelay: '0.4s' }}>
+      <Card
+        className="p-1 animate-card-entrance"
+        style={{ animationDelay: "0.4s" }}
+      >
         <CardHeader className="flex justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span className="inline-block animate-chart-pulse">📈</span> Your Rhythm
+            <span className="inline-block animate-chart-pulse">📈</span> Your
+            Rhythm
           </CardTitle>
-          <span className="text-xl inline-block hover:animate-music-bounce">🎶</span>
+          <span className="text-xl inline-block hover:animate-music-bounce">
+            🎶
+          </span>
         </CardHeader>
 
         <CardContent className="space-y-1 text-xs">
           <CompactRow
             label="Best day"
             value={
-              stats.timePatterns.mostProductiveDay
-                ? formatDay(stats.timePatterns.mostProductiveDay)
+              stats.yourRythm.bestDayOfWeek
+                ? formatDay(stats.yourRythm.bestDayOfWeek)
                 : "—"
             }
             emoji="🚀"
           />
           <CompactRow
             label="Avg per day"
-            value={`${stats.timePatterns.averageCompletedPerDay} tasks`}
+            value={`${stats.yourRythm.averagePerDay.toFixed(1)} tasks`}
             emoji="⚡"
           />
         </CardContent>
@@ -426,12 +488,18 @@ export function StatsColumn({
 
       {/* Insights */}
       {stats.insights.length > 0 && (
-        <Card className="p-1 animate-card-entrance" style={{ animationDelay: '0.5s' }}>
+        <Card
+          className="p-1 animate-card-entrance"
+          style={{ animationDelay: "0.5s" }}
+        >
           <CardHeader className="flex justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <span className="inline-block animate-bulb-glow">💡</span> Friendly Nudges
+              <span className="inline-block animate-bulb-glow">💡</span>{" "}
+              Friendly Nudges
             </CardTitle>
-            <span className="text-xl inline-block hover:animate-plant-grow">🌱</span>
+            <span className="text-xl inline-block hover:animate-plant-grow">
+              🌱
+            </span>
           </CardHeader>
 
           <CardContent className="space-y-1">
@@ -448,11 +516,15 @@ export function StatsColumn({
         </Card>
       )}
 
-      {stats.statusBreakdown.trendInsight && (
-        <Card className="p-1 text-center bg-green-50 dark:bg-green-900/10 animate-card-entrance animate-pulse-subtle" style={{ animationDelay: '0.6s' }}>
+      {stats.fact && (
+        <Card
+          className="p-1 text-center bg-green-50 dark:bg-green-900/10 animate-card-entrance animate-pulse-subtle"
+          style={{ animationDelay: "0.6s" }}
+        >
           <CardContent>
             <p className="text-xs font-medium text-green-700 dark:text-green-300 flex items-center justify-center gap-1">
-              <span className="inline-block animate-sparkle">✨</span> {stats.statusBreakdown.trendInsight}
+              <span className="inline-block animate-sparkle">✨</span>{" "}
+              {stats.fact.message}
             </p>
           </CardContent>
         </Card>

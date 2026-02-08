@@ -189,9 +189,11 @@ export default function TodoBoard({
 
   const fetchStats = async () => {
     setStatsLoading(true);
+    console.log("fetching stats");
     const response = await withClientAction<ITodoStatsResponsePayload | null>(
       () => getTodoStat()
     );
+    console.log(response,"stat res");
     if (response) setStat(response);
     setStatsLoading(false);
   };
