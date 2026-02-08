@@ -104,22 +104,49 @@ export interface IGetTodoListPayload {
 
   export interface ITodoStatsResponsePayload {
   overview: OverviewStats
-  today: TodayStats
   streak: StreakStats
-  statusBreakdown: StatusBreakdownStats
-  priorityInsights: PriorityInsights
-  timePatterns: TimePatternStats
-  recurringAndChecklist: RecurringChecklistStats
+  weekly: WeeklyStats
+  priorityFocus: PriorityStats
+  yourRythm: RythmStats
   insights: PersonalInsight[]
+  fact: InterestingFact | null
+}
+
+export interface InterestingFact {
+  id: string
+  type: "FACT"
+  message: string
+}
+
+export interface PriorityStats {
+  highPriorityCount: number
+  mediumPriorityCount: number
+  lowPriorityCount: number
+  highCompletionRate: number
+  mediumCompletionRate: number
+  lowCompletionRate: number
+}
+
+export interface RythmStats {
+  bestDayOfWeek : string
+  averagePerDay: number
+}
+
+export interface WeeklyStats {
+  completedTodayCount: number
+  dueTodayCount: number
+  completedThisWeekCount: number
+  createdThisWeekCount: number
 }
 
 export interface OverviewStats {
   totalTodos: number
-  activeTodos: number // PLAN + PENDING
-  completedTodos: number // DONE
-  cancelledOrArchived: number // CANCELLED + ARCHIVED
-  overdueTodos: number // current overdue count
+  activeTodos: number 
+  completedTodos: number 
+  archivedTodos: number
+  overdueTodos: number
 }
+
 
 export interface TodayStats {
   dueToday: number
@@ -132,22 +159,11 @@ export interface TodayStats {
 }
 
 export interface StreakStats {
-  current: {
-    isActive: boolean
-    count: number // days
-    lastCompletedDate?: string // ISO
-    daysSinceLastCompletion?: number // only if broken
-  }
-  longest: {
-    count: number
-    from?: string // ISO
-    to?: string // ISO
-  }
-  health: {
-    averageCompletedPerStreakDay: number
-    activeDaysLast30: number // days with >=1 completion
-    percentageActiveLast30: number // 0–100
-  }
+  count: number
+  longest: number
+  lastCompleted: Date | null
+  active: number
+  inLastThirtyDays: number
 }
 
 export interface StatusBreakdownStats {

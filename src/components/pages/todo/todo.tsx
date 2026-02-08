@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TodoFilterInput } from "@/schema/todo";
-import { IGetTodoListPayload } from "@/types/todo";
-import { withClientAction } from "@/lib/utils/with-client-action";
-import { getTodoList, getTodayTodos } from "@/server/actions/to-do-action";
 import { useDebounce } from "@/hooks/use-debounce";
 import TodoHeader from "./todo-header";
 import TodoBoard from "./todo-board";
@@ -31,9 +28,6 @@ function Todo() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  const applyFilters = () => {
-  };
-
   const effectiveFilters: TodoFilterInput = {
       ...filters,
       query: debouncedSearch || undefined,
@@ -42,7 +36,6 @@ function Todo() {
   return (
     <div className="section-wrapper">
       <TodoHeader
-        applyFilters={applyFilters}
         load={handleRefresh} 
         filters={filters}
         setFilters={setFilters}

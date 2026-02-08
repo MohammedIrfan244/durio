@@ -13,7 +13,6 @@ import { TagsMultiselect } from "./header/tags-multiselect";
 import { SortBySelect } from "./header/sort-by-select";
 import { SortOrderSelect } from "./header/sort-order-select";
 import { FocusOnTodayFilter } from "./header/focus-today-filter";
-import { ApplyFiltersGroup } from "./header/apply-filters-group";
 import { SearchAndCreateRow } from "./header/search-and-create-row";
 
 interface TodoHeaderProps {
@@ -21,7 +20,6 @@ interface TodoHeaderProps {
   setFilters: Dispatch<SetStateAction<TodoFilterInput>>;
   search: string;
   setSearch: (value: string) => void;
-  applyFilters: () => void;
   todayMode: boolean;
   setTodayMode: (value: boolean) => void;
   load: (override?: TodoFilterInput) => Promise<void>;
@@ -32,7 +30,6 @@ export default function TodoHeader({
   setFilters,
   search,
   setSearch,
-  applyFilters,
   todayMode,
   setTodayMode,
   load,
@@ -90,7 +87,6 @@ export default function TodoHeader({
               <TagsMultiselect filters={filters} setFilters={setFilters} />
               <SortBySelect filters={filters} setFilters={setFilters} />
               <SortOrderSelect filters={filters} setFilters={setFilters} />
-              <ApplyFiltersGroup applyFilters={applyFilters} />
               <FocusOnTodayFilter todayMode={todayMode} setTodayMode={setTodayMode} />
             </div>
           </CollapsibleContent>

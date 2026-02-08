@@ -36,7 +36,7 @@ import TodoArchiveCard from "./cards/todo-archive-card";
 import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { useDebounce } from "@/hooks/use-debounce";
-import TodoArchiveCardSkeletonList from "@/components/skelton/todo/todo-archived-card-skelton";
+import TodoArchiveCardSkeletonList from "@/components/skeleton/todo/todo-archived-card-skelton";
 
 interface TodoArchiveProps {
   onSuccess: () => void;

@@ -8,11 +8,7 @@ import {
 } from "@/server/actions/to-do-action";
 import type { ITodo, ITodoStatusChangeable } from "@/types/todo";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectTrigger,
@@ -47,7 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatName } from "@/lib/utils/name-formatter";
-import TodoDetailedPopupSkeleton from "@/components/skelton/todo/todo-detail-skelton";
+import TodoDetailedPopupSkeleton from "@/components/skeleton/todo/todo-detail-skelton";
 
 // --- TYPES ---
 interface TodoDetailedProps {
@@ -64,47 +60,73 @@ interface CommonProps {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "PLAN": return <Clock className="h-4 w-4" />;
-    case "PENDING": return <PlayCircle className="h-4 w-4" />;
-    case "DONE": return <CheckCheck className="h-4 w-4" />;
-    case "CANCELLED": return <XCircle className="h-4 w-4" />;
-    case "OVERDUE": return <AlertTriangle className="h-4 w-4" />;
-    case "ARCHIVED": return <Layers className="h-4 w-4" />;
-    default: return null;
+    case "PLAN":
+      return <Clock className="h-4 w-4" />;
+    case "PENDING":
+      return <PlayCircle className="h-4 w-4" />;
+    case "DONE":
+      return <CheckCheck className="h-4 w-4" />;
+    case "CANCELLED":
+      return <XCircle className="h-4 w-4" />;
+    case "OVERDUE":
+      return <AlertTriangle className="h-4 w-4" />;
+    case "ARCHIVED":
+      return <Layers className="h-4 w-4" />;
+    default:
+      return null;
   }
 };
 
 const getPriorityIcon = (priority: string) => {
   switch (priority) {
-    case "HIGH": return <Flame className="h-4 w-4" />;
-    case "MEDIUM": return <AlertCircle className="h-4 w-4" />;
-    case "LOW": return <Leaf className="h-4 w-4" />;
-    default: return <Layers className="h-4 w-4" />;
+    case "HIGH":
+      return <Flame className="h-4 w-4" />;
+    case "MEDIUM":
+      return <AlertCircle className="h-4 w-4" />;
+    case "LOW":
+      return <Leaf className="h-4 w-4" />;
+    default:
+      return <Layers className="h-4 w-4" />;
   }
 };
 
-
-
 const statusOptions = [
   { value: "PLAN", label: "Planning", icon: Clock, color: statusColor.PLAN },
-  { value: "PENDING", label: "In Progress", icon: PlayCircle, color: statusColor.PENDING },
+  {
+    value: "PENDING",
+    label: "In Progress",
+    icon: PlayCircle,
+    color: statusColor.PENDING,
+  },
   { value: "DONE", label: "Done", icon: CheckCheck, color: statusColor.DONE },
-  { value: "CANCELLED", label: "Cancelled", icon: XCircle, color: statusColor.CANCELLED },
+  {
+    value: "CANCELLED",
+    label: "Cancelled",
+    icon: XCircle,
+    color: statusColor.CANCELLED,
+  },
 ];
-
-// --- MODULAR SUB-COMPONENTS ---
 
 // Header Section (Title, Description, and Quick Pills)
 const TodoHeaderSection: React.FC<CommonProps> = ({ todo }) => {
   const statusColors = Object.values(statusColor);
   const priorityColors = Object.values(priorityColor);
-  const uniqueColorArray = useMemo(() => Array.from(new Set([...statusColors, ...priorityColors])), [statusColors, priorityColors]);
+  const uniqueColorArray = useMemo(
+    () => Array.from(new Set([...statusColors, ...priorityColors])),
+    [statusColors, priorityColors],
+  );
 
-  const getColorForTag = useCallback((tag: string) => {
-    const hash = Array.from(tag).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return uniqueColorArray[hash % uniqueColorArray.length];
-  }, [uniqueColorArray]);
-  
+  const getColorForTag = useCallback(
+    (tag: string) => {
+      const hash = Array.from(tag).reduce(
+        (acc, char) => acc + char.charCodeAt(0),
+        0,
+      );
+      return uniqueColorArray[hash % uniqueColorArray.length];
+    },
+    [uniqueColorArray],
+  );
+
   return (
     <div className="px-6 pt-6 pb-4">
       <div className="flex items-start justify-between gap-4 mb-3">
@@ -122,17 +144,24 @@ const TodoHeaderSection: React.FC<CommonProps> = ({ todo }) => {
       {/* Quick Info Pills */}
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline" className="gap-1.5 px-3 py-1">
-          <span className={statusColor[todo.status as keyof typeof statusColor]}>
+          <span
+            className={statusColor[todo.status as keyof typeof statusColor]}
+          >
             {getStatusIcon(todo.status)}
           </span>
-          <span className={`text-xs font-medium ${statusColor[todo.status as keyof typeof statusColor]}`}>
-            {statusOptions.find(opt => opt.value === todo.status)?.label || todo.status}
+          <span
+            className={`text-xs font-medium ${statusColor[todo.status as keyof typeof statusColor]}`}
+          >
+            {statusOptions.find((opt) => opt.value === todo.status)?.label ||
+              todo.status}
           </span>
         </Badge>
 
         {todo.priority && (
           <Badge variant="secondary" className="gap-1.5 px-3 py-1">
-            <div className={`flex items-center gap-1 ${priorityColor[todo.priority as keyof typeof priorityColor]}`}>
+            <div
+              className={`flex items-center gap-1 ${priorityColor[todo.priority as keyof typeof priorityColor]}`}
+            >
               {getPriorityIcon(todo.priority)}
               <span className="text-xs font-medium capitalize">
                 {todo.priority.toLowerCase()}
@@ -144,43 +173,45 @@ const TodoHeaderSection: React.FC<CommonProps> = ({ todo }) => {
         {todo.dueDate && (
           <Badge variant="secondary" className="gap-1.5 px-3 py-1">
             <Calendar className="h-3.5 w-3.5" />
-            <span className="text-xs">
-              Due {formatDate(todo.dueDate)}
-            </span>
+            <span className="text-xs">Due {formatDate(todo.dueDate)}</span>
           </Badge>
         )}
-        
+
         {/* Render tags as quick pills if only a few exist */}
         {todo.tags?.slice(0, 3).map((tag, idx) => (
-            <Badge
-                key={idx}
-                variant="secondary"
-                className={`px-2.5 py-1 text-xs font-normal ${getColorForTag(tag)}`}
-            >
-                {tag}
-            </Badge>
+          <Badge
+            key={idx}
+            variant="secondary"
+            className={`px-2.5 py-1 text-xs font-normal ${getColorForTag(tag)}`}
+          >
+            {tag}
+          </Badge>
         ))}
-
       </div>
     </div>
   );
 };
 
 // Status Update Select Dropdown
-const StatusUpdateSection: React.FC<CommonProps & {
-  handleStatusChange: (status: ITodoStatusChangeable) => Promise<void>;
-  updatingStatus: boolean;
-}> = ({ todo, handleStatusChange, updatingStatus }) => {
-  const currentStatusOption = statusOptions.find(opt => opt.value === todo.status);
-  const isDisabled = updatingStatus || todo.status === "OVERDUE" || todo.status === "ARCHIVED";
+const StatusUpdateSection: React.FC<
+  CommonProps & {
+    handleStatusChange: (status: ITodoStatusChangeable) => Promise<void>;
+    updatingStatus: boolean;
+  }
+> = ({ todo, handleStatusChange, updatingStatus }) => {
+  const currentStatusOption = statusOptions.find(
+    (opt) => opt.value === todo.status,
+  );
+  const isDisabled =
+    updatingStatus || todo.status === "OVERDUE" || todo.status === "ARCHIVED";
 
   return (
-    <div className="space-y-2 p-6 lg:px-8 pb-0">
+    <div className="space-y-2 col-span-1">
       <label className="text-sm font-medium flex items-center gap-2">
         <div className={statusColor[todo.status as keyof typeof statusColor]}>
           {getStatusIcon(todo.status)}
         </div>
-        What's happening with this?
+        Hows Goin?
       </label>
       <Select
         value={todo.status}
@@ -199,8 +230,12 @@ const StatusUpdateSection: React.FC<CommonProps & {
               <span className="flex items-center gap-2">
                 {currentStatusOption && (
                   <>
-                    <currentStatusOption.icon className={`h-4 w-4 ${currentStatusOption.color}`} />
-                    <span className="font-medium">{currentStatusOption.label}</span>
+                    <currentStatusOption.icon
+                      className={`h-4 w-4 ${currentStatusOption.color}`}
+                    />
+                    <span className="font-medium">
+                      {currentStatusOption.label}
+                    </span>
                   </>
                 )}
               </span>
@@ -223,8 +258,8 @@ const StatusUpdateSection: React.FC<CommonProps & {
 };
 
 // Column for Due Date, Time, Recurrence, and Completion
-const DetailsColumn: React.FC<CommonProps> = ({ todo }) => (
-  <div className="space-y-5">
+const DueAndCompletionColumn: React.FC<CommonProps> = ({ todo }) => (
+  <div className="col-span-2 space-y-4">
     {/* When's it due? */}
     {(todo.dueDate || todo.dueTime) && (
       <div className="space-y-2">
@@ -232,7 +267,7 @@ const DetailsColumn: React.FC<CommonProps> = ({ todo }) => (
           <Calendar className="h-4 w-4 text-muted-foreground" />
           When's this due?
         </label>
-        <div className="space-y-2">
+        <div className="space-y-2 flex">
           {todo.dueDate && (
             <Card className="p-0 border-none overflow-hidden">
               <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
@@ -246,46 +281,6 @@ const DetailsColumn: React.FC<CommonProps> = ({ todo }) => (
               <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span>{todo.dueTime}</span>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-    )}
-
-    {/* Does it repeat? */}
-    {todo.renewInterval && (
-      <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <Repeat className="h-4 w-4 text-muted-foreground" />
-          Does this repeat?
-        </label>
-        <div className="space-y-2">
-          <Card className="p-0 border-none overflow-hidden">
-            <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
-              <Repeat className="h-4 w-4 text-muted-foreground" />
-              <span className="capitalize">
-                {todo.renewInterval.toLowerCase()}
-              </span>
-            </CardContent>
-          </Card>
-          {todo.renewInterval === "CUSTOM" && todo.renewCustom && (
-            <Card className="p-0 border-none overflow-hidden">
-              <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  Custom pattern:
-                </span>
-                <span>{todo.renewCustom}</span>
-              </CardContent>
-            </Card>
-          )}
-          {todo.renewEvery && (
-            <Card className="p-0 border-none overflow-hidden">
-              <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Every</span>
-                <span>{todo.renewEvery}</span>
               </CardContent>
             </Card>
           )}
@@ -311,18 +306,64 @@ const DetailsColumn: React.FC<CommonProps> = ({ todo }) => (
   </div>
 );
 
+const RepeatColumn: React.FC<CommonProps> = ({ todo }) => {
+  return (
+    <div className="col-span-1">
+      {/* Does it repeat? */}
+      {todo.renewInterval && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium flex items-center gap-2">
+            <Repeat className="h-4 w-4 text-muted-foreground" />
+            Does this repeat?
+          </label>
+          <div className="space-y-2">
+            <Card className="p-0 border-none overflow-hidden">
+              <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
+                <Repeat className="h-4 w-4 text-muted-foreground" />
+                <span className="capitalize">
+                  {todo.renewInterval.toLowerCase()}
+                </span>
+              </CardContent>
+            </Card>
+            {todo.renewInterval === "CUSTOM" && todo.renewCustom && (
+              <Card className="p-0 border-none overflow-hidden">
+                <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Custom pattern:</span>
+                  <span>{todo.renewCustom}</span>
+                </CardContent>
+              </Card>
+            )}
+            {todo.renewEvery && (
+              <Card className="p-0 border-none overflow-hidden">
+                <CardContent className="h-10 bg-muted/50 px-3 flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Every</span>
+                  <span>{todo.renewEvery}</span>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Column for Subtasks Checklist
-const ChecklistColumn: React.FC<CommonProps & {
-  handleChecklistToggle: (id: string) => Promise<void>;
-  updatingChecklistId: string | null;
-}> = ({ todo, handleChecklistToggle, updatingChecklistId }) => {
+const ChecklistColumn: React.FC<
+  CommonProps & {
+    handleChecklistToggle: (id: string) => Promise<void>;
+    updatingChecklistId: string | null;
+  }
+> = ({ todo, handleChecklistToggle, updatingChecklistId }) => {
   if (!todo.checklist || todo.checklist.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
+      <div className="col-span-2">
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-2 col-span-2">
         <CheckSquare className="h-8 w-8 text-muted-foreground/50" />
-        <p className="text-sm text-muted-foreground">
-          No subtasks yet
-        </p>
+        <p className="text-sm text-muted-foreground">No subtasks yet</p>
+      </div>
       </div>
     );
   }
@@ -331,15 +372,14 @@ const ChecklistColumn: React.FC<CommonProps & {
   const totalCount = todo.checklist.length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 col-span-2">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium flex items-center gap-2">
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           Subtasks
         </label>
         <span className="text-xs text-muted-foreground">
-          {doneCount} of{" "}
-          {totalCount} done
+          {doneCount} of {totalCount} done
         </span>
       </div>
       <div className="space-y-1">
@@ -380,15 +420,24 @@ const TagsSection: React.FC<CommonProps> = ({ todo }) => {
 
   const statusColors = Object.values(statusColor);
   const priorityColors = Object.values(priorityColor);
-  const uniqueColorArray = useMemo(() => Array.from(new Set([...statusColors, ...priorityColors])), [statusColors, priorityColors]);
+  const uniqueColorArray = useMemo(
+    () => Array.from(new Set([...statusColors, ...priorityColors])),
+    [statusColors, priorityColors],
+  );
 
-  const getColorForTag = useCallback((tag: string) => {
-    const hash = Array.from(tag).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return uniqueColorArray[hash % uniqueColorArray.length];
-  }, [uniqueColorArray]);
+  const getColorForTag = useCallback(
+    (tag: string) => {
+      const hash = Array.from(tag).reduce(
+        (acc, char) => acc + char.charCodeAt(0),
+        0,
+      );
+      return uniqueColorArray[hash % uniqueColorArray.length];
+    },
+    [uniqueColorArray],
+  );
 
   return (
-    <div className="space-y-2 p-6 lg:px-8 pt-0">
+    <div className="space-y-2 col-span-2">
       <label className="text-sm font-medium flex items-center gap-2">
         <Tag className="h-4 w-4 text-muted-foreground" />
         Tagged as
@@ -437,13 +486,17 @@ const FooterTimestamps: React.FC<CommonProps> = ({ todo }) => (
   </div>
 );
 
-
 // Data Fetching and State Wrapper
-const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) => {
+const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({
+  todoId,
+  onUpdate,
+}) => {
   const [todo, setTodo] = useState<ITodo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updatingChecklistId, setUpdatingChecklistId] = useState<string | null>(null);
+  const [updatingChecklistId, setUpdatingChecklistId] = useState<string | null>(
+    null,
+  );
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Fetch Todo data
@@ -466,7 +519,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
     try {
       const updatedTodo = await withClientAction(
         () => markChecklistItem({ todoId: todo.id, checklistItemId }),
-        true
+        true,
       );
       if (updatedTodo) {
         setTodo(updatedTodo);
@@ -487,7 +540,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
     try {
       const updatedTodo = await withClientAction(
         () => changeTodoStatus({ id: todo.id, status: newStatus }),
-        true
+        true,
       );
       if (updatedTodo) {
         setTodo(updatedTodo);
@@ -507,9 +560,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
   }, [todoId, fetchTodo]);
 
   if (loading) {
-    return (
-      <TodoDetailedPopupSkeleton isOpen={true} setOpen={() => {}} />
-    );
+    return <TodoDetailedPopupSkeleton isOpen={true} setOpen={() => {}} />;
   }
 
   if (error || !todo) {
@@ -527,33 +578,30 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({ todoId, onUpdate }) 
     <>
       {/* Todo Header Section */}
       <TodoHeaderSection todo={todo} />
-
       <Separator />
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden break-words hide-scrollbar-on-main">
-        {/* Status Update Section */}
-        <StatusUpdateSection 
-          todo={todo} 
-          handleStatusChange={handleStatusChange} 
-          updatingStatus={updatingStatus} 
+      <div className="grid grid-cols-2 py-4 px-6 gap-2 space-y-2">
+        <StatusUpdateSection
+          todo={todo}
+          handleStatusChange={handleStatusChange}
+          updatingStatus={updatingStatus}
         />
-        
-        <div className="grid lg:grid-cols-2 gap-8 p-6 lg:px-8">
-          {/* Details Column */}
-          <DetailsColumn todo={todo} />
 
-          {/* Checklist Column */}
-          <ChecklistColumn
-            todo={todo}
-            handleChecklistToggle={handleChecklistToggle}
-            updatingChecklistId={updatingChecklistId}
-          />
-        </div>
+        <RepeatColumn todo={todo} />
 
-        {/* Tags Section */}
+        <ChecklistColumn
+          todo={todo}
+          handleChecklistToggle={handleChecklistToggle}
+          updatingChecklistId={updatingChecklistId}
+        />
+
         <TagsSection todo={todo} />
+
+        <DueAndCompletionColumn todo={todo}/>
+
       </div>
 
+      <Separator />
       {/* Footer Timestamps */}
       <FooterTimestamps todo={todo} />
     </>

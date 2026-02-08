@@ -16,8 +16,8 @@ import {
     restoreNoteFolder,
 } from "@/server/actions/note-action";
 import { NoteHeader } from "./note-header";
-import { FolderShelfSkeleton } from "@/components/skelton/note/folder-shelf-skeleton";
-import { NoteGridSkeleton } from "@/components/skelton/note/note-grid-skeleton";
+import { FolderShelfSkeleton } from "@/components/skeleton/note/folder-shelf-skeleton";
+import { NoteGridSkeleton } from "@/components/skeleton/note/note-grid-skeleton";
 import { FolderShelf } from "./folder-shelf";
 
 import { NoteGrid } from "./note-grid";

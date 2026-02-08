@@ -22,10 +22,6 @@ export function isRenewalDay(renewStart: Date | null, renewInterval: string | nu
     case "WEEKLY":
       return daysDifference % (renewEvery * 7) === 0;
     case "MONTHLY":
-      // Simplified: check if it's the right day of month. 
-      // Harder with exact days. Using just 30 days approximation for legacy compatibility or...
-      // Ideally should check calendar date.
-      // But preserving existing logic:
       return daysDifference % (renewEvery * 30) === 0; 
     case "YEARLY":
       return daysDifference % (renewEvery * 365) === 0;
@@ -43,7 +39,7 @@ export function generateInsights(input: {
 }): PersonalInsight[] {
   const insights: PersonalInsight[] = [];
 
-  if (input.streak.current.isActive && input.streak.current.count >= 7) {
+  if (input.streak.active && input.streak.count >= 7) {
     insights.push({
       id: "strong-streak",
       type: "POSITIVE",
@@ -51,7 +47,7 @@ export function generateInsights(input: {
     });
   }
 
-  if (!input.streak.current.isActive && input.streak.current.count > 0) {
+  if (!input.streak.active && input.streak.count > 0) {
     insights.push({
       id: "streak-broken",
       type: "WARNING",

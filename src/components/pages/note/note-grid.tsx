@@ -2,7 +2,7 @@ import { useState } from "react";
 import { INote } from "@/types/note";
 import { NoteCard } from "./cards/note-card";
 import Masonry from "react-masonry-css";
-import { NoNotes } from "@/components/skelton/note/no-notes";
+import { NoNotes } from "@/components/skeleton/note/no-notes";
 
 interface NoteGridProps {
   notes: INote[];

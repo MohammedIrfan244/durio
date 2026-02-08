@@ -56,7 +56,7 @@ export const TagsMultiselect: React.FC<FilterComponentProps> = ({
   }, [selectedTags]);
 
   return (
-    <div className="flex flex-col gap-2 nav-item-group lg:col-span-2">
+    <div className="flex flex-col gap-2 nav-item-group col-span-2">
       <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
         <Tag className="h-3 w-3 animate-dumbbell" />
         Got any topics?

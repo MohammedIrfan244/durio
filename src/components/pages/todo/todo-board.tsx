@@ -21,10 +21,10 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { withClientAction } from "@/lib/utils/with-client-action";
 import { getTodoStat } from "@/server/stats/todo-stats";
-import { TodoColumnSkeleton } from "@/components/skelton/todo/todo-card-skelton";
+import { TodoColumnSkeleton } from "@/components/skeleton/todo/todo-card-skelton";
 import { Card } from "@/components/ui/card";
 import { StatsColumn } from "./todo-streak";
-import { NoTodos } from "@/components/skelton/todo/no-todo-skeoton";
+import { NoTodos } from "@/components/skeleton/todo/no-todo-skeoton";
 import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 import { getTodayTodos, getTodoList } from "@/server/actions/to-do-action";
 import { TodoFilterInput } from "@/schema/todo";
@@ -33,14 +33,14 @@ interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";
   filters: TodoFilterInput;
   todayMode: boolean;
-  triggerRefresh: number; // Increment to force refresh
+  triggerRefresh: number; 
   setSelectedId: (id: string | null) => void;
   setOpenDetail: (open: boolean) => void;
   setOpenDelete: (open: boolean) => void;
   setOpenEdit: (open: boolean) => void;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
-  onRefreshBoard: () => void; // Call parent to refresh other columns if needed
+  onRefreshBoard: () => void;
 }
 
 function TodoColumn({
@@ -74,7 +74,6 @@ function TodoColumn({
     setLoading(true);
     try {
       if (todayMode) {
-        // Today mode doesn't support pagination per status yet, fetches all
         const action = getTodayTodos;
         const res = await withClientAction<IGetTodoListPayload>(() => action());
         if (res) {
@@ -83,7 +82,6 @@ function TodoColumn({
           setHasMore(false); 
         }
       } else {
-        // Normal mode with pagination
         const limit = 10;
         const res = await withClientAction<IGetTodoListPayload>(() => 
           getTodoList({ ...filters, status: title, page: pageNum, limit })
@@ -191,9 +189,11 @@ export default function TodoBoard({
 
   const fetchStats = async () => {
     setStatsLoading(true);
+    console.log("fetching stats");
     const response = await withClientAction<ITodoStatsResponsePayload | null>(
       () => getTodoStat()
     );
+    console.log(response,"stat res");
     if (response) setStat(response);
     setStatsLoading(false);
   };
