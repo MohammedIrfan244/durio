@@ -44,6 +44,7 @@ export function QuickNoteDrawer() {
 
 
   const filterNotesByThreshold = (notes: QuickNote[], threshold: Threshold) => {
+    if(notes.length === 0) return [];
     return notes.filter(note => note.threshold.mode === threshold.mode);
   }
 
