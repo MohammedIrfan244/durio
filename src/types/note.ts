@@ -28,6 +28,12 @@ export interface INoteFolder {
 	updatedAt: Date;
 }
 
+export interface QuickNote {
+  id: string;
+  text: string;
+  threshold: Threshold;
+}
+
 export interface IGetNoteList {
 	id: string;
 	heading: string;
@@ -37,6 +43,11 @@ export interface IGetNoteList {
 	color?: string | null;
 	createdAt: Date;
 	updatedAt: Date;
+}
+
+export interface Threshold {
+  value: number;
+  mode: "short" | "long";
 }
 
 export interface IGetArchivedNoteList {

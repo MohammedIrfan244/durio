@@ -40,7 +40,7 @@ async function markOverdueTodos(userId: string) {
         where: {
             userId,
             dueDate : {not: null},
-            status : {not : {in : ['DONE','CANCELLED']}}
+            status : {in : ['PENDING','PLAN']},
         },
         select: { id: true, dueDate: true, dueTime: true},
     });

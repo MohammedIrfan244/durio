@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { QuickNoteItem, QuickNote } from "./quick-note-item";
+import { QuickNoteItem, } from "./quick-note-item";
 import { QuickNoteClearDialog } from "../dialogs/quick-note-clear-dialog";
+import { QuickNote } from "@/types/note";
 
 interface QuickNoteListProps {
   notes: QuickNote[];

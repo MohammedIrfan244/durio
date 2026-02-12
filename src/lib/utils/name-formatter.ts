@@ -8,3 +8,8 @@ export function formatName(name: string) {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 }
+
+export function capitalize (str: string) {
+  if (!str) return "";
+  return str.toUpperCase()
+}
