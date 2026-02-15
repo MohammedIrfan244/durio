@@ -1,9 +1,12 @@
-import React from 'react'
+import Basic from "./basic/basic";
+import Converter from "./converter/converter";
 
-function Calculator() {
+export default function Calculator() {
   return (
-    <div>Calculator</div>
-  )
+    <div>
+      <h1>Calculator</h1>
+      <Basic />
+      <Converter />
+    </div>
+  );
 }
-
-export default Calculator

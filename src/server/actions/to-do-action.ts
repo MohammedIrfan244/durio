@@ -28,7 +28,7 @@ import {
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
-import { isRenewalDay, generateInsights } from "@/lib/logic/todo-insights";
+import { isRenewalDay, generateInsights } from "@/lib/logic/todo/todo-insights";
 
 
 
