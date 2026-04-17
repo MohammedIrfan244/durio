@@ -1,7 +1,16 @@
 import { convertCurrency } from "./currency";
-import { convertUnit } from "./unit";
+import { convertLength, convertMass, convertTime, convertTemperature, lengthUnits, massUnits, timeUnits } from "./unit";
 
 export const converter = {
   currency: convertCurrency,
-  unit: convertUnit,
+  length: convertLength,
+  mass: convertMass,
+  time: convertTime,
+  temperature: convertTemperature,
+  units: {
+    length: Object.keys(lengthUnits),
+    mass: Object.keys(massUnits),
+    time: Object.keys(timeUnits),
+    temperature: ["C", "F", "K"],
+  }
 };
