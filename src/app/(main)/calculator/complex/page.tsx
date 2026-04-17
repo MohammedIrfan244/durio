@@ -2,11 +2,13 @@ import React from 'react';
 import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { BrainCircuit } from "lucide-react";
+import ComplexMath from '@/components/pages/calculator/complex/complex';
 
 export const metadata = {
     title: `${APP_NAME} - Complex Mathematics`,
     description: "Solve robust polynomial operations and systematic equations.",
 };
+
 
 export default function ComplexCalculatorPage() {
   return (
@@ -19,9 +21,13 @@ export default function ComplexCalculatorPage() {
           </h1>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Component logic in development...
+          Harness the symbolic engine for calculus derivations and higher-order equation resolution.
         </p>
       </SectionHeaderWrapper>
+      
+      <div className="w-full">
+        <ComplexMath />
+      </div>
     </div>
   );
 }
