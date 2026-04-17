@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Activity } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#ec4899", "#06b6d4"];
 
 export default function Graphing() {
+  const [mode, setMode] = useState<"cartesian" | "polar" | "parametric">("cartesian");
   const [funcStr, setFuncStr] = useState<string>("sin(x)");
-  const [zoom, setZoom] = useState<number>(20); // pixels per unit
+  const [zoom, setZoom] = useState<number>(40); // pixels per unit
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -21,22 +23,26 @@ export default function Graphing() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Use full container dimensions dynamically
+    const container = canvas.parentElement;
+    if (container) {
+      canvas.width = container.clientWidth;
+      canvas.height = Math.max(container.clientHeight, 400); // minimum height limit fallback
+    }
+
     const width = canvas.width;
     const height = canvas.height;
     const originX = width / 2;
     const originY = height / 2;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
     // Draw axes
     ctx.strokeStyle = "rgba(150, 150, 150, 0.5)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, originY);
-    ctx.lineTo(width, originY);
-    ctx.moveTo(originX, 0);
-    ctx.lineTo(originX, height);
+    ctx.moveTo(0, originY); ctx.lineTo(width, originY);
+    ctx.moveTo(originX, 0); ctx.lineTo(originX, height);
     ctx.stroke();
 
     // Draw grid lines
@@ -51,117 +57,171 @@ export default function Graphing() {
     ctx.stroke();
 
     if (!funcStr.trim()) {
-      setError(null);
-      return;
+      setError(null); return;
     }
 
-    const functionsToPlot = funcStr.split(",").map(s => s.trim()).filter(s => s);
+    const functionsToPlot = mode === "parametric" ? [funcStr] : funcStr.split(",").map(s => s.trim()).filter(s => s);
     let hasLocalError = false;
 
     functionsToPlot.forEach((funcExpr, index) => {
-      // Draw function
       ctx.strokeStyle = COLORS[index % COLORS.length];
       ctx.lineWidth = 2;
       ctx.beginPath();
 
-      let isFirst = true;
-
-      // Evaluate function for each pixel on x axis
-      for (let px = 0; px <= width; px++) {
-        // Convert pixel X to logical X
-        const logicalX = (px - originX) / zoom;
-        
-        try {
-          const logicalY = calculate(funcExpr, { angleMode: "rad", variables: { x: logicalX } });
-          
-          if (isNaN(logicalY)) {
-            isFirst = true;
-            continue;
+      if (mode === "cartesian") {
+        let isFirst = true;
+        for (let px = 0; px <= width; px += 2) { // Step by 2 pixels for smoother/faster render
+          const logicalX = (px - originX) / zoom;
+          try {
+            const logicalY = calculate(funcExpr, { angleMode: "rad", variables: { x: logicalX, t: logicalX } });
+            if (isNaN(logicalY)) { isFirst = true; continue; }
+            const py = originY - (logicalY * zoom);
+            if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
+          } catch (e) {
+            hasLocalError = true; break;
           }
-
-          // Convert logical Y to pixel Y
-          const py = originY - (logicalY * zoom);
-
-          if (isFirst) {
-            ctx.moveTo(py < 0 || py > height ? px : px, py);
-            isFirst = false;
-          } else {
-            ctx.lineTo(px, py);
+        }
+      } else if (mode === "polar") {
+        let isFirst = true;
+        const resolution = 0.05;
+        // Loop t (theta) from 0 to 12*PI to catch extended spirals
+        for (let t = 0; t <= Math.PI * 12; t += resolution) {
+          try {
+            const r = calculate(funcExpr, { angleMode: "rad", variables: { x: t, t: t } });
+            if (isNaN(r)) continue;
+            // Convert to Cartesian
+            const logicalX = r * Math.cos(t);
+            const logicalY = r * Math.sin(t);
+            const px = originX + (logicalX * zoom);
+            const py = originY - (logicalY * zoom);
+            if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
+          } catch (e) {
+            hasLocalError = true; break;
           }
-        } catch (e) {
-          hasLocalError = true;
-          break;
+        }
+      } else if (mode === "parametric") {
+        const parts = funcExpr.split(",");
+        if (parts.length >= 2) {
+          const fx = parts[0].trim();
+          const fy = parts[1].trim();
+          let isFirst = true;
+          // Loop parameter t from -20 to 20
+          for (let t = -20; t <= 20; t += 0.05) {
+            try {
+              const logicalX = calculate(fx, { angleMode: "rad", variables: { t: t, x: t } });
+              const logicalY = calculate(fy, { angleMode: "rad", variables: { t: t, x: t } });
+              if (isNaN(logicalX) || isNaN(logicalY)) continue;
+              const px = originX + (logicalX * zoom);
+              const py = originY - (logicalY * zoom);
+              if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
+            } catch (e) {
+              hasLocalError = true; break;
+            }
+          }
         }
       }
 
       ctx.stroke();
     });
 
-    if (hasLocalError) {
-      setError("One or more invalid functions or variables.");
-    } else {
-      setError(null);
-    }
+    if (hasLocalError) setError("Invalid execution syntax.");
+    else setError(null);
   };
 
   useEffect(() => {
-    // Initial draw
     drawGraph();
+    // Re-draw on window resize
+    const handleResize = () => drawGraph();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom]);
+  }, [zoom, mode, funcStr]); // funcStr added to deps so it auto-renders
 
   return (
-    <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 md:col-span-2">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          Graphing Planner
-        </CardTitle>
-        <CardDescription>Plot mathematical formulas using variable 'x'. Separate multiple with commas.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-bold text-lg">f(x) =</span>
-          <Input 
-            className="font-mono text-sm flex-1"
-            placeholder="e.g. sin(x), cos(x)" 
-            value={funcStr} 
-            onChange={(e) => setFuncStr(e.target.value)} 
-            onKeyDown={(e) => e.key === "Enter" && drawGraph()}
-          />
-          <Button onClick={drawGraph} variant="secondary">Plot</Button>
-        </div>
-        
-        {funcStr.split(",").filter(s => s.trim() !== "").length > 1 && (
-          <div className="flex flex-wrap gap-2 text-xs font-mono font-bold px-1">
-            {funcStr.split(",").filter(s => s.trim() !== "").map((f, i) => (
-              <span key={i} className="px-2 py-1 rounded bg-secondary" style={{ color: COLORS[i % COLORS.length] }}>
-                {f.trim()}
-              </span>
+    <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 md:col-span-2 h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0">
+        <div className="flex justify-between items-center w-full">
+          <div>
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Graphing Planner
+            </CardTitle>
+            <CardDescription className="hidden md:block">Plot mathematical formulas using variables.</CardDescription>
+          </div>
+          <div className="flex bg-secondary/50 p-1 rounded-md border text-xs font-semibold">
+            {["cartesian", "polar", "parametric"].map(m => (
+              <button 
+                key={m}
+                type="button"
+                className={cn("px-3 py-1 rounded transition-colors capitalize", mode === m ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
+                onClick={() => setMode(m as any)}
+              >
+                {m}
+              </button>
             ))}
           </div>
-        )}
-
-        {error && <div className="text-destructive text-sm font-semibold text-right">{error}</div>}
-
-        <div className="rounded-md border border-border/50 bg-[#fafafa] dark:bg-[#111111] overflow-hidden relative">
-          <canvas 
-            ref={canvasRef} 
-            width={600} 
-            height={300} 
-            className="w-full h-auto cursor-crosshair"
-            onWheel={(e) => {
-              e.preventDefault();
-              setZoom(z => Math.max(5, Math.min(200, z - e.deltaY * 0.05)));
-            }}
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-1 space-y-4 pb-0 pl-1 pr-1 md:px-6">
+        
+        <div className="flex items-center gap-2 px-4 md:px-0">
+          <span className="font-mono font-bold text-lg whitespace-nowrap">
+            {mode === "cartesian" ? "f(x) =" : mode === "polar" ? "r(t) =" : "x(t),y(t) ="}
+          </span>
+          <Input 
+            className="font-mono text-sm flex-1 bg-secondary/30"
+            placeholder={mode === "cartesian" ? "sin(x)" : mode === "polar" ? "cos(2*t)" : "cos(t), sin(t)"} 
+            value={funcStr} 
+            onChange={(e) => setFuncStr(e.target.value)} 
           />
-          <div className="absolute bottom-2 right-2 flex gap-1">
-            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setZoom(z => Math.min(200, z + 5))}>+</Button>
-            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setZoom(z => Math.max(5, z - 5))}>-</Button>
-          </div>
-          <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm">
-            Scroll to zoom • Drag (NYI)
+        </div>
+
+        {/* Templates */}
+        <div className="flex flex-wrap gap-2 px-4 md:px-0">
+          {mode === "cartesian" && [
+            { label: "Linear", eq: "2*x + 1" },
+            { label: "Quadratic", eq: "x^2 - 4" },
+            { label: "Cubic", eq: "0.1*(x^3 - 4*x)" },
+            { label: "Trig", eq: "sin(x)" },
+          ].map((t) => (
+            <button key={t.label} onClick={() => setFuncStr(t.eq)} className="px-2 py-1 text-xs font-semibold rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">{t.label}</button>
+          ))}
+          {mode === "polar" && [
+            { label: "Circle", eq: "4" },
+            { label: "Rose (4 petals)", eq: "5*cos(2*t)" },
+            { label: "Spiral", eq: "0.5*t" },
+            { label: "Cardioid", eq: "4*(1-sin(t))" },
+          ].map((t) => (
+            <button key={t.label} onClick={() => setFuncStr(t.eq)} className="px-2 py-1 text-xs font-semibold rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">{t.label}</button>
+          ))}
+          {mode === "parametric" && [
+            { label: "Circle", eq: "5*cos(t), 5*sin(t)" },
+            { label: "Lissajous", eq: "5*sin(3*t), 4*sin(2*t)" },
+            { label: "Butterfly", eq: "sin(t)*(exp(cos(t)) - 2*cos(4*t) - sin(t/12)^5), cos(t)*(exp(cos(t)) - 2*cos(4*t) - sin(t/12)^5)" },
+          ].map((t) => (
+            <button key={t.label} onClick={() => setFuncStr(t.eq)} className="px-2 py-1 text-xs font-semibold rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">{t.label}</button>
+          ))}
+        </div>
+
+        {error && <div className="text-destructive text-sm font-semibold px-4 md:px-0">{error}</div>}
+
+        <div className="flex-1 min-h-0 w-full relative group">
+          <div className="absolute inset-0 rounded-t-[1.5rem] md:rounded-xl border-t md:border border-border/50 bg-[#fafafa] dark:bg-[#111111] overflow-hidden shadow-inner">
+            <canvas 
+              ref={canvasRef} 
+              className="w-full h-full cursor-crosshair touch-none"
+              onWheel={(e) => {
+                e.preventDefault();
+                setZoom(z => Math.max(5, Math.min(300, z - e.deltaY * 0.05)));
+              }}
+            />
+            <div className="absolute bottom-4 right-4 flex flex-col gap-1 opacity-50 group-hover:opacity-100 transition-opacity bg-background/80 p-1 rounded-lg backdrop-blur-sm border shadow-sm">
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setZoom(z => Math.min(300, z + 15))}>+</Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setZoom(z => Math.max(5, z - 15))}>-</Button>
+            </div>
+            <div className="absolute top-4 left-4 text-xs font-mono text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm border">
+              Zoom: {Math.round(zoom)}px/unit
+            </div>
           </div>
         </div>
 

@@ -24,7 +24,7 @@ export default function ScientificCalculatorPage() {
         </p>
       </SectionHeaderWrapper>
       
-      <div className="max-w-4xl mx-auto mt-6">
+      <div className="w-full mt-6">
         <Scientific />
       </div>
     </div>

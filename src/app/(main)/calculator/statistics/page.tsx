@@ -24,7 +24,7 @@ export default function StatisticsCalculatorPage() {
         </p>
       </SectionHeaderWrapper>
       
-      <div className="max-w-3xl mx-auto mt-6">
+      <div className="w-full mt-6">
         <Statistics />
       </div>
     </div>

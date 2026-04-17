@@ -24,7 +24,7 @@ export default function GraphingCalculatorPage() {
         </p>
       </SectionHeaderWrapper>
       
-      <div className="max-w-5xl mx-auto mt-6">
+      <div className="w-full flex-1 flex flex-col mt-6 min-h-[80vh]">
         <Graphing />
       </div>
     </div>

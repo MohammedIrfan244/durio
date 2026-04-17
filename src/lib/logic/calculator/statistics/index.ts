@@ -47,5 +47,23 @@ export const statistics = {
 
   stdDev: (data: number[], population: boolean = false): number => {
     return Math.sqrt(statistics.variance(data, population));
+  },
+
+  factorial: (n: number): number => {
+    if (n < 0) return NaN;
+    if (n === 0 || n === 1) return 1;
+    let res = 1;
+    for (let i = 2; i <= n; i++) res *= i;
+    return res;
+  },
+
+  nPr: (n: number, r: number): number => {
+    if (n < 0 || r < 0 || r > n) return NaN;
+    return Math.round(statistics.factorial(n) / statistics.factorial(n - r));
+  },
+
+  nCr: (n: number, r: number): number => {
+    if (n < 0 || r < 0 || r > n) return NaN;
+    return Math.round(statistics.factorial(n) / (statistics.factorial(r) * statistics.factorial(n - r)));
   }
 };
