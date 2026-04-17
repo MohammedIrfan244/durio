@@ -1,16 +1,5 @@
-import React from 'react'
-import Calculator from '@/components/pages/calculator/calculator'
-import { APP_NAME } from '@/lib/brand'
+import { redirect } from 'next/navigation';
 
-export const metadata = {
-    title: `${APP_NAME} - Calculator`,
-    description: "Get those numbers right",
+export default function CalculatorRedirect() {
+  redirect('/calculator/essential');
 }
-
-function CalculatorPage() {
-  return (
-    <Calculator />
-  )
-}
-
-export default CalculatorPage

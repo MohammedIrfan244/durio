@@ -1,32 +1,31 @@
-import Basic from "./basic/basic";
-import Converter from "./converter/converter";
-import Percentage from "./percentage/percentage";
-import Business from "./business/business";
-import Programmer from "./programmer/programmer";
+import React from 'react';
+import Scientific from '@/components/pages/calculator/scientific/scientific';
+import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { Calculator as CalculatorIcon } from "lucide-react";
 
-export default function Calculator() {
+export const metadata = {
+    title: `${APP_NAME} - Scientific Calculator`,
+    description: "Advanced trigonometric and logarithmic engine.",
+};
+
+export default function ScientificCalculatorPage() {
   return (
     <div className="section-wrapper space-y-6">
       <SectionHeaderWrapper>
         <div className="flex items-center gap-3">
           <CalculatorIcon className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-extrabold tracking-tight">
-            Essential Toolkit
+            Scientific Calculator
           </h1>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Your daily calculators for straightforward answers.
+          Advanced trigonometric, logarithmic, and exponent functions in an isolated environment.
         </p>
       </SectionHeaderWrapper>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-        <Basic />
-        <Percentage />
-        <Converter />
-        <Business />
-        <Programmer />
+      
+      <div className="max-w-4xl mx-auto mt-6">
+        <Scientific />
       </div>
     </div>
   );

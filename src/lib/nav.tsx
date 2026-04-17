@@ -11,6 +11,7 @@ export interface NavItem {
   icon: React.ReactNode;
   color: string;
   animationClass: string;
+  subItems?: { label: string; url: string }[];
 }
 
 export const navItems: NavItem[] = [
@@ -133,7 +134,15 @@ export const navItems: NavItem[] = [
     icon: <Calculator size={18} />,
     description: "Math? We just need fast answers.",
     color: "#818CF8",
-    animationClass: "animate-calc"
+    animationClass: "animate-calc",
+    subItems: [
+      { label: "Essential Toolkit", url: "/calculator/essential" },
+      { label: "Scientific", url: "/calculator/scientific" },
+      { label: "Graphing", url: "/calculator/graphing" },
+      { label: "Statistics", url: "/calculator/statistics" },
+      { label: "Matrix & Linear", url: "/calculator/matrix" },
+      { label: "Complex Math", url: "/calculator/complex" }
+    ]
   },
   {
     label: "Talk with DURIA",
