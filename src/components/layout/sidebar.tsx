@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { navItems } from "@/lib/nav";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LogOut, Settings } from "lucide-react";
 import clsx from "clsx";
 import LogoutConfirmDialog from "../auth/logout-dialogue";
@@ -37,6 +37,13 @@ export default function Sidebar() {
   const { state } = useSidebar();
   const isOpen = state === "expanded";
   const { theme } = useTheme();
+
+  useEffect(() => {
+    // Auto-collapse any manually opened groups when navigating out of their scope
+    setOpenGroups((prev) => 
+      prev.filter((url) => pathname === url || (url !== "/" && pathname.startsWith(url + "/")))
+    );
+  }, [pathname]);
 
   const toggleGroup = (url: string) => {
     setOpenGroups((prev) =>
