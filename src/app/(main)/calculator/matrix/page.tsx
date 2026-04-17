@@ -3,6 +3,8 @@ import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { Grid3x3 } from "lucide-react";
 
+import MatrixCalculator from '@/components/pages/calculator/matrix/matrix';
+
 export const metadata = {
     title: `${APP_NAME} - Matrix Algebra`,
     description: "Transform multidimensional arrays rapidly.",
@@ -19,9 +21,13 @@ export default function MatrixCalculatorPage() {
           </h1>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Component logic in development...
+          Perform complex matrix arithmetic, determinants, and standard linear transformations.
         </p>
       </SectionHeaderWrapper>
+      
+      <div className="w-full">
+        <MatrixCalculator />
+      </div>
     </div>
   );
 }
