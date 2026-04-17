@@ -65,6 +65,10 @@ export function parse(tokens: Token[]): ASTNode {
       return { type: "constant", name: token.value as string, value: token.value === "PI" ? Math.PI : Math.E };
     }
 
+    if (token.type === "variable") {
+      return { type: "variable", name: token.value as string };
+    }
+
     if (token.type === "function") {
       const funcName = token.value as string;
       if (tokens[i]?.type === "paren" && tokens[i]?.value === "(") {

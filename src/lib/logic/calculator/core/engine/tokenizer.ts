@@ -6,6 +6,7 @@ export type Token =
   | { type: "paren"; value: ParenType }
   | { type: "function"; value: MathFunction }
   | { type: "constant"; value: MathConstant }
+  | { type: "variable"; value: string }
   | { type: "comma"; value: "," };
 
 export function tokenize(input: string): Token[] {
@@ -34,6 +35,9 @@ export function tokenize(input: string): Token[] {
       if (value === "PI" || value === "E") {
         tokens.push({ type: "constant", value: value as MathConstant });
         console.log(`[Tokenizer] Token: CONSTANT (${value})`);
+      } else if (value === "x" || value === "y" || value === "t") {
+        tokens.push({ type: "variable", value: value });
+        console.log(`[Tokenizer] Token: VARIABLE (${value})`);
       } else {
         tokens.push({ type: "function", value: value as MathFunction });
         console.log(`[Tokenizer] Token: FUNCTION (${value})`);
