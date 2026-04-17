@@ -16,12 +16,22 @@ export default function Converter() {
   const [fromUnit, setFromUnit] = useState<string>("m");
   const [toUnit, setToUnit] = useState<string>("cm");
   const [result, setResult] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [currencyUnits, setCurrencyUnits] = useState<string[]>(["USD", "INR", "EUR", "GBP"]);
 
-  const handleTypeChange = (newType: ConverterType) => {
+  const handleTypeChange = async (newType: ConverterType) => {
     setType(newType);
     setResult(null);
     if (newType === "currency") {
       setFromUnit("USD"); setToUnit("INR");
+      setLoading(true);
+      try {
+        const units = await converter.getCurrencyUnits();
+        if (units && units.length > 0) setCurrencyUnits(units);
+      } catch (e) {
+        // fallback
+      }
+      setLoading(false);
     } else {
       setFromUnit(converter.units[newType][0]);
       setToUnit(converter.units[newType][1]);
@@ -29,20 +39,31 @@ export default function Converter() {
   };
 
   const getUnits = () => {
-    if (type === "currency") return ["USD", "INR", "EUR"];
+    if (type === "currency") return currencyUnits;
     return converter.units[type];
   };
 
-  const run = () => {
+  const run = async () => {
     if (!value) return;
     const num = Number(value);
+    setLoading(true);
     
-    switch (type) {
-      case "length": setResult(converter.length(num, fromUnit, toUnit)); break;
-      case "mass": setResult(converter.mass(num, fromUnit, toUnit)); break;
-      case "time": setResult(converter.time(num, fromUnit, toUnit)); break;
-      case "temperature": setResult(converter.temperature(num, fromUnit, toUnit)); break;
-      case "currency": setResult(converter.currency(num, fromUnit, toUnit)); break;
+    try {
+      switch (type) {
+        case "length": setResult(converter.length(num, fromUnit, toUnit)); break;
+        case "mass": setResult(converter.mass(num, fromUnit, toUnit)); break;
+        case "time": setResult(converter.time(num, fromUnit, toUnit)); break;
+        case "temperature": setResult(converter.temperature(num, fromUnit, toUnit)); break;
+        case "currency": {
+          const res = await converter.currency(num, fromUnit, toUnit);
+          setResult(res);
+          break;
+        }
+      }
+    } catch (e) {
+      setResult(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,8 +116,8 @@ export default function Converter() {
         </div>
         
         <div className="flex items-center gap-4">
-          <Button onClick={run} variant="secondary" className="w-full gap-2 font-bold shadow-sm">
-            Convert
+          <Button disabled={loading} onClick={run} variant="secondary" className="w-full gap-2 font-bold shadow-sm">
+            {loading ? "Converting..." : "Convert"}
           </Button>
         </div>
 

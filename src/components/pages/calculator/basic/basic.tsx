@@ -8,11 +8,12 @@ import { Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const keys = [
-  "C", "(", ")", "/",
+  "C", "AC", "(", ")",
+  "sqrt(", "^", "%", "/",
   "7", "8", "9", "*",
   "4", "5", "6", "-",
   "1", "2", "3", "+",
-  "0", ".", "AC", "="
+  "0", ".", "PI", "="
 ];
 
 export default function Basic() {
