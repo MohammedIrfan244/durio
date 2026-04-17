@@ -50,6 +50,7 @@ export function evaluate(node: ASTNode, options: EvalOptions = { angleMode: "rad
       case "sqrt": res = Math.sqrt(arg0); break;
       case "abs": res = Math.abs(arg0); break;
       case "fact": res = factorial(arg0); break;
+      case "exp": res = Math.exp(arg0); break;
       default: throw new Error(`Unknown function: ${node.name}`);
     }
 

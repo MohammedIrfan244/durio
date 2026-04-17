@@ -25,9 +25,7 @@ export default function Graphing() {
 
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
-      // Wait for layout calculation
-      requestAnimationFrame(drawGraph);
-      return;
+      return; // Await ResizeObserver callback
     }
 
     // Set actual resolution to match CSS size
@@ -74,7 +72,7 @@ export default function Graphing() {
 
       if (mode === "cartesian") {
         let isFirst = true;
-        for (let px = 0; px <= width; px += 2) { // Step by 2 pixels for smoother/faster render
+        for (let px = 0; px <= width; px += 2) { 
           const logicalX = (px - originX) / zoom;
           try {
             const logicalY = calculate(funcExpr, { angleMode: "rad", variables: { x: logicalX, t: logicalX } });
@@ -133,13 +131,27 @@ export default function Graphing() {
   };
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      drawGraph();
+    });
+
+    // Start observing the container element for size changes
+    resizeObserver.observe(container);
+
+    // Initial draw
     drawGraph();
-    // Re-draw on window resize
-    const handleResize = () => drawGraph();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom, mode, funcStr]); // funcStr added to deps so it auto-renders
+  }, [zoom, mode, funcStr]);
 
   return (
     <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 md:col-span-2 h-full flex flex-col">
@@ -209,7 +221,7 @@ export default function Graphing() {
 
         {error && <div className="text-destructive text-sm font-semibold px-4 md:px-0">{error}</div>}
 
-        <div className="flex-1 min-h-0 w-full relative group">
+        <div className="flex-1 min-h-[60vh] w-full relative group">
           <div className="absolute inset-0 rounded-t-[1.5rem] md:rounded-xl border-t md:border border-border/50 bg-[#fafafa] dark:bg-[#111111] overflow-hidden shadow-inner">
             <canvas 
               ref={canvasRef} 

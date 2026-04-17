@@ -13,5 +13,5 @@ export type ASTNode =
 export type Operator = "+" | "-" | "*" | "/" | "^" | "%";
 export type TokenType = "number" | "operator" | "paren" | "function" | "constant" | "comma" | "variable";
 export type ParenType = "(" | ")";
-export type MathFunction = "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "log" | "ln" | "sqrt" | "abs" | "fact";
+export type MathFunction = "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "log" | "ln" | "sqrt" | "abs" | "fact" | "exp";
 export type MathConstant = "PI" | "E";
