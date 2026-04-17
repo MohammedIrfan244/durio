@@ -133,8 +133,11 @@ export default function Scientific() {
             {keys.map((key, i) => (
               <Button
                 key={`${key}-${i}`}
-                variant={["/", "*", "-", "+", "=", "^", "%"].includes(key) ? "default" : ["C", "AC"].includes(key) ? "destructive" : ["MC", "MR", "M+", "M-"].includes(key) ? "outline" : "secondary"}
-                className={cn("h-12 font-semibold shadow-sm")}
+                variant={["/", "*", "-", "+", "^", "%"].includes(key) ? "default" : ["C", "AC"].includes(key) ? "destructive" : ["MC", "MR", "M+", "M-"].includes(key) ? "outline" : key === "=" ? "default" : "secondary"}
+                className={cn(
+                  "h-12 font-semibold shadow-sm transition-all",
+                  key === "=" ? "bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-500/20" : ""
+                )}
                 onClick={() => handleKeyClick(key)}
               >
                 {key}

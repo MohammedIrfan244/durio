@@ -23,12 +23,16 @@ export default function Graphing() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Use full container dimensions dynamically
-    const container = canvas.parentElement;
-    if (container) {
-      canvas.width = container.clientWidth;
-      canvas.height = Math.max(container.clientHeight, 400); // minimum height limit fallback
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      // Wait for layout calculation
+      requestAnimationFrame(drawGraph);
+      return;
     }
+
+    // Set actual resolution to match CSS size
+    canvas.width = rect.width;
+    canvas.height = rect.height;
 
     const width = canvas.width;
     const height = canvas.height;

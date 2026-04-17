@@ -79,8 +79,11 @@ export default function Basic() {
           {keys.map((key) => (
             <Button
               key={key}
-              variant={["/", "*", "-", "+", "="].includes(key) ? "default" : ["C", "AC"].includes(key) ? "destructive" : "secondary"}
-              className="h-12 text-lg font-semibold shadow-sm"
+              variant={["/", "*", "-", "+"].includes(key) ? "default" : ["C", "AC"].includes(key) ? "destructive" : key === "=" ? "default" : "secondary"}
+              className={cn(
+                "h-12 text-lg font-semibold shadow-sm transition-all",
+                key === "=" ? "bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-500/20" : ""
+              )}
               onClick={() => handleKeyClick(key)}
             >
               {key}
