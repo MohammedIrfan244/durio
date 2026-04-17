@@ -9,6 +9,7 @@ import { BrainCircuit, Info, Calculator, FunctionSquare, Sigma, ArrowRight, Aler
 import { symbolicLogic } from "@/lib/logic/calculator/symbolic";
 import { tokenize } from "@/lib/logic/calculator/core/engine/tokenizer";
 import { parse } from "@/lib/logic/calculator/core/engine/parser";
+import { matrixLogic } from "@/lib/logic/calculator/matrix";
 
 // -----------------------------------------------
 // SIDEBAR CONTENT — dynamic by tab
@@ -198,10 +199,16 @@ export default function ComplexMath() {
   const handleSolveSystem = () => {
     try {
       const n = sysSize;
-      const mat = sysA.slice(0, n).map((row, i) => [...row.slice(0, n).map(Number), Number(sysB[i])]);
-      const { matrixLogic } = require("@/lib/logic/calculator/matrix");
-      const rref: number[][] = matrixLogic.rref(mat);
-      const solution = rref.map(row => row[n]);
+      const mat = sysA.slice(0, n).map((row, i) => {
+        const rowCoeffs = Array.from({ length: n }, (_, c) => Number(sysA[i]?.[c] ?? 0));
+        return [...rowCoeffs, Number(sysB[i] ?? 0)];
+      });
+      const rref = matrixLogic.rref(mat);
+      // Extract the last column (solution vector) and guard against undefined
+      const solution = rref.slice(0, n).map(row => {
+        const val = row[n];
+        return typeof val === "number" && !isNaN(val) ? val : 0;
+      });
       setSysResult(solution);
     } catch (e: any) {
       setSysResult(`Error: ${e.message}`);
@@ -527,10 +534,12 @@ export default function ComplexMath() {
         </Card>
 
         <Card className="bg-primary/5 border border-primary/20">
-          <CardContent className="p-4 space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60">{sidebar.theorem.title}</h4>
-            <p className="font-mono text-xs font-semibold text-primary italic">{sidebar.theorem.formula}</p>
-            <p className="text-[10px] text-muted-foreground leading-tight">{sidebar.theorem.description}</p>
+          <CardContent className="p-5 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-primary/70">{sidebar.theorem.title}</h4>
+            <div className="bg-primary/10 rounded-lg px-4 py-3 border border-primary/20">
+              <p className="font-mono text-base font-bold text-primary">{sidebar.theorem.formula}</p>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{sidebar.theorem.description}</p>
           </CardContent>
         </Card>
       </div>
