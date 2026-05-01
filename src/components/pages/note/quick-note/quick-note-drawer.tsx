@@ -26,7 +26,7 @@ export function QuickNoteDrawer() {
   const [threshold, setThreshold] = useState<Threshold>({value: 150, mode: "short"});
 
   const toggleMode = () => {
-    setThreshold((prev) => ({value: prev.value === 150 ? 1000 : 150, mode: prev.mode === "short" ? "long" : "short"}));
+    setThreshold((prev) => ({value: prev.value === 150 ? 10000 : 150, mode: prev.mode === "short" ? "long" : "short"}));
   };
 
   // Initialize from local storage on mount
@@ -44,6 +44,7 @@ export function QuickNoteDrawer() {
 
 
   const filterNotesByThreshold = (notes: QuickNote[], threshold: Threshold) => {
+    if(notes.length === 0) return [];
     return notes.filter(note => note.threshold.mode === threshold.mode);
   }
 

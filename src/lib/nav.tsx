@@ -11,6 +11,8 @@ export interface NavItem {
   icon: React.ReactNode;
   color: string;
   animationClass: string;
+  subItems?: { label: string; url: string }[];
+  disabled?: boolean;
 }
 
 export const navItems: NavItem[] = [
@@ -53,7 +55,8 @@ export const navItems: NavItem[] = [
     icon: <BookOpen size={18} />,
     description: "Escaping reality, one chapter at a time.",
     color: "#34D399",
-    animationClass: "animate-book"
+    animationClass: "animate-book",
+    disabled: true
   },
   {
     label: "Habits & Streaks",
@@ -61,7 +64,8 @@ export const navItems: NavItem[] = [
     icon: <Zap size={18} />,
     description: "Consistency is the cheat code to life.",
     color: "#F59E0B",
-    animationClass: "animate-zap"
+    animationClass: "animate-zap",
+    disabled: true
   },
   {
     label: "My Journal",
@@ -69,7 +73,8 @@ export const navItems: NavItem[] = [
     icon: <PenLine size={18} />,
     description: "Your safe space to vent and reflect.",
     color: "#C084FC",
-    animationClass: "animate-journal"
+    animationClass: "animate-journal",
+    disabled: true
   },
   {
     label: "Photo Album",
@@ -77,7 +82,8 @@ export const navItems: NavItem[] = [
     icon: <ImageIcon size={18} />,
     description: "Memories are just a click away.",
     color: "#FCD34D",
-    animationClass: "animate-photo"
+    animationClass: "animate-photo",
+    disabled: true
   },
   {
     label: "Workouts",
@@ -85,7 +91,8 @@ export const navItems: NavItem[] = [
     icon: <Dumbbell size={18} />,
     description: "Get those endorphins movin' and groovin'.",
     color: "#4ADE80",
-    animationClass: "animate-dumbbell"
+    animationClass: "animate-dumbbell",
+    disabled: true
   },
   {
     label: "Sleep Tracker",
@@ -93,7 +100,8 @@ export const navItems: NavItem[] = [
     icon: <Moon size={18} />,
     description: "Optimizing rest for maximum chill.",
     color: "#6366F1",
-    animationClass: "animate-moon"
+    animationClass: "animate-moon",
+    disabled: true
   },
   {
     label: "Cycle Tracker",
@@ -101,7 +109,8 @@ export const navItems: NavItem[] = [
     icon: <Heart size={18} />,
     description: "Staying in tune with the body's flow.",
     color: "#FB7185",
-    animationClass: "animate-heart"
+    animationClass: "animate-heart",
+    disabled: true
   },
   {
     label: "My Projects",
@@ -109,7 +118,8 @@ export const navItems: NavItem[] = [
     icon: <Rocket size={18} />,
     description: "Where the magic and big things happen.",
     color: "#FB923C",
-    animationClass: "animate-rocket"
+    animationClass: "animate-rocket",
+    disabled: true
   },
   {
     label: "Focus Time",
@@ -117,7 +127,8 @@ export const navItems: NavItem[] = [
     icon: <Hourglass size={18} />,
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
-    animationClass: "animate-hourglass"
+    animationClass: "animate-hourglass",
+    disabled: true
   },
   {
     label: "Resources Stash",
@@ -125,7 +136,8 @@ export const navItems: NavItem[] = [
     icon: <Archive size={18} />,
     description: "My favorite digital tools and goodies.",
     color: "#2DD4BF",
-    animationClass: "animate-archive"
+    animationClass: "animate-archive",
+    disabled: true
   },
   {
     label: "Quick Calc",
@@ -133,7 +145,15 @@ export const navItems: NavItem[] = [
     icon: <Calculator size={18} />,
     description: "Math? We just need fast answers.",
     color: "#818CF8",
-    animationClass: "animate-calc"
+    animationClass: "animate-calc",
+    subItems: [
+      { label: "Essential Toolkit", url: "/calculator/essential" },
+      { label: "Scientific", url: "/calculator/scientific" },
+      { label: "Graphing", url: "/calculator/graphing" },
+      { label: "Statistics", url: "/calculator/statistics" },
+      { label: "Matrix & Linear", url: "/calculator/matrix" },
+      { label: "Complex Math", url: "/calculator/complex" }
+    ]
   },
   {
     label: "Talk with DURIA",
@@ -141,6 +161,7 @@ export const navItems: NavItem[] = [
     icon: <SmilePlus size={18} />,
     description: "Your friendly AI companion.",
     color: "#22D3EE",
-    animationClass: "animate-smile"
+    animationClass: "animate-smile",
+    disabled: true
   }
 ];
