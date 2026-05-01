@@ -126,9 +126,10 @@ export default function Sidebar() {
                 <div key={item.url} className={isExpanded && item.subItems ? "bg-secondary/20 rounded-md pb-1 mb-2 border border-border/10" : ""}>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      tooltip={item.label}
+                      tooltip={item.disabled ? `${item.label} (Disabled)` : item.label}
                       isActive={item.subItems ? inGroup : isStrictlyActive}
                       asChild
+                      className={item.disabled ? "opacity-50 pointer-events-none grayscale cursor-not-allowed" : ""}
                     >
                       {item.subItems ? (
                         <button
@@ -137,9 +138,14 @@ export default function Sidebar() {
                             if (!isOpen) { /* Do nothing or expand sidebar */ }
                             toggleGroup(item.url);
                           }}
+                          disabled={item.disabled}
                         >
                           {ButtonContent}
                         </button>
+                      ) : item.disabled ? (
+                        <div className="w-full text-left cursor-not-allowed">
+                          {ButtonContent}
+                        </div>
                       ) : (
                         <Link href={item.url}>
                           {ButtonContent}
