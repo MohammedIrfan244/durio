@@ -59,15 +59,6 @@ export const navItems: NavItem[] = [
     disabled: true
   },
   {
-    label: "Habits & Streaks",
-    url: "/habits",
-    icon: <Zap size={18} />,
-    description: "Consistency is the cheat code to life.",
-    color: "#F59E0B",
-    animationClass: "animate-zap",
-    disabled: true
-  },
-  {
     label: "My Journal",
     url: "/journal",
     icon: <PenLine size={18} />,
