@@ -1,7 +1,7 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
   Calculator, Image as ImageIcon, Moon, Heart, Zap, 
-  PenLine, Rocket, BookOpen, Archive, Hourglass, SmilePlus 
+  PenLine, Rocket, BookOpen, Hourglass, SmilePlus 
 } from "lucide-react";
 
 export interface NavItem {
@@ -119,15 +119,6 @@ export const navItems: NavItem[] = [
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
     animationClass: "animate-hourglass",
-    disabled: true
-  },
-  {
-    label: "Resources Stash",
-    url: "/resources",
-    icon: <Archive size={18} />,
-    description: "My favorite digital tools and goodies.",
-    color: "#2DD4BF",
-    animationClass: "animate-archive",
     disabled: true
   },
   {
