@@ -34,7 +34,7 @@ This document serves as the master blueprint for the Durio system—a unified pe
 - **Core Functionality**: A complete organization system dedicated to avid readers.
 - **Organization & Sorting**: Advanced arrangement options with multiple sorting criteria (genre, author, date added, reading status).
 - **Digital Library**: Full support for digital books (e.g., storing/reading PDFs) and managing external book links.
-- **Discovery Pipeline**: A built-in online book search pipeline, allowing users to find and add books directly within the app without leaving the site.
+- **Web PDF Search Engine**: A built-in pipeline where users can search for a book by name, and the system scours the internet to find and list direct PDF links, allowing users to instantly download and add the book to their library.
 - **Additional Features**: Practical tools like reading progress tracking, favorite quotes, and reading goals.
 
 ### 3. My Journal (`/journal`)
