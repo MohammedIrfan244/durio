@@ -90,8 +90,8 @@ export default function Statistics() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 lg:col-span-2">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <LineChartIcon className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
+            <LineChartIcon className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
             Statistics
           </CardTitle>
           <CardDescription>Analyze datasets and distributions.</CardDescription>

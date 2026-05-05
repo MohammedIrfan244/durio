@@ -44,9 +44,9 @@ export default function Business() {
   return (
     <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-primary" />
-          Financial
+        <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
+          <Briefcase className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
+          Business & Financial
         </CardTitle>
         <CardDescription>Loans, interest, and investment analysis.</CardDescription>
       </CardHeader>

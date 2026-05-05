@@ -38,8 +38,8 @@ export default function Programmer() {
   return (
     <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold flex items-center gap-2">
-          <Terminal className="h-5 w-5 text-primary" />
+        <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
+          <Terminal className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
           Programmer
         </CardTitle>
         <CardDescription>Conversions and low-level bitwise math.</CardDescription>

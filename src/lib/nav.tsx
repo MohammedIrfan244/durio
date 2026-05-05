@@ -1,7 +1,7 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
   Calculator, Image as ImageIcon, Moon, Heart, Zap, 
-  PenLine, Rocket, BookOpen, Archive, Hourglass, SmilePlus 
+  PenLine, Rocket, BookOpen, Hourglass, SmilePlus 
 } from "lucide-react";
 
 export interface NavItem {
@@ -56,15 +56,6 @@ export const navItems: NavItem[] = [
     description: "Escaping reality, one chapter at a time.",
     color: "#34D399",
     animationClass: "animate-book",
-    disabled: true
-  },
-  {
-    label: "Habits & Streaks",
-    url: "/habits",
-    icon: <Zap size={18} />,
-    description: "Consistency is the cheat code to life.",
-    color: "#F59E0B",
-    animationClass: "animate-zap",
     disabled: true
   },
   {
@@ -128,15 +119,6 @@ export const navItems: NavItem[] = [
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
     animationClass: "animate-hourglass",
-    disabled: true
-  },
-  {
-    label: "Resources Stash",
-    url: "/resources",
-    icon: <Archive size={18} />,
-    description: "My favorite digital tools and goodies.",
-    color: "#2DD4BF",
-    animationClass: "animate-archive",
     disabled: true
   },
   {

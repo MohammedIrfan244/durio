@@ -227,9 +227,9 @@ export default function ComplexMath() {
         <CardHeader className="pb-0 bg-secondary/10">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4 pb-4">
             <div>
-              <CardTitle className="text-lg font-bold flex items-center gap-2">
-                <BrainCircuit className="h-5 w-5 text-primary" />
-                Symbolic Engine
+              <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
+                <Calculator className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
+                Complex MathEngine
               </CardTitle>
               <CardDescription>Algebraic and Calculus workstation.</CardDescription>
             </div>
@@ -292,7 +292,7 @@ export default function ComplexMath() {
                 ))}
               </div>
 
-              <Button onClick={handleSolve} className="w-full font-bold shadow-md h-12 text-base bg-green-600 hover:bg-green-700 text-white">
+              <Button onClick={handleSolve} className="w-full font-bold shadow-md h-12 text-base bg-green-600 hover:bg-green-700 text-white transition-transform duration-200 hover:scale-[1.02] active:scale-95">
                 Resolve Roots
               </Button>
 
@@ -485,7 +485,7 @@ export default function ComplexMath() {
                 </div>
               </div>
 
-              <Button onClick={handleSolveSystem} className="w-full font-bold shadow-md h-12 bg-green-600 hover:bg-green-700 text-white">
+              <Button onClick={handleSolveSystem} className="w-full font-bold shadow-md h-12 bg-green-600 hover:bg-green-700 text-white transition-transform duration-200 hover:scale-[1.02] active:scale-95">
                 Solve System
               </Button>
 
@@ -516,9 +516,9 @@ export default function ComplexMath() {
       <div className="space-y-6">
         <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Info className="h-4 w-4 text-primary" />
-              Engine Notes
+            <CardTitle className="text-base font-bold flex items-center gap-2 group cursor-pointer">
+              <Info className="h-4 w-4 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
+              Formula & Definitione Notes
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
