@@ -76,34 +76,36 @@ This document serves as the master blueprint for the Durio system—a unified pe
 
 ---
 
-## 🔗 The Relational Ecosystem (Cross-Module Integration)
+## ⛓️ Relational Architecture & Connection Matrix
 
-To ensure Durio feels like a **single unified system** rather than isolated apps, all modules are deeply interconnected. Data flows seamlessly between them to provide a holistic personal management experience.
+To maintain the "Single System" vision, Durio uses a **Polymorphic Linking Engine**. Instead of isolated apps, every module is built with the ability to "Attach," "Reference," or "Influence" data from other modules.
 
-### 1. Data Aggregation & The Home Module
-- **Daily Digest**: The Home screen pulls data from **Calendar** (today's events), **To-Dos** (urgent tasks), **Workouts** (daily fitness goals), and **Sleep** (last night's recovery) to give you a single, unified snapshot of your day.
+### The Master Connection Matrix
 
-### 2. Task & Time Synchronization
-- **Calendar & To-Dos**: Tasks with deadlines automatically appear on your Calendar. Conversely, you can drag Calendar events to auto-generate preparation To-Dos (e.g., creating a "Prep for Meeting" task from a Calendar event).
-- **Projects & To-Dos**: Large projects in **My Projects** break down into actionable items that funnel directly into your main **To-Do** list.
+| Source Module | Target Module | Connection Type | Functional Purpose |
+| :--- | :--- | :--- | :--- |
+| **Home** | ALL | Aggregation | Central dashboard displaying real-time status and "Daily Digest" from every active module. |
+| **DURIA (AI)** | ALL | Master Control | Global context access; executes actions (Create/Update/Delete) across all modules via natural language. |
+| **Calendar** | To-Do | Sync | Tasks with due dates automatically appear on the calendar grid. Dragging moves the due date. |
+| **Calendar** | Journal | Context | Link a specific day's journal entry to a calendar event for easy memory retrieval. |
+| **Calendar** | Photos | Visuals | View photos taken on the date of a specific calendar event directly within the calendar view. |
+| **To-Do** | Notes | Linking | Attach a "Research Note," "Draft," or "Resource" to a specific actionable task. |
+| **To-Do** | Projects | Hierarchy | Large Projects are broken into actionable To-Dos that funnel into the user's main task list. |
+| **Notes** | Projects | Documentation | Store all project-related documentation, brainstorming, and technical specs as linked notes. |
+| **Notes** | Reading List | Synthesis | Automatically store book highlights, summaries, and reflections as linked searchable Notes. |
+| **Journal** | Photos | Media | Directly embed Album photos into diary entries to create a rich, media-heavy memory vault. |
+| **Journal** | Health | Correlation | Correlate daily mood/energy (logged in Journal) with Sleep and Cycle tracking data for insights. |
+| **Workouts** | Sleep | Optimization | Suggest daily workout intensity (e.g., Rest vs. HIIT) based on last night's sleep quality scores. |
+| **Workouts** | Cycle | Support | Provide cycle-specific diet and exercise suggestions with a friendly, cheering vibe. |
+| **Projects** | Photos | Progress | Link photos to project milestones to track visual progress (perfect for DIY, Art, or Coding). |
+| **Quick Calc** | ALL | Utility | Floating overlay available globally for context-specific math (Macros, Budgeting, Dimensions). |
 
-### 3. Holistic Health & Wellness
-- **Workouts, Sleep & Cycle Tracker**: These three modules share a unified "Health Profile." For example, poor sleep data from the **Sleep Tracker** or specific phases from the **Cycle Tracker** can automatically suggest lighter routines in the **Workouts** module. 
-- **Journal & Health**: Health metrics (like mood and energy levels logged in the Journal) are correlated with Sleep and Cycle tracking.
+### Technical Implementation Strategy
 
-### 4. Memory & Reflection 
-- **Journal & Photo Album**: When writing a **Journal** entry, you can easily embed images directly from the **Photo Album**. Viewing a photo from a specific date can automatically pull up the Journal entry written on that same day to provide full context.
-
-### 5. Knowledge Management
-- **Reading List & Notes**: Highlights, summaries, and quotes captured in your **Reading List** can be automatically synced or linked to **My Notes** for later reference.
-- **Notes & Projects**: Research and brainstorming in **My Notes** can be explicitly attached to specific projects in the **My Projects** module.
-
-### 6. Universal Utilities
-- **Quick Calc**: The calculation suite acts as a universal tool. You can pull it up while in **Workouts** (to calculate BMI or macro-nutrients) or in **My Projects** (for budgeting or dimension planning).
-
-### 7. The Master Connector: DURIA (AI Agent)
-- **Cross-Module Intelligence**: DURIA is the ultimate bridge. It can analyze your **Calendar** and **Sleep** data to suggest moving a **Workout** to a later time. It can read your **To-Dos** and summarize them in a **Note**, or fetch a specific memory from your **Photo Album** and draft a **Journal** entry. DURIA treats the entire app as one interconnected database.
-
+1.  **Unified `ResourceLink` Model**: A central table in Prisma that stores `fromId`, `fromType`, `toId`, and `toType`. This avoids adding hundreds of optional foreign keys to every individual model, keeping the schema clean and infinitely scalable.
+2.  **Global Command Center**: The search bar in the header is "Global"—it searches across Events, Tasks, and Notes simultaneously to surface all related context in one place.
+3.  **Cross-Module Sidebars**: Modules feature "Smart Sidebars" that surface relevant data from other areas. For example, the **Journal** sidebar automatically shows **Photos** taken on the current day.
+4.  **The "DURIA" Bridge**: As the only module with "Full Context" (as stated in its core features), DURIA acts as the manual override for all links—allowing users to say "Link this note to my gym session tomorrow" to create an instant connection.
 ---
 
 ## ⏸️ On Hold / Removed
