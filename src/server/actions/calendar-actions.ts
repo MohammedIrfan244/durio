@@ -9,7 +9,51 @@ import {
     ICalendarActionResponse, 
     IEvent 
 } from "@/types/calendar";
-import { Event } from "@prisma/client";
+import { Event, EventCategory } from "@prisma/client";
+
+const DEFAULT_CATEGORIES = [
+    { name: "Personal", color: "#3B82F6", isSystem: true },
+    { name: "Work", color: "#22C55E", isSystem: true },
+    { name: "Birthdays", color: "#A855F7", isSystem: true },
+    { name: "Anniversaries", color: "#EC4899", isSystem: true },
+    { name: "Meetings", color: "#F97316", isSystem: true },
+    { name: "Reminders", color: "#EAB308", isSystem: true },
+];
+
+/**
+ * Get or create the default event categories for a user.
+ * Called on first visit to the calendar.
+ */
+export async function getOrCreateDefaultCategories(): Promise<EventCategory[]> {
+    try {
+        const user = await getUser();
+        if (!user || "error" in user) return [];
+
+        const existing = await prisma.eventCategory.findMany({
+            where: { userId: user.id as string },
+            orderBy: { name: "asc" },
+        });
+
+        if (existing.length > 0) return existing;
+
+        // First time — seed defaults
+        await prisma.eventCategory.createMany({
+            data: DEFAULT_CATEGORIES.map(cat => ({
+                userId: user.id as string,
+                ...cat,
+            })),
+        });
+
+        return prisma.eventCategory.findMany({
+            where: { userId: user.id as string },
+            orderBy: { name: "asc" },
+        });
+    } catch (error) {
+        console.error("Failed to get categories:", error);
+        return [];
+    }
+}
+
 
 export async function createEvent(data: IEventCreateInput): Promise<ICalendarActionResponse<Event>> {
     try {
@@ -180,5 +224,45 @@ export async function getUpcomingMilestones(): Promise<IEvent[]> {
     } catch (error) {
         console.error("Failed to get milestones:", error);
         return [];
+    }
+}
+
+/**
+ * Reschedule a calendar item (Event or To-Do) when dragged on the grid.
+ * For events: updates startDate and endDate.
+ * For todos: updates dueDate (and dueTime if the new date has a time component).
+ */
+export async function rescheduleCalendarItem(
+    id: string,
+    type: "event" | "todo",
+    newStart: Date,
+    newEnd: Date
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const user = await getUser();
+        if (!user || "error" in user) throw new Error("Unauthorized");
+
+        if (type === "event") {
+            await prisma.event.update({
+                where: { id, userId: user.id as string },
+                data: { startDate: newStart, endDate: newEnd },
+            });
+        } else if (type === "todo") {
+            const timeStr = newStart.toTimeString().slice(0, 5); // "HH:MM"
+            await prisma.todo.update({
+                where: { id, userId: user.id as string },
+                data: {
+                    dueDate: newStart,
+                    dueTime: timeStr !== "00:00" ? timeStr : undefined,
+                },
+            });
+        }
+
+        revalidatePath("/calendar");
+        revalidatePath("/todo");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to reschedule:", error);
+        return { success: false, error: "Failed to reschedule item" };
     }
 }

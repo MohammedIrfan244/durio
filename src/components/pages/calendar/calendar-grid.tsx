@@ -1,13 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, momentLocalizer, Views, View, ToolbarProps, EventProps } from 'react-big-calendar';
+import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { Button } from '@/components/ui/button';
-import { ICalendarEvent, ICalendarGridProps, IWeatherData } from '@/types/calendar';
+import { ICalendarEvent, IWeatherData } from '@/types/calendar';
+
+export interface ICalendarGridProps {
+    searchQuery?: string;
+    initialEvents?: ICalendarEvent[];
+}
+import EventDetailsDialog from './dialogs/event-details-dialog';
+import { rescheduleCalendarItem } from '@/server/actions/calendar-actions';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const localizer = momentLocalizer(moment);
+const DnDCalendar = withDragAndDrop<ICalendarEvent>(Calendar);
 
 // Simple weather code to emoji mapping for Open-Meteo
 const getWeatherEmoji = (code: number): string => {
@@ -58,15 +70,50 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
         }
     }, [date]);
 
-    const events: ICalendarEvent[] = initialEvents?.length > 0 ? initialEvents : [];
+    const events: ICalendarEvent[] = initialEvents ?? [];
 
     const filteredEvents = React.useMemo(() => {
         if (!searchQuery) return events;
-        return events.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        const q = searchQuery.toLowerCase();
+        return events.filter(e => {
+            if (e.title.toLowerCase().includes(q)) return true;
+            // Deep search into raw event data for description and location
+            if (e.raw && "description" in e.raw) {
+                const desc = (e.raw as { description?: string | null }).description;
+                if (desc && desc.toLowerCase().includes(q)) return true;
+            }
+            if (e.raw && "location" in e.raw) {
+                const loc = (e.raw as { location?: string | null }).location;
+                if (loc && loc.toLowerCase().includes(q)) return true;
+            }
+            return false;
+        });
     }, [events, searchQuery]);
 
     const handleNavigate = (newDate: Date) => setDate(newDate);
     const handleViewChange = (newView: View) => setView(newView);
+
+    // Event details dialog state
+    const [selectedEvent, setSelectedEvent] = useState<ICalendarEvent | null>(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+
+    const handleSelectEvent = (event: ICalendarEvent) => {
+        setSelectedEvent(event);
+        setDetailsOpen(true);
+    };
+
+    // Drag-to-reschedule handler
+    const handleEventDrop = useCallback(async ({ event, start, end }: EventInteractionArgs<ICalendarEvent>) => {
+        const newStart = start instanceof Date ? start : new Date(start);
+        const newEnd = end instanceof Date ? end : new Date(end);
+        
+        const result = await rescheduleCalendarItem(event.id, event.type, newStart, newEnd);
+        if (result.success) {
+            toast.success(`"${event.title}" rescheduled`);
+        } else {
+            toast.error(result.error || "Failed to reschedule");
+        }
+    }, []);
 
     // Custom Toolbar to match sleek design
     const CustomToolbar = (toolbar: ToolbarProps<ICalendarEvent, object>) => {
@@ -146,10 +193,16 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
     const CustomDateHeader = ({ date: headerDate, label }: { date: Date; label: string }) => {
         const dateStr = moment(headerDate).format("YYYY-MM-DD");
         const w = weather[dateStr];
+        const isToday = moment(headerDate).isSame(moment(), 'day');
 
         return (
             <div className="flex flex-col items-center p-1 w-full relative">
-                <span className="font-semibold text-xs mb-0.5">{label}</span>
+                <span className={cn(
+                    "font-semibold text-xs mb-0.5 flex items-center justify-center transition-all duration-300",
+                    isToday ? "bg-primary text-primary-foreground w-6 h-6 rounded-full shadow-lg shadow-primary/40 scale-110" : "text-foreground"
+                )}>
+                    {label}
+                </span>
                 {w && (
                     <div className="flex items-center gap-1 text-[0.65rem] text-muted-foreground/80 mt-0.5 absolute right-1">
                         <span className="text-sm shadow-sm">{getWeatherEmoji(w.code)}</span>
@@ -188,11 +241,14 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
                     background-color: hsl(var(--secondary) / 0.3);
                 }
                 .rbc-today {
-                    background-color: hsl(var(--primary) / 0.15) !important;
+                    background-color: hsl(var(--primary) / 0.08) !important;
+                    position: relative;
                 }
-                .rbc-today .rbc-date-cell {
-                    font-weight: 800;
-                    color: hsl(var(--primary)) !important;
+                .rbc-day-bg.rbc-today {
+                    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.3), inset 0 0 20px hsl(var(--primary) / 0.05);
+                }
+                .rbc-today .rbc-button-link {
+                    color: inherit !important;
                 }
                 .rbc-event {
                     background: transparent;
@@ -209,9 +265,21 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
                     font-size: 0.85rem;
                     font-weight: 500;
                 }
+                .rbc-addons-dnd .rbc-addons-dnd-row-body {
+                    position: relative;
+                }
+                .rbc-addons-dnd .rbc-addons-dnd-drag-row {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                }
+                .rbc-addons-dnd-dragged-event {
+                    opacity: 0.4;
+                }
             `}</style>
             
-            <Calendar<ICalendarEvent, object>
+            <DnDCalendar
                 localizer={localizer}
                 events={filteredEvents}
                 startAccessor="start"
@@ -222,6 +290,11 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
                 date={date}
                 onView={handleViewChange}
                 onNavigate={handleNavigate}
+                onSelectEvent={handleSelectEvent}
+                onEventDrop={handleEventDrop}
+                onEventResize={handleEventDrop}
+                resizable
+                draggableAccessor={() => true}
                 components={{
                     toolbar: CustomToolbar,
                     event: CustomEvent,
@@ -229,6 +302,12 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
                         dateHeader: CustomDateHeader
                     }
                 }}
+            />
+
+            <EventDetailsDialog 
+                event={selectedEvent} 
+                open={detailsOpen} 
+                onClose={() => { setDetailsOpen(false); setSelectedEvent(null); }} 
             />
         </div>
     );

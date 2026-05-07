@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CalendarIcon, Clock, Plus, MapPin, AlignLeft } from 'lucide-react';
+import { CalendarIcon, Clock, Plus, MapPin, AlignLeft, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { createEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
 import { IEventCreateInput } from '@/types/calendar';
+import { EventCategory } from '@prisma/client';
 
-export default function EventManagerDialog() {
+export default function EventManagerDialog({ categories = [] }: { categories?: EventCategory[] }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     
@@ -22,6 +23,7 @@ export default function EventManagerDialog() {
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("10:00");
     const [isAllDay, setIsAllDay] = useState(false);
+    const [categoryId, setCategoryId] = useState<string>("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +40,7 @@ export default function EventManagerDialog() {
                 isAllDay,
                 startDate: new Date(isAllDay ? date : startStr),
                 endDate: new Date(isAllDay ? date : endStr),
+                categoryId: categoryId || undefined,
             };
 
             const result = await createEvent(eventData);
@@ -49,6 +52,7 @@ export default function EventManagerDialog() {
                 setTitle("");
                 setDescription("");
                 setLocation("");
+                setCategoryId("");
             } else {
                 toast.error(result.error || "Failed to create event");
             }
@@ -85,6 +89,34 @@ export default function EventManagerDialog() {
                         />
                         <div className="h-[1px] w-full bg-border/50" />
                     </div>
+
+                    {/* Category Selector */}
+                    {categories.length > 0 && (
+                        <div className="flex items-center gap-3">
+                            <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <select 
+                                value={categoryId}
+                                onChange={e => setCategoryId(e.target.value)}
+                                className="flex h-9 w-full rounded-md border border-border/50 bg-secondary/30 px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
+                            >
+                                <option value="">No Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {categoryId && (
+                                <div 
+                                    className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1 ring-offset-background" 
+                                    style={{ 
+                                        backgroundColor: categories.find(c => c.id === categoryId)?.color || "#888",
+                                        ringColor: categories.find(c => c.id === categoryId)?.color || "#888"
+                                    }} 
+                                />
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-3">
                         <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />

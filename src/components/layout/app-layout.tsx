@@ -7,6 +7,7 @@ import {
   SidebarProvider,
   Sidebar as ShadSidebar,
 } from "@/components/ui/sidebar";
+import FloatingCalculator from "@/components/shared/floating-calculator";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -39,6 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+        <FloatingCalculator />
       </div>
     </SidebarProvider>
   );

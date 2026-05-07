@@ -7,13 +7,16 @@ import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper
 import { HeaderSearch } from '@/components/shared/header-search';
 import { ICalendarEvent, IEvent } from '@/types/calendar';
 import EventManagerDialog from './dialogs/event-manager-dialog';
+import { EventCategory } from '@prisma/client';
 
 export default function CalendarDashboard({ 
     initialEvents,
-    milestones = []
+    milestones = [],
+    categories = []
 }: { 
     initialEvents: ICalendarEvent[],
-    milestones?: IEvent[]
+    milestones?: IEvent[],
+    categories?: EventCategory[]
 }) {
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -31,7 +34,7 @@ export default function CalendarDashboard({
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <EventManagerDialog />
+                            <EventManagerDialog categories={categories} />
                         </div>
                     </div>
                     
@@ -48,14 +51,20 @@ export default function CalendarDashboard({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
                 {/* Sidebar */}
                 <div className="lg:col-span-3 flex flex-col gap-6">
-                    <CalendarSidebar milestones={milestones} />
+                    <CalendarSidebar 
+                        milestones={milestones} 
+                        categories={categories} 
+                    />
                 </div>
 
                 {/* Main Calendar Area */}
                 <div className="lg:col-span-9 bg-card/40 backdrop-blur-md rounded-3xl border border-border/40 overflow-hidden shadow-sm flex flex-col relative z-10 transition-all duration-300 h-[calc(100vh-320px)] lg:h-full">
-                    <CalendarGrid searchQuery={searchQuery} initialEvents={initialEvents} />
+                    <CalendarGrid 
+                        searchQuery={searchQuery} 
+                        initialEvents={initialEvents} 
+                    />
                 </div>
             </div>
         </div>
     );
-}
+}

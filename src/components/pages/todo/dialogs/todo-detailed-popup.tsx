@@ -44,6 +44,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatName } from "@/lib/utils/name-formatter";
 import TodoDetailedPopupSkeleton from "@/components/skeleton/todo/todo-detail-skelton";
+import ResourceLinker from "@/components/shared/resource-linker";
+import { searchLinkableResources } from "@/server/actions/resource-link-actions";
 
 // --- TYPES ---
 interface TodoDetailedProps {
@@ -598,6 +600,14 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({
         <TagsSection todo={todo} />
 
         <DueAndCompletionColumn todo={todo}/>
+
+        {/* Linked Resources (Cross-Module Connection) */}
+        <ResourceLinker
+          resourceId={todo.id}
+          resourceType="TODO"
+          allowedTargetTypes={["NOTE"]}
+          searchAction={searchLinkableResources}
+        />
 
       </div>
 
