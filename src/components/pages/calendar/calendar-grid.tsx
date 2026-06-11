@@ -7,11 +7,14 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { Button } from '@/components/ui/button';
-import { ICalendarEvent, IWeatherData } from '@/types/calendar';
+import { ICalendarEvent, IWeatherData, IEvent } from '@/types/calendar';
 
 export interface ICalendarGridProps {
     searchQuery?: string;
     initialEvents?: ICalendarEvent[];
+    selectedCategories: string[];
+    date: Date;
+    onNavigate: (date: Date) => void;
 }
 import EventDetailsDialog from './dialogs/event-details-dialog';
 import { rescheduleCalendarItem } from '@/server/actions/calendar-actions';
@@ -33,9 +36,14 @@ const getWeatherEmoji = (code: number): string => {
     return '☁️';
 };
 
-export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGridProps) {
+export default function CalendarGrid({ 
+    searchQuery, 
+    initialEvents, 
+    selectedCategories,
+    date,
+    onNavigate
+}: ICalendarGridProps) {
     const [view, setView] = useState<View>(Views.MONTH);
-    const [date, setDate] = useState<Date>(new Date());
     const [weather, setWeather] = useState<IWeatherData>({});
 
     // Fetch weather data for the next 7 days
@@ -73,24 +81,32 @@ export default function CalendarGrid({ searchQuery, initialEvents }: ICalendarGr
     const events: ICalendarEvent[] = initialEvents ?? [];
 
     const filteredEvents = React.useMemo(() => {
-        if (!searchQuery) return events;
+        let result = events;
+
+        // 1. Filter by category
+        result = result.filter(e => {
+            if (e.type === 'todo') return selectedCategories.includes('todos');
+            if (e.type === 'event') {
+                const catId = (e.raw as IEvent).categoryId;
+                return !catId || selectedCategories.includes(catId);
+            }
+            return true;
+        });
+
+        // 2. Filter by search query
+        if (!searchQuery) return result;
         const q = searchQuery.toLowerCase();
-        return events.filter(e => {
+        return result.filter(e => {
             if (e.title.toLowerCase().includes(q)) return true;
-            // Deep search into raw event data for description and location
             if (e.raw && "description" in e.raw) {
                 const desc = (e.raw as { description?: string | null }).description;
                 if (desc && desc.toLowerCase().includes(q)) return true;
             }
-            if (e.raw && "location" in e.raw) {
-                const loc = (e.raw as { location?: string | null }).location;
-                if (loc && loc.toLowerCase().includes(q)) return true;
-            }
             return false;
         });
-    }, [events, searchQuery]);
+    }, [events, searchQuery, selectedCategories]);
 
-    const handleNavigate = (newDate: Date) => setDate(newDate);
+    const handleNavigate = (newDate: Date) => onNavigate(newDate);
     const handleViewChange = (newView: View) => setView(newView);
 
     // Event details dialog state

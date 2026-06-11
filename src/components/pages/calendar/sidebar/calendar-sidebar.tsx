@@ -12,20 +12,24 @@ import CustomMiniCalendar from './custom-mini-calendar';
 
 export default function CalendarSidebar({ 
     milestones = [], 
-    categories = []
+    categories = [],
+    selectedCategories,
+    onCategoriesChange,
+    selectedDate,
+    onDateSelect
 }: { 
     milestones?: IEvent[];
     categories?: EventCategory[];
+    selectedCategories: string[];
+    onCategoriesChange: (ids: string[]) => void;
+    selectedDate: Date;
+    onDateSelect: (date: Date) => void;
 }) {
-    const [date, setDate] = useState<Date>(new Date());
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([
-        "todos",
-        ...categories.map(c => c.id)
-    ]);
-    
     const toggleCategory = (id: string) => {
-        setSelectedCategories(prev => 
-            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+        onCategoriesChange(
+            selectedCategories.includes(id) 
+                ? selectedCategories.filter(c => c !== id) 
+                : [...selectedCategories, id]
         );
     };
 
@@ -45,8 +49,8 @@ export default function CalendarSidebar({
 
             <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border/40 p-4 shadow-sm">
                 <CustomMiniCalendar
-                    value={date}
-                    onChange={(d) => setDate(d)}
+                    value={selectedDate}
+                    onChange={onDateSelect}
                 />
             </div>
 

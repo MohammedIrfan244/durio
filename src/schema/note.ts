@@ -9,6 +9,16 @@ export const CreateNoteSchema = z.object({
   description: z.string().min(1, "Description is required"),
   color: z.string().optional(),
   folderId: MONGOID.optional(),
+  linkedResources: z
+    .array(
+      z.object({
+        id: MONGOID,
+        type: z.enum(["TODO", "NOTE", "EVENT", "PROJECT"]),
+        title: z.string().optional(),
+        subtitle: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const UpdateNoteSchema = z.object({

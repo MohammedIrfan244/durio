@@ -162,17 +162,46 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             include: { checklist: true } // Include checklist to match ITodo interface
         });
 
-        // Map events
-        const mappedEvents: ICalendarEvent[] = events.map(e => ({
-            id: e.id,
-            title: e.title,
-            start: e.startDate,
-            end: e.endDate,
-            isAllDay: e.isAllDay,
-            type: "event",
-            color: e.category?.color || "#3182ce",
-            raw: e as IEvent
-        }));
+        // Map events with auto-recurrence for Birthdays and Anniversaries
+        const mappedEvents: ICalendarEvent[] = [];
+        events.forEach(e => {
+            const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
+            
+            if (isAnnualRecurrent) {
+                // Project this event into the current view range years
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
+                
+                for (let year = startYear; year <= endYear; year++) {
+                    const recurrentStart = new Date(e.startDate);
+                    recurrentStart.setFullYear(year);
+                    const recurrentEnd = new Date(e.endDate);
+                    recurrentEnd.setFullYear(year);
+
+                    mappedEvents.push({
+                        id: `${e.id}-${year}`, // Unique ID per year
+                        title: e.title,
+                        start: recurrentStart,
+                        end: recurrentEnd,
+                        isAllDay: e.isAllDay,
+                        type: "event",
+                        color: e.category?.color || "#3182ce",
+                        raw: e as IEvent
+                    });
+                }
+            } else {
+                mappedEvents.push({
+                    id: e.id,
+                    title: e.title,
+                    start: e.startDate,
+                    end: e.endDate,
+                    isAllDay: e.isAllDay,
+                    type: "event",
+                    color: e.category?.color || "#3182ce",
+                    raw: e as IEvent
+                });
+            }
+        });
 
         // Map todos
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {

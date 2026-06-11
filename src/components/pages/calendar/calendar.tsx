@@ -19,6 +19,11 @@ export default function CalendarDashboard({
     categories?: EventCategory[]
 }) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([
+        "todos",
+        ...categories.map(c => c.id)
+    ]);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
     return (
         <div className="section-wrapper space-y-6">
@@ -54,6 +59,10 @@ export default function CalendarDashboard({
                     <CalendarSidebar 
                         milestones={milestones} 
                         categories={categories} 
+                        selectedCategories={selectedCategories}
+                        onCategoriesChange={setSelectedCategories}
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
                     />
                 </div>
 
@@ -62,6 +71,9 @@ export default function CalendarDashboard({
                     <CalendarGrid 
                         searchQuery={searchQuery} 
                         initialEvents={initialEvents} 
+                        selectedCategories={selectedCategories}
+                        date={selectedDate}
+                        onNavigate={setSelectedDate}
                     />
                 </div>
             </div>

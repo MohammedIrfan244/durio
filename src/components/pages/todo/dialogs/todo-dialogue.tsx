@@ -56,6 +56,8 @@ import { formatDate } from "@/lib/utils/date-formatter";
 import { withClientAction } from "@/lib/utils/with-client-action";
 import { today } from "@/lib/utils/today";
 import TodoDialogSkeleton from "@/components/skeleton/todo/todo-dialogue-skelton";
+import UnsavedResourceLinker from "@/components/shared/unsaved-resource-linker";
+import { searchLinkableResources } from "@/server/actions/resource-link-actions";
 
 type Props = {
   todoId?: string;
@@ -509,6 +511,7 @@ export default function ToDoDialog({
       renewCustom: undefined,
       checklist: [],
       status: undefined,
+      linkedResources: [],
     },
   });
 
@@ -680,6 +683,24 @@ export default function ToDoDialog({
 
                 {/* Checklist */}
                 <ChecklistSection form={form} />
+
+                {/* Resource Linking (Creation Only) */}
+                {!todoId && (
+                  <div className="pt-2">
+                    <Controller
+                      control={form.control}
+                      name="linkedResources"
+                      render={({ field }) => (
+                        <UnsavedResourceLinker
+                          allowedTargetTypes={["NOTE"]}
+                          searchAction={searchLinkableResources}
+                          value={(field.value as any) || []}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
