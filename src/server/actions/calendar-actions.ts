@@ -140,6 +140,40 @@ export async function searchEvents(query: string): Promise<Event[]> {
     }
 }
 
+function getOrdinalIndicator(n: number) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+}
+
+async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
+    try {
+        const res = await fetch(`https://history.muffinlabs.com/date/${month}/${day}`);
+        const json = await res.json();
+        
+        if (json?.data) {
+            const types = ["Events", "Births", "Deaths"];
+            const availableTypes = types.filter(t => json.data[t] && json.data[t].length > 0);
+            
+            if (availableTypes.length > 0) {
+                const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                const items = json.data[randomType];
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                
+                let prefix = "";
+                if (randomType === "Events") prefix = `On this day in ${randomItem.year}: `;
+                if (randomType === "Births") prefix = `Born on this day in ${randomItem.year}: `;
+                if (randomType === "Deaths") prefix = `Died on this day in ${randomItem.year}: `;
+                
+                return `${prefix}${randomItem.text}`;
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch fun fact:", e);
+    }
+    return undefined;
+}
+
 export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Promise<ICalendarEvent[]> {
     try {
         const user = await getUser();
@@ -148,7 +182,10 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         const events = await prisma.event.findMany({
             where: {
                 userId: user.id as string,
-                startDate: { gte: startDate },
+                OR: [
+                    { startDate: { gte: startDate, lte: endDate } },
+                    { category: { name: { in: ["Birthdays", "Anniversaries"] } } }
+                ]
             },
             include: { category: true }
         });
@@ -156,19 +193,19 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         const todosWithDates = await prisma.todo.findMany({
             where: {
                 userId: user.id as string,
-                dueDate: { not: null, gte: startDate, lte: endDate },
+                dueDate: { gte: startDate, lte: endDate },
                 renewInterval: null
             },
             include: { checklist: true } // Include checklist to match ITodo interface
         });
 
-        // Map events with auto-recurrence for Birthdays and Anniversaries
-        const mappedEvents: ICalendarEvent[] = [];
+        const mappedEventsPromises: Promise<ICalendarEvent>[] = [];
+        
         events.forEach(e => {
             const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
+            const isBirthday = e.category?.name === "Birthdays";
             
             if (isAnnualRecurrent) {
-                // Project this event into the current view range years
                 const startYear = startDate.getFullYear();
                 const endYear = endDate.getFullYear();
                 
@@ -178,35 +215,55 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                     const recurrentEnd = new Date(e.endDate);
                     recurrentEnd.setFullYear(year);
 
-                    mappedEvents.push({
-                        id: `${e.id}-${year}`, // Unique ID per year
+                    if (recurrentStart >= startDate && recurrentStart <= endDate) {
+                        const yearsSince = year - e.startDate.getFullYear();
+                        const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
+                        
+                        mappedEventsPromises.push((async () => {
+                            let funFact: string | undefined;
+                            if (isBirthday) {
+                                funFact = await fetchFunFactForDate(e.startDate.getMonth() + 1, e.startDate.getDate());
+                            }
+                            
+                            return {
+                                id: `${e.id}-${year}`,
+                                title: `${e.title}${titleSuffix}`,
+                                start: recurrentStart,
+                                end: recurrentEnd,
+                                isAllDay: e.isAllDay,
+                                type: "event",
+                                color: e.category?.color || "#3182ce",
+                                funFact,
+                                raw: e as IEvent
+                            };
+                        })());
+                    }
+                }
+            } else {
+                if (e.startDate >= startDate && e.startDate <= endDate) {
+                    mappedEventsPromises.push(Promise.resolve({
+                        id: e.id,
                         title: e.title,
-                        start: recurrentStart,
-                        end: recurrentEnd,
+                        start: e.startDate,
+                        end: e.endDate,
                         isAllDay: e.isAllDay,
                         type: "event",
                         color: e.category?.color || "#3182ce",
                         raw: e as IEvent
-                    });
+                    }));
                 }
-            } else {
-                mappedEvents.push({
-                    id: e.id,
-                    title: e.title,
-                    start: e.startDate,
-                    end: e.endDate,
-                    isAllDay: e.isAllDay,
-                    type: "event",
-                    color: e.category?.color || "#3182ce",
-                    raw: e as IEvent
-                });
             }
         });
 
+        const mappedEvents = await Promise.all(mappedEventsPromises);
+
         // Map todos
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
-            const startStr = t.dueTime ? `${t.dueDate?.toISOString().split("T")[0]}T${t.dueTime}` : t.dueDate?.toISOString();
-            const dateObj = new Date(startStr || new Date());
+            let dateObj = new Date(t.dueDate!);
+            if (t.dueTime) {
+                const [hours, minutes] = t.dueTime.split(":");
+                dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            }
             
             return {
                 id: t.id,
@@ -216,7 +273,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                 isAllDay: !t.dueTime,
                 type: "todo",
                 color: "#e53e3e",
-                raw: t // t matches ITodo because we included checklist
+                raw: t 
             };
         });
 
@@ -236,20 +293,45 @@ export async function getUpcomingMilestones(): Promise<IEvent[]> {
         const thirtyDaysFromNow = new Date();
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-        const milestones = await prisma.event.findMany({
+        const recurrentEvents = await prisma.event.findMany({
             where: {
                 userId: user.id as string,
-                startDate: { gte: now, lte: thirtyDaysFromNow },
                 category: {
                     name: { in: ["Birthdays", "Anniversaries"] }
                 }
             },
             include: { category: true },
-            orderBy: { startDate: "asc" },
-            take: 5
         });
 
-        return milestones as IEvent[];
+        const milestones: IEvent[] = [];
+        const currentYear = now.getFullYear();
+
+        for (const e of recurrentEvents) {
+            let nextDate = new Date(e.startDate);
+            nextDate.setFullYear(currentYear);
+            
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const nextMidnight = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+            
+            if (nextMidnight < todayMidnight) {
+                nextDate.setFullYear(currentYear + 1);
+            }
+
+            if (nextDate >= todayMidnight && nextDate <= thirtyDaysFromNow) {
+                const yearsSince = nextDate.getFullYear() - e.startDate.getFullYear();
+                const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
+                
+                milestones.push({
+                    ...e,
+                    title: `${e.title}${titleSuffix}`,
+                    startDate: nextDate,
+                    endDate: new Date(nextDate.getTime() + (e.endDate.getTime() - e.startDate.getTime()))
+                });
+            }
+        }
+
+        milestones.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+        return milestones.slice(0, 5);
     } catch (error) {
         console.error("Failed to get milestones:", error);
         return [];

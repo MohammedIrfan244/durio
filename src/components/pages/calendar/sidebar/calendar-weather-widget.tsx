@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { CloudSun, Droplets, Wind, Thermometer, MapPin, Loader2 } from "lucide-react";
 
+import { getWeatherForecast } from "@/server/actions/weather-actions";
+
 interface WeatherCurrent {
     temp: number;
     feelsLike: number;
@@ -48,6 +50,7 @@ const getDayName = (dateStr: string): string => {
     return date.toLocaleDateString("en", { weekday: "short" });
 };
 
+
 export default function CalendarWeatherWidget() {
     const [current, setCurrent] = useState<WeatherCurrent | null>(null);
     const [forecast, setForecast] = useState<WeatherForecast[]>([]);
@@ -57,11 +60,10 @@ export default function CalendarWeatherWidget() {
     useEffect(() => {
         const fetchWeather = async (lat: number, lon: number) => {
             try {
-                // Fetch current + forecast
-                const res = await fetch(
-                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`
-                );
-                const data = await res.json();
+                const res = await getWeatherForecast(lat, lon);
+                if (!res.success || !res.data) throw new Error(res.error || "Failed to fetch");
+                
+                const data = res.data;
 
                 if (data?.current) {
                     setCurrent({
@@ -84,7 +86,8 @@ export default function CalendarWeatherWidget() {
                     }));
                     setForecast(fc);
                 }
-            } catch {
+            } catch (err) {
+                console.log("error during weather fetch", err);
                 setError(true);
             } finally {
                 setLoading(false);
@@ -110,6 +113,7 @@ export default function CalendarWeatherWidget() {
     }
 
     if (error || !current) {
+        console.log(error)
         return null;
     }
 
