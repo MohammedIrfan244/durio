@@ -194,12 +194,15 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             where: {
                 userId: user.id as string,
                 dueDate: { gte: startDate, lte: endDate },
-                renewInterval: null
+                OR: [
+                    { renewInterval: { isSet: false } },
+                    { renewInterval: null }
+                ]
             },
             include: { checklist: true } // Include checklist to match ITodo interface
         });
 
-        const mappedEventsPromises: Promise<ICalendarEvent>[] = [];
+        const mappedEvents: ICalendarEvent[] = [];
         
         events.forEach(e => {
             const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
@@ -219,29 +222,21 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                         const yearsSince = year - e.startDate.getFullYear();
                         const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
                         
-                        mappedEventsPromises.push((async () => {
-                            let funFact: string | undefined;
-                            if (isBirthday) {
-                                funFact = await fetchFunFactForDate(e.startDate.getMonth() + 1, e.startDate.getDate());
-                            }
-                            
-                            return {
-                                id: `${e.id}-${year}`,
-                                title: `${e.title}${titleSuffix}`,
-                                start: recurrentStart,
-                                end: recurrentEnd,
-                                isAllDay: e.isAllDay,
-                                type: "event",
-                                color: e.category?.color || "#3182ce",
-                                funFact,
-                                raw: e as IEvent
-                            };
-                        })());
+                        mappedEvents.push({
+                            id: `${e.id}-${year}`,
+                            title: `${e.title}${titleSuffix}`,
+                            start: recurrentStart,
+                            end: recurrentEnd,
+                            isAllDay: e.isAllDay,
+                            type: "event",
+                            color: e.category?.color || "#3182ce",
+                            raw: e as IEvent
+                        });
                     }
                 }
             } else {
                 if (e.startDate >= startDate && e.startDate <= endDate) {
-                    mappedEventsPromises.push(Promise.resolve({
+                    mappedEvents.push({
                         id: e.id,
                         title: e.title,
                         start: e.startDate,
@@ -250,14 +245,11 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                         type: "event",
                         color: e.category?.color || "#3182ce",
                         raw: e as IEvent
-                    }));
+                    });
                 }
             }
         });
 
-        const mappedEvents = await Promise.all(mappedEventsPromises);
-
-        // Map todos
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
             let dateObj = new Date(t.dueDate!);
             if (t.dueTime) {

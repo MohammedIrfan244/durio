@@ -111,8 +111,8 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                                     className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1 ring-offset-background" 
                                     style={{ 
                                         backgroundColor: categories.find(c => c.id === categoryId)?.color || "#888",
-                                        ringColor: categories.find(c => c.id === categoryId)?.color || "#888"
-                                    }} 
+                                        "--tw-ring-color": categories.find(c => c.id === categoryId)?.color || "#888"
+                                    } as React.CSSProperties} 
                                 />
                             )}
                         </div>
