@@ -118,15 +118,22 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                         </div>
                     )}
 
-                    <div className="flex items-center gap-3">
-                        <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <Input 
-                            type="date" 
-                            required
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
-                            className="h-9 border-border/50 bg-secondary/30" 
-                        />
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3">
+                            <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <Input 
+                                type="date" 
+                                required
+                                value={date}
+                                onChange={e => setDate(e.target.value)}
+                                className="h-9 border-border/50 bg-secondary/30" 
+                            />
+                        </div>
+                        {(categories.find(c => c.id === categoryId)?.name === "Birthdays" || categories.find(c => c.id === categoryId)?.name === "Anniversaries") && (
+                            <p className="text-xs text-muted-foreground ml-7">
+                                Please select the <strong>original year</strong> (e.g. year of birth) so the age/count calculates correctly.
+                            </p>
+                        )}
                     </div>
 
                     {!isAllDay && (
