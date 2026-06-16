@@ -49,6 +49,17 @@ export const createTodoSchema = z.object({
     .optional(),
 
   status: TodoStatusEnum.optional(),
+
+  linkedResources: z
+    .array(
+      z.object({
+        id: MONGOID,
+        type: z.enum(["TODO", "NOTE", "EVENT", "PROJECT"]),
+        title: z.string().optional(),
+        subtitle: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 // Schema for filtering and sorting to-do items

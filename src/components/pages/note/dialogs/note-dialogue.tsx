@@ -34,6 +34,8 @@ type NoteFormContext = UseFormReturn<CreateNoteInput>;
 
 import { Controller } from "react-hook-form";
 import { ColorPicker } from "@/components/ui/color-picker";
+import UnsavedResourceLinker from "@/components/shared/unsaved-resource-linker";
+import { searchLinkableResources } from "@/server/actions/resource-link-actions";
 
 const TitleAndDescriptionSection: React.FC<{ form: NoteFormContext }> = ({ form }) => {
   const { register, control, formState: { errors } } = form;
@@ -83,6 +85,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
       description: "",
       color: undefined,
       folderId: defaultFolderId || undefined,
+      linkedResources: [],
     },
   });
 
@@ -123,6 +126,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
         description: "",
         color: undefined,
         folderId: defaultFolderId || undefined,
+        linkedResources: [],
       });
     }
   }, [open, noteId, defaultFolderId, reset, setOpen]);
@@ -155,6 +159,22 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
         ) : (
           <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
             <TitleAndDescriptionSection form={form} />
+            {!noteId && (
+              <div className="pt-2">
+                <Controller
+                  control={form.control}
+                  name="linkedResources"
+                  render={({ field }) => (
+                    <UnsavedResourceLinker
+                      allowedTargetTypes={["TODO"]}
+                      searchAction={searchLinkableResources}
+                      value={(field.value as any) || []}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+            )}
             <DialogFooter className="gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6 text-sm bg-secondary/30 border-border/40 focus:bg-secondary/50 backdrop-blur-sm transition-all duration-300">Cancel</Button>
               <Button type="submit" disabled={isPending} className="h-10 px-6 text-sm">

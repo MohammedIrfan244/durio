@@ -10,15 +10,35 @@ export const createNote = withErrorWrapper<INote, [CreateNoteInput]>(async (inpu
 	const validatedInput = CreateNoteSchema.parse(input);
 
 	const userId = await getUserId();
-	const note = await prisma.note.create({
-		data: {
-			userId,
-			heading: validatedInput.heading,
-			description: validatedInput.description,
-			color: validatedInput.color,
-			folderId: validatedInput.folderId,
-			status: "ACTIVE",
-		},
+	const note = await prisma.$transaction(async (tx) => {
+		const newNote = await tx.note.create({
+			data: {
+				userId,
+				heading: validatedInput.heading,
+				description: validatedInput.description,
+				color: validatedInput.color,
+				folderId: validatedInput.folderId,
+				status: "ACTIVE",
+			},
+		});
+
+		if (validatedInput.linkedResources && validatedInput.linkedResources.length > 0) {
+			await Promise.all(
+				validatedInput.linkedResources.map((link) =>
+					tx.resourceLink.create({
+						data: {
+							userId,
+							fromId: newNote.id,
+							fromType: "NOTE",
+							toId: link.id,
+							toType: link.type,
+						},
+					})
+				)
+			);
+		}
+
+		return newNote;
 	});
 	return note as INote;
 });

@@ -55,8 +55,8 @@ export default function Basic() {
   return (
     <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold flex items-center gap-2">
-          <Calculator className="h-5 w-5 text-primary" />
+        <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
+          <Calculator className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
           Basic
         </CardTitle>
         <CardDescription>Grid keypad calculator.</CardDescription>
@@ -81,7 +81,7 @@ export default function Basic() {
               key={key}
               variant={["/", "*", "-", "+"].includes(key) ? "default" : ["C", "AC"].includes(key) ? "destructive" : key === "=" ? "default" : "secondary"}
               className={cn(
-                "h-12 text-lg font-semibold shadow-sm transition-all",
+                "h-12 text-lg font-semibold shadow-sm transition-all duration-200 hover:scale-[1.03] active:scale-95",
                 key === "=" ? "bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-500/20" : ""
               )}
               onClick={() => handleKeyClick(key)}

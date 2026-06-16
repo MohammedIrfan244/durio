@@ -3,25 +3,33 @@
 import React, { useState } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Gift, Heart, User, Briefcase, CalendarHeart, ListTodo } from 'lucide-react';
-import { IStaticCategory, IEvent } from '@/types/calendar';
+import { CalendarHeart, ListTodo, Tag } from 'lucide-react';
+import { IEvent } from '@/types/calendar';
+import { EventCategory } from '@prisma/client';
 import { format, differenceInDays } from 'date-fns';
+import CalendarWeatherWidget from './calendar-weather-widget';
+import CustomMiniCalendar from './custom-mini-calendar';
 
-const STATIC_CATEGORIES: IStaticCategory[] = [
-    { id: 'todos', label: 'To-Dos (Tasks)', color: 'bg-red-500', icon: ListTodo },
-    { id: 'personal', label: 'Personal', color: 'bg-blue-500', icon: User },
-    { id: 'work', label: 'Work', color: 'bg-green-500', icon: Briefcase },
-    { id: 'birthdays', label: 'Birthdays', color: 'bg-purple-500', icon: Gift },
-    { id: 'anniversaries', label: 'Anniversaries', color: 'bg-pink-500', icon: Heart },
-];
-
-export default function CalendarSidebar({ milestones = [] }: { milestones?: IEvent[] }) {
-    const [date, setDate] = useState<Date | undefined>(new Date());
-    const [selectedCategories, setSelectedCategories] = useState<string[]>(STATIC_CATEGORIES.map(c => c.id));
-    
+export default function CalendarSidebar({ 
+    milestones = [], 
+    categories = [],
+    selectedCategories,
+    onCategoriesChange,
+    selectedDate,
+    onDateSelect
+}: { 
+    milestones?: IEvent[];
+    categories?: EventCategory[];
+    selectedCategories: string[];
+    onCategoriesChange: (ids: string[]) => void;
+    selectedDate: Date;
+    onDateSelect: (date: Date) => void;
+}) {
     const toggleCategory = (id: string) => {
-        setSelectedCategories(prev => 
-            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+        onCategoriesChange(
+            selectedCategories.includes(id) 
+                ? selectedCategories.filter(c => c !== id) 
+                : [...selectedCategories, id]
         );
     };
 
@@ -36,22 +44,40 @@ export default function CalendarSidebar({ milestones = [] }: { milestones?: IEve
 
     return (
         <div className="flex flex-col gap-6 w-full pb-8">
-            {/* Mini Calendar Card */}
+            {/* Weather Widget */}
+            <CalendarWeatherWidget />
+
             <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border/40 p-4 shadow-sm">
-                <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="rounded-md flex justify-center"
+                <CustomMiniCalendar
+                    value={selectedDate}
+                    onChange={onDateSelect}
                 />
             </div>
 
-            {/* Categories Filter */}
+            {/* Categories Filter — Dynamic from DB */}
             <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border/40 p-5 shadow-sm flex flex-col gap-4">
                 <h3 className="font-bold text-xs text-muted-foreground tracking-widest uppercase opacity-70">My Calendars</h3>
                 <div className="flex flex-col gap-3">
-                    {STATIC_CATEGORIES.map((category) => {
-                        const Icon = category.icon;
+                    {/* To-Dos (always present, not a DB category) */}
+                    <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => toggleCategory("todos")}>
+                        <Checkbox 
+                            id="todos" 
+                            checked={selectedCategories.includes("todos")}
+                            onCheckedChange={() => toggleCategory("todos")}
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                        <div className="flex items-center gap-2 flex-1">
+                            <div className="p-1 rounded-md bg-red-500 bg-opacity-20">
+                                <ListTodo className="w-3.5 h-3.5 text-red-500" />
+                            </div>
+                            <label htmlFor="todos" className="text-sm font-semibold leading-none cursor-pointer text-foreground/80 group-hover:text-foreground transition-colors">
+                                To-Dos (Tasks)
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Dynamic DB Categories */}
+                    {categories.map((category) => {
                         const isSelected = selectedCategories.includes(category.id);
                         return (
                             <div key={category.id} className="flex items-center space-x-3 group cursor-pointer" onClick={() => toggleCategory(category.id)}>
@@ -62,14 +88,14 @@ export default function CalendarSidebar({ milestones = [] }: { milestones?: IEve
                                     className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                 />
                                 <div className="flex items-center gap-2 flex-1">
-                                    <div className={`p-1 rounded-md ${category.color} bg-opacity-20`}>
-                                        <Icon className={`w-3.5 h-3.5 ${category.color.replace('bg-', 'text-')}`} />
+                                    <div className="p-1 rounded-md" style={{ backgroundColor: `${category.color}20` }}>
+                                        <Tag className="w-3.5 h-3.5" style={{ color: category.color }} />
                                     </div>
                                     <label
                                         htmlFor={category.id}
-                                        className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-foreground/80 group-hover:text-foreground transition-colors"
+                                        className="text-sm font-semibold leading-none cursor-pointer text-foreground/80 group-hover:text-foreground transition-colors"
                                     >
-                                        {category.label}
+                                        {category.name}
                                     </label>
                                 </div>
                             </div>

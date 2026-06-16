@@ -12,6 +12,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
+import ResourceLinker from "@/components/shared/resource-linker";
+import { searchLinkableResources } from "@/server/actions/resource-link-actions";
 
 interface NoteCardProps {
   note: INote;
@@ -146,6 +148,18 @@ export function NoteCard({
           {!isExpanded && isOverflowing && (
             <div className="text-xs text- font-semibold hover:text-primary transition-colors">
               Click to read more...
+            </div>
+          )}
+
+          {/* Linked Resources — shown when expanded */}
+          {isExpanded && (
+            <div className="pt-3 border-t border-border/30 mt-2" onClick={(e) => e.stopPropagation()}>
+              <ResourceLinker
+                resourceId={note.id}
+                resourceType="NOTE"
+                allowedTargetTypes={["TODO"]}
+                searchAction={searchLinkableResources}
+              />
             </div>
           )}
         </div>

@@ -27,6 +27,7 @@ export interface IEventCreateInput {
     startDate: Date;
     endDate: Date;
     categoryId?: string;
+    linkedResources?: Array<{ id: string; type: string }>;
 }
 
 export interface IWeatherData {

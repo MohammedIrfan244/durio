@@ -50,30 +50,50 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
   const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
-  const todo = await prisma.todo.create({
-    data: {
-      userId,
-      title: validatedInput.title,
-      description: validatedInput.description,
-      status: (validatedInput.status || "PLAN") as ITodoStatus,
-      priority: validatedInput.priority,
-      priorityInt,
-      tags: validatedInput.tags || [],
-      dueDate: dueDate,
-      dueTime: validatedInput.dueTime,
-      renewStart: renewStart,
-      renewInterval: validatedInput.renewInterval,
-      renewEvery: validatedInput.renewEvery,
-      renewCustom: validatedInput.renewCustom,
-      checklist: validatedInput.checklist ? {
-        create: validatedInput.checklist.map(item => ({
-          text: item.text,
-        })),
-      } : undefined,
-    },
-    include: {
-      checklist: true,
-    },
+  const todo = await prisma.$transaction(async (tx) => {
+    const newTodo = await tx.todo.create({
+      data: {
+        userId,
+        title: validatedInput.title,
+        description: validatedInput.description,
+        status: (validatedInput.status || "PLAN") as ITodoStatus,
+        priority: validatedInput.priority,
+        priorityInt,
+        tags: validatedInput.tags || [],
+        dueDate: dueDate,
+        dueTime: validatedInput.dueTime,
+        renewStart: renewStart,
+        renewInterval: validatedInput.renewInterval,
+        renewEvery: validatedInput.renewEvery,
+        renewCustom: validatedInput.renewCustom,
+        checklist: validatedInput.checklist ? {
+          create: validatedInput.checklist.map(item => ({
+            text: item.text,
+          })),
+        } : undefined,
+      },
+      include: {
+        checklist: true,
+      },
+    });
+
+    if (validatedInput.linkedResources && validatedInput.linkedResources.length > 0) {
+      await Promise.all(
+        validatedInput.linkedResources.map((link) =>
+          tx.resourceLink.create({
+            data: {
+              userId,
+              fromId: newTodo.id,
+              fromType: "TODO",
+              toId: link.id,
+              toType: link.type,
+            },
+          })
+        )
+      );
+    }
+
+    return newTodo;
   });
 
   return todo as ITodo;

@@ -9,19 +9,81 @@ import {
     ICalendarActionResponse, 
     IEvent 
 } from "@/types/calendar";
-import { Event } from "@prisma/client";
+import { Event, EventCategory } from "@prisma/client";
+
+const DEFAULT_CATEGORIES = [
+    { name: "Personal", color: "#3B82F6", isSystem: true },
+    { name: "Work", color: "#22C55E", isSystem: true },
+    { name: "Birthdays", color: "#A855F7", isSystem: true },
+    { name: "Anniversaries", color: "#EC4899", isSystem: true },
+    { name: "Meetings", color: "#F97316", isSystem: true },
+    { name: "Reminders", color: "#EAB308", isSystem: true },
+];
+
+/**
+ * Get or create the default event categories for a user.
+ * Called on first visit to the calendar.
+ */
+export async function getOrCreateDefaultCategories(): Promise<EventCategory[]> {
+    try {
+        const user = await getUser();
+        if (!user || "error" in user) return [];
+
+        const existing = await prisma.eventCategory.findMany({
+            where: { userId: user.id as string },
+            orderBy: { name: "asc" },
+        });
+
+        if (existing.length > 0) return existing;
+
+        // First time — seed defaults
+        await prisma.eventCategory.createMany({
+            data: DEFAULT_CATEGORIES.map(cat => ({
+                userId: user.id as string,
+                ...cat,
+            })),
+        });
+
+        return prisma.eventCategory.findMany({
+            where: { userId: user.id as string },
+            orderBy: { name: "asc" },
+        });
+    } catch (error) {
+        console.error("Failed to get categories:", error);
+        return [];
+    }
+}
+
 
 export async function createEvent(data: IEventCreateInput): Promise<ICalendarActionResponse<Event>> {
     try {
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
+        const { linkedResources, ...eventData } = data;
+
         const event = await prisma.event.create({
             data: {
                 userId: user.id as string,
-                ...data,
+                ...eventData,
             },
         });
+
+        if (linkedResources && linkedResources.length > 0) {
+            await Promise.all(
+                linkedResources.map((link) =>
+                    prisma.resourceLink.create({
+                        data: {
+                            userId: user.id as string,
+                            fromId: event.id,
+                            fromType: "EVENT",
+                            toId: link.id,
+                            toType: link.type,
+                        },
+                    })
+                )
+            );
+        }
 
         await prisma.notification.create({
             data: {
@@ -96,6 +158,40 @@ export async function searchEvents(query: string): Promise<Event[]> {
     }
 }
 
+function getOrdinalIndicator(n: number) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+}
+
+async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
+    try {
+        const res = await fetch(`https://history.muffinlabs.com/date/${month}/${day}`);
+        const json = await res.json();
+        
+        if (json?.data) {
+            const types = ["Events", "Births", "Deaths"];
+            const availableTypes = types.filter(t => json.data[t] && json.data[t].length > 0);
+            
+            if (availableTypes.length > 0) {
+                const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                const items = json.data[randomType];
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                
+                let prefix = "";
+                if (randomType === "Events") prefix = `On this day in ${randomItem.year}: `;
+                if (randomType === "Births") prefix = `Born on this day in ${randomItem.year}: `;
+                if (randomType === "Deaths") prefix = `Died on this day in ${randomItem.year}: `;
+                
+                return `${prefix}${randomItem.text}`;
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch fun fact:", e);
+    }
+    return undefined;
+}
+
 export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Promise<ICalendarEvent[]> {
     try {
         const user = await getUser();
@@ -104,7 +200,10 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         const events = await prisma.event.findMany({
             where: {
                 userId: user.id as string,
-                startDate: { gte: startDate },
+                OR: [
+                    { startDate: { gte: startDate, lte: endDate } },
+                    { category: { name: { in: ["Birthdays", "Anniversaries"] } } }
+                ]
             },
             include: { category: true }
         });
@@ -112,28 +211,69 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         const todosWithDates = await prisma.todo.findMany({
             where: {
                 userId: user.id as string,
-                dueDate: { not: null, gte: startDate, lte: endDate },
-                renewInterval: null
+                dueDate: { gte: startDate, lte: endDate },
+                OR: [
+                    { renewInterval: { isSet: false } },
+                    { renewInterval: null }
+                ]
             },
             include: { checklist: true } // Include checklist to match ITodo interface
         });
 
-        // Map events
-        const mappedEvents: ICalendarEvent[] = events.map(e => ({
-            id: e.id,
-            title: e.title,
-            start: e.startDate,
-            end: e.endDate,
-            isAllDay: e.isAllDay,
-            type: "event",
-            color: e.category?.color || "#3182ce",
-            raw: e as IEvent
-        }));
+        const mappedEvents: ICalendarEvent[] = [];
+        
+        events.forEach(e => {
+            const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
+            const isBirthday = e.category?.name === "Birthdays";
+            
+            if (isAnnualRecurrent) {
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
+                
+                for (let year = startYear; year <= endYear; year++) {
+                    const recurrentStart = new Date(e.startDate);
+                    recurrentStart.setFullYear(year);
+                    const recurrentEnd = new Date(e.endDate);
+                    recurrentEnd.setFullYear(year);
 
-        // Map todos
+                    if (recurrentStart >= startDate && recurrentStart <= endDate) {
+                        const yearsSince = year - e.startDate.getFullYear();
+                        const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
+                        
+                        mappedEvents.push({
+                            id: `${e.id}-${year}`,
+                            title: `${e.title}${titleSuffix}`,
+                            start: recurrentStart,
+                            end: recurrentEnd,
+                            isAllDay: e.isAllDay,
+                            type: "event",
+                            color: e.category?.color || "#3182ce",
+                            raw: e as IEvent
+                        });
+                    }
+                }
+            } else {
+                if (e.startDate >= startDate && e.startDate <= endDate) {
+                    mappedEvents.push({
+                        id: e.id,
+                        title: e.title,
+                        start: e.startDate,
+                        end: e.endDate,
+                        isAllDay: e.isAllDay,
+                        type: "event",
+                        color: e.category?.color || "#3182ce",
+                        raw: e as IEvent
+                    });
+                }
+            }
+        });
+
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
-            const startStr = t.dueTime ? `${t.dueDate?.toISOString().split("T")[0]}T${t.dueTime}` : t.dueDate?.toISOString();
-            const dateObj = new Date(startStr || new Date());
+            let dateObj = new Date(t.dueDate!);
+            if (t.dueTime) {
+                const [hours, minutes] = t.dueTime.split(":");
+                dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            }
             
             return {
                 id: t.id,
@@ -143,7 +283,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                 isAllDay: !t.dueTime,
                 type: "todo",
                 color: "#e53e3e",
-                raw: t // t matches ITodo because we included checklist
+                raw: t 
             };
         });
 
@@ -163,22 +303,87 @@ export async function getUpcomingMilestones(): Promise<IEvent[]> {
         const thirtyDaysFromNow = new Date();
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-        const milestones = await prisma.event.findMany({
+        const recurrentEvents = await prisma.event.findMany({
             where: {
                 userId: user.id as string,
-                startDate: { gte: now, lte: thirtyDaysFromNow },
                 category: {
                     name: { in: ["Birthdays", "Anniversaries"] }
                 }
             },
             include: { category: true },
-            orderBy: { startDate: "asc" },
-            take: 5
         });
 
-        return milestones as IEvent[];
+        const milestones: IEvent[] = [];
+        const currentYear = now.getFullYear();
+
+        for (const e of recurrentEvents) {
+            let nextDate = new Date(e.startDate);
+            nextDate.setFullYear(currentYear);
+            
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const nextMidnight = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+            
+            if (nextMidnight < todayMidnight) {
+                nextDate.setFullYear(currentYear + 1);
+            }
+
+            if (nextDate >= todayMidnight && nextDate <= thirtyDaysFromNow) {
+                const yearsSince = nextDate.getFullYear() - e.startDate.getFullYear();
+                const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
+                
+                milestones.push({
+                    ...e,
+                    title: `${e.title}${titleSuffix}`,
+                    startDate: nextDate,
+                    endDate: new Date(nextDate.getTime() + (e.endDate.getTime() - e.startDate.getTime()))
+                });
+            }
+        }
+
+        milestones.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+        return milestones.slice(0, 5);
     } catch (error) {
         console.error("Failed to get milestones:", error);
         return [];
+    }
+}
+
+/**
+ * Reschedule a calendar item (Event or To-Do) when dragged on the grid.
+ * For events: updates startDate and endDate.
+ * For todos: updates dueDate (and dueTime if the new date has a time component).
+ */
+export async function rescheduleCalendarItem(
+    id: string,
+    type: "event" | "todo",
+    newStart: Date,
+    newEnd: Date
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const user = await getUser();
+        if (!user || "error" in user) throw new Error("Unauthorized");
+
+        if (type === "event") {
+            await prisma.event.update({
+                where: { id, userId: user.id as string },
+                data: { startDate: newStart, endDate: newEnd },
+            });
+        } else if (type === "todo") {
+            const timeStr = newStart.toTimeString().slice(0, 5); // "HH:MM"
+            await prisma.todo.update({
+                where: { id, userId: user.id as string },
+                data: {
+                    dueDate: newStart,
+                    dueTime: timeStr !== "00:00" ? timeStr : undefined,
+                },
+            });
+        }
+
+        revalidatePath("/calendar");
+        revalidatePath("/todo");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to reschedule:", error);
+        return { success: false, error: "Failed to reschedule item" };
     }
 }
