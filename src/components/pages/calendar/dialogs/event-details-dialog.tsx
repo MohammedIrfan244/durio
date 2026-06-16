@@ -8,6 +8,8 @@ import { format } from 'date-fns';
 import { deleteEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
 import { ICalendarEvent, IEvent } from '@/types/calendar';
+import ResourceLinker from '@/components/shared/resource-linker';
+import { searchLinkableResources } from '@/server/actions/resource-link-actions';
 
 interface EventDetailsDialogProps {
     event: ICalendarEvent | null;
@@ -123,6 +125,18 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                             <span className="text-sm text-foreground">
                                 Status: <span className="font-medium capitalize">{"status" in event.raw ? String(event.raw.status).toLowerCase() : "pending"}</span>
                             </span>
+                        </div>
+                    )}
+
+                    {/* Linked Resources */}
+                    {!isTodo && (
+                        <div className="pt-2 -mx-2">
+                            <ResourceLinker
+                                resourceId={event.id}
+                                resourceType="EVENT"
+                                allowedTargetTypes={["TODO", "NOTE"]}
+                                searchAction={searchLinkableResources}
+                            />
                         </div>
                     )}
 

@@ -60,12 +60,30 @@ export async function createEvent(data: IEventCreateInput): Promise<ICalendarAct
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
+        const { linkedResources, ...eventData } = data;
+
         const event = await prisma.event.create({
             data: {
                 userId: user.id as string,
-                ...data,
+                ...eventData,
             },
         });
+
+        if (linkedResources && linkedResources.length > 0) {
+            await Promise.all(
+                linkedResources.map((link) =>
+                    prisma.resourceLink.create({
+                        data: {
+                            userId: user.id as string,
+                            fromId: event.id,
+                            fromType: "EVENT",
+                            toId: link.id,
+                            toType: link.type,
+                        },
+                    })
+                )
+            );
+        }
 
         await prisma.notification.create({
             data: {

@@ -10,6 +10,11 @@ import { createEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
 import { IEventCreateInput } from '@/types/calendar';
 import { EventCategory } from '@prisma/client';
+import UnsavedResourceLinker from '@/components/shared/unsaved-resource-linker';
+import { searchLinkableResources } from '@/server/actions/resource-link-actions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 export default function EventManagerDialog({ categories = [] }: { categories?: EventCategory[] }) {
     const [open, setOpen] = useState(false);
@@ -19,28 +24,31 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [location, setLocation] = useState("");
-    const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+    const [date, setDate] = useState<Date>(new Date());
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("10:00");
     const [isAllDay, setIsAllDay] = useState(false);
     const [categoryId, setCategoryId] = useState<string>("");
+    const [linkedResources, setLinkedResources] = useState<Array<any>>([]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
-            const startStr = `${date}T${startTime}:00`;
-            const endStr = `${date}T${endTime}:00`;
+            const dateStr = format(date, "yyyy-MM-dd");
+            const startStr = `${dateStr}T${startTime}:00`;
+            const endStr = `${dateStr}T${endTime}:00`;
 
             const eventData: IEventCreateInput = {
                 title,
                 description,
                 location,
                 isAllDay,
-                startDate: new Date(isAllDay ? date : startStr),
-                endDate: new Date(isAllDay ? date : endStr),
-                categoryId: categoryId || undefined,
+                startDate: new Date(isAllDay ? dateStr : startStr),
+                endDate: new Date(isAllDay ? dateStr : endStr),
+                categoryId: categoryId === "none" ? undefined : categoryId || undefined,
+                linkedResources,
             };
 
             const result = await createEvent(eventData);
@@ -53,6 +61,7 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                 setDescription("");
                 setLocation("");
                 setCategoryId("");
+                setLinkedResources([]);
             } else {
                 toast.error(result.error || "Failed to create event");
             }
@@ -94,40 +103,50 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                     {categories.length > 0 && (
                         <div className="flex items-center gap-3">
                             <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <select 
-                                value={categoryId}
-                                onChange={e => setCategoryId(e.target.value)}
-                                className="flex h-9 w-full rounded-md border border-border/50 bg-secondary/30 px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
-                            >
-                                <option value="">No Category</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {categoryId && (
-                                <div 
-                                    className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1 ring-offset-background" 
-                                    style={{ 
-                                        backgroundColor: categories.find(c => c.id === categoryId)?.color || "#888",
-                                        "--tw-ring-color": categories.find(c => c.id === categoryId)?.color || "#888"
-                                    } as React.CSSProperties} 
-                                />
-                            )}
+                            <Select value={categoryId} onValueChange={setCategoryId}>
+                                <SelectTrigger className="flex-1 h-9 bg-secondary/30 border-border/50">
+                                    <SelectValue placeholder="No Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No Category</SelectItem>
+                                    {categories.map(cat => (
+                                        <SelectItem key={cat.id} value={cat.id}>
+                                            <div className="flex items-center gap-2">
+                                                <div 
+                                                    className="w-2.5 h-2.5 rounded-full shrink-0" 
+                                                    style={{ backgroundColor: cat.color }} 
+                                                />
+                                                {cat.name}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     )}
 
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-3">
                             <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <Input 
-                                type="date" 
-                                required
-                                value={date}
-                                onChange={e => setDate(e.target.value)}
-                                className="h-9 border-border/50 bg-secondary/30" 
-                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex-1 justify-start text-left h-9 border-border/50 bg-secondary/30 font-normal"
+                                    >
+                                        {date ? format(date, "MMMM d, yyyy") : "Pick a date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={date}
+                                        onSelect={(d) => d && setDate(d)}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         {(categories.find(c => c.id === categoryId)?.name === "Birthdays" || categories.find(c => c.id === categoryId)?.name === "Anniversaries") && (
                             <p className="text-xs text-muted-foreground ml-7">
@@ -163,7 +182,7 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                             value={location} 
                             onChange={e => setLocation(e.target.value)} 
                             placeholder="Add Location" 
-                            className="h-9 border-border/50 bg-secondary/30" 
+                            className="h-9 border-border/50 bg-secondary/30 flex-1" 
                         />
                     </div>
 
@@ -175,6 +194,15 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                             rows={3}
                             placeholder="Add description or notes"
                             className="flex w-full rounded-md border border-border/50 bg-secondary/30 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                        />
+                    </div>
+
+                    <div className="pt-2 -ml-2 -mr-2">
+                        <UnsavedResourceLinker
+                            allowedTargetTypes={["TODO", "NOTE"]}
+                            searchAction={searchLinkableResources}
+                            value={linkedResources as any}
+                            onChange={(val) => setLinkedResources(val as any)}
                         />
                     </div>
 
