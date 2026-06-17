@@ -9,6 +9,8 @@ import { useState, useEffect } from "react";
 import { LogOut, Settings } from "lucide-react";
 import clsx from "clsx";
 import LogoutConfirmDialog from "../auth/logout-dialogue";
+import { useSettings } from "@/components/providers/settings-provider";
+import { APP_REGISTRY } from "@/config/modules";
 
 import {
   SidebarContent,
@@ -37,6 +39,7 @@ export default function Sidebar() {
   const { state } = useSidebar();
   const isOpen = state === "expanded";
   const { theme } = useTheme();
+  const { fancyMode, disabledModules } = useSettings();
 
   useEffect(() => {
     // Auto-collapse any manually opened groups when navigating out of their scope
@@ -101,6 +104,12 @@ export default function Sidebar() {
               const isExpanded = inGroup || openGroups.includes(item.url);
               const isStrictlyActive = pathname === item.url;
               
+              const moduleKey = Object.keys(APP_REGISTRY.MODULES).find(
+                key => APP_REGISTRY.MODULES[key as keyof typeof APP_REGISTRY.MODULES].path === item.url
+              );
+              const isUserDisabled = moduleKey ? disabledModules.includes(moduleKey) : false;
+              const isDisabled = item.disabled || isUserDisabled;
+              
               // Define content for the navigation button to avoid duplication
               const ButtonContent = (
                 <div className="flex items-center gap-3 text-sm nav-item-group w-full">
@@ -126,10 +135,10 @@ export default function Sidebar() {
                 <div key={item.url} className={isExpanded && item.subItems ? "bg-secondary/20 rounded-md pb-1 mb-2 border border-border/10" : ""}>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      tooltip={item.disabled ? `${item.label} (Disabled)` : item.label}
+                      tooltip={isDisabled ? `${item.label} (Disabled)` : item.label}
                       isActive={item.subItems ? inGroup : isStrictlyActive}
                       asChild
-                      className={item.disabled ? "opacity-50 pointer-events-none grayscale cursor-not-allowed" : ""}
+                      className={isDisabled ? "opacity-50 pointer-events-none grayscale cursor-not-allowed" : ""}
                     >
                       {item.subItems ? (
                         <button
@@ -138,11 +147,11 @@ export default function Sidebar() {
                             if (!isOpen) { /* Do nothing or expand sidebar */ }
                             toggleGroup(item.url);
                           }}
-                          disabled={item.disabled}
+                          disabled={isDisabled}
                         >
                           {ButtonContent}
                         </button>
-                      ) : item.disabled ? (
+                      ) : isDisabled ? (
                         <div className="w-full text-left cursor-not-allowed">
                           {ButtonContent}
                         </div>
@@ -216,11 +225,11 @@ export default function Sidebar() {
         </SidebarFooter>
 
         {/* Conditional decorations */}
-        {theme === "pookie" && <PookieFlowers />}
-        {theme === "natural" && <NaturalDecor />}
-        {theme === "gothic" && <GothicDecor />}
-        {theme === "dark" && <DarkDecor />}
-        {theme === "light" && <LightDecor />}
+        {fancyMode && theme === "pookie" && <PookieFlowers />}
+        {fancyMode && theme === "natural" && <NaturalDecor />}
+        {fancyMode && theme === "gothic" && <GothicDecor />}
+        {fancyMode && theme === "dark" && <DarkDecor />}
+        {fancyMode && theme === "light" && <LightDecor />}
       </div>
 
       <LogoutConfirmDialog
