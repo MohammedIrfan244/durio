@@ -164,8 +164,6 @@ model Note {
   @@index([status])
 }
 
-
-
 //  NOTIFICATIONS
 
 model Notification {

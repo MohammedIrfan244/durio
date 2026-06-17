@@ -14,10 +14,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function FloatingCalculator() {
   const [open, setOpen] = useState(false);
 
-  // Keyboard shortcut (Alt + C)
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for Alt + C (or Option + C on Mac)
       if (e.altKey && e.key.toLowerCase() === "c") {
         e.preventDefault();
         setOpen((prev) => !prev);

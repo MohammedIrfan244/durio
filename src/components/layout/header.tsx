@@ -149,7 +149,7 @@ export default function Header() {
   );
 }
 
-/* --- SUB-COMPONENTS --- */
+/* sub contenes */
 
 const NavSection = ({
   title,

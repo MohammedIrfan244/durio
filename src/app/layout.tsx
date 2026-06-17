@@ -13,7 +13,6 @@ import { Toaster } from "sonner";
 import SessionProviderWrapper from "@/components/layout/session-provider";
 import { APP_NAME } from "@/lib/brand";
 
-// CURRENT FONTS
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,7 +23,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// NEW FONTS
 const patrickHand = Patrick_Hand({
   variable: "--font-heading",
   weight: "400",

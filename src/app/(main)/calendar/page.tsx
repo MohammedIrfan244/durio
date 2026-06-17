@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CalendarPage() {
-    // Fetch data for the current month roughly
+    // current month daa
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
@@ -24,4 +24,4 @@ export default async function CalendarPage() {
     return (
         <CalendarDashboard initialEvents={events} milestones={milestones} categories={categories} />
     );
-}
+}

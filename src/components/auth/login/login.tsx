@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import PrivacyModal from "./privacy-policy";
 import { APP_NAME } from "@/lib/brand";
+import GoogleButton from "@/components/decoration/google-button";
 
 export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -37,23 +38,13 @@ export default function Login() {
         <CardContent className="pt-4">
 
           {/* Google Sign-In Button */}
-          {/* Google Sign-In Button */}
           <div className="flex flex-col gap-3 w-full">
             <Button
               variant="default"
               onClick={() => signIn("google")}
               className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
             >
-              <span className="font-medium text-primary-foreground">
-                Continue with 
-                 &nbsp;
-                <span className="text-blue-500 font-semibold text-base">G</span>
-                <span className="text-red-500 font-semibold text-base">o</span>
-                <span className="text-yellow-500 font-semibold text-base">o</span>
-                <span className="text-blue-500 font-semibold text-base">g</span>
-                <span className="text-green-500 font-semibold text-base">l</span>
-                <span className="text-red-500 font-semibold text-base -rotate- inline-block">e</span>
-              </span>
+              <GoogleButton/>
             </Button>
           </div>
 

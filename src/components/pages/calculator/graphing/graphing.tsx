@@ -25,7 +25,7 @@ export default function Graphing() {
 
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
-      return; // Await ResizeObserver callback
+      return; 
     }
 
     // Set actual resolution to match CSS size

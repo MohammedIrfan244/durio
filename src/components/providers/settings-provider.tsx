@@ -43,6 +43,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SettingsContext.Provider value={{ fancyMode, disabledModules, setFancyMode, setDisabledModules, isLoading }}>
+      {!fancyMode && (
+        <style dangerouslySetInnerHTML={{__html: `
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
+        `}} />
+      )}
       {children}
     </SettingsContext.Provider>
   );

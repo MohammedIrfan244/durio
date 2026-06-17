@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Sparkles, ShieldOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper';
 
 export default function Settings() {
   const { fancyMode, disabledModules, setFancyMode, setDisabledModules, isLoading } = useSettings();
@@ -63,11 +64,15 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Settings</h1>
-        <p className="text-muted-foreground">Manage your app preferences and toggle active modules.</p>
-      </div>
+    <div className="section-wrapper">
+      <SectionHeaderWrapper>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Settings</h1>
+          <p className="text-muted-foreground">Manage your app preferences and toggle active modules.</p>
+        </div>
+      </SectionHeaderWrapper>
+
+      <div className="w-full space-y-6 pb-20 mt-6">
 
       <Card>
         <CardHeader>
@@ -109,7 +114,7 @@ export default function Settings() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(APP_REGISTRY.MODULES).map(([key, module]) => {
-              if (key === "HOME") return null; // Prevent disabling Home
+              if (key === "HOME" || key === "SETTINGS") return null; // Prevent disabling Home and Settings
 
               const isSystemDisabled = module.systemDisabled;
               const isUserEnabled = !disabledModules.includes(key);
@@ -143,6 +148,7 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
