@@ -21,7 +21,7 @@ export const APP_REGISTRY = {
     PROJECTS:     { enabled: false, systemDisabled: true,  aiAccess: false, path: "/projects" },
     FOCUS:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/focus" },
     CALCULATOR:   { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/calculator" },
-    DURIA:        { enabled: false, systemDisabled: true,  aiAccess: true,  path: "/duria" },
+    DURIA:        { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/duria" },
     SETTINGS:     { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/settings" },
   }
 };
