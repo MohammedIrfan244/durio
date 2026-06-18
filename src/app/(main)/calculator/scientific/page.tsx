@@ -1,11 +1,10 @@
 import React from 'react';
 import Scientific from '@/components/pages/calculator/scientific/scientific';
-import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { Calculator as CalculatorIcon } from "lucide-react";
 
 export const metadata = {
-    title: `${APP_NAME} - Scientific Calculator`,
+    title: "Scientific Calculator - Durio",
     description: "Advanced trigonometric and logarithmic engine.",
 };
 

@@ -1,12 +1,11 @@
 import React from 'react';
-import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { Grid3x3 } from "lucide-react";
 
 import MatrixCalculator from '@/components/pages/calculator/matrix/matrix';
 
 export const metadata = {
-    title: `${APP_NAME} - Matrix Algebra`,
+    title: "Matrix Algebra - Durio",
     description: "Transform multidimensional arrays rapidly.",
 };
 

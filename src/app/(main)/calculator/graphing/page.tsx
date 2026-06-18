@@ -1,11 +1,10 @@
 import React from 'react';
 import Graphing from '@/components/pages/calculator/graphing/graphing';
-import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { Activity } from "lucide-react";
 
 export const metadata = {
-    title: `${APP_NAME} - Graphing Calculator`,
+    title: "Graphing Calculator - Durio",
     description: "Visual canvas plotter for mathematical equations.",
 };
 

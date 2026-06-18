@@ -5,7 +5,7 @@ import { ICalendarEvent, IEvent } from "@/types/calendar";
 import { EventCategory } from "@prisma/client";
 
 export const metadata: Metadata = {
-    title: "Calendar | Durio",
+    title: "Calendar - Durio",
     description: "Manage your schedule, tasks, and upcoming events.",
 };
 

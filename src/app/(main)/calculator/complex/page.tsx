@@ -5,7 +5,7 @@ import { BrainCircuit } from "lucide-react";
 import ComplexMath from '@/components/pages/calculator/complex/complex';
 
 export const metadata = {
-    title: `${APP_NAME} - Complex Mathematics`,
+    title: "Complex Mathematics - Durio",
     description: "Solve robust polynomial operations and systematic equations.",
 };
 
