@@ -13,20 +13,27 @@ import ReactMarkdown from 'react-markdown';
 export default function DuriaChat() {
   const { aiPayload, removeContextItem, clearContext } = useDuria();
   const [isAttachOpen, setIsAttachOpen] = useState(false);
+  const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, status, sendMessage } = useChat({
     api: '/api/chat',
     body: {
       contextPayload: aiPayload
     },
-    onFinish: () => {
-      // Auto-clear context after successful message transmission if desired. 
-      // For now, we leave it attached until user clears it or asks a new topic.
-    }
+    maxSteps: 5
   });
+
+  const isLoading = status === 'submitted' || status === 'streaming';
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    sendMessage({ role: 'user', content: input });
+    setInput('');
+  };
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -58,7 +65,7 @@ export default function DuriaChat() {
              </div>
           )}
           
-          {messages.map((msg, i) => (
+          {messages.map((msg: any, i: number) => (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
                 {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
@@ -67,8 +74,30 @@ export default function DuriaChat() {
                 {msg.role === 'user' ? (
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-p:leading-relaxed prose-pre:bg-secondary prose-pre:border prose-pre:border-border/50">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <div className="flex flex-col gap-2">
+                    {msg.content && (
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-p:leading-relaxed prose-pre:bg-secondary prose-pre:border prose-pre:border-border/50">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    )}
+                    {msg.toolInvocations?.map((toolInvocation: any) => {
+                      const toolCallId = toolInvocation.toolCallId;
+                      if ('result' in toolInvocation) {
+                        return (
+                          <div key={toolCallId} className="bg-primary/10 border border-primary/20 text-primary rounded-md p-2 text-xs flex items-center gap-2 mt-2">
+                            <span className="font-semibold">✅ Executed: {toolInvocation.toolName}</span>
+                            <span className="opacity-80 truncate">- {toolInvocation.result}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={toolCallId} className="bg-secondary border border-border/50 text-secondary-foreground rounded-md p-2 text-xs flex items-center gap-2 mt-2 animate-pulse">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span className="font-semibold">Executing {toolInvocation.toolName}...</span>
+                          </div>
+                        );
+                      }
+                    })}
                   </div>
                 )}
               </div>
@@ -123,7 +152,7 @@ export default function DuriaChat() {
           </Button>
           <Input 
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Ask DURIA anything..."
             className="rounded-xl bg-secondary/50 border-border/50 focus-visible:ring-primary/20"
           />

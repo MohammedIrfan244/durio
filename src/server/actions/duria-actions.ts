@@ -18,13 +18,13 @@ export const getTodosForAI = withErrorWrapper<any, [{ limit?: number, includeArc
         take: limit,
         select: {
             id: true,
-            heading: true,
+            title: true,
             description: true,
             status: true,
             priority: true,
             dueDate: true,
             tags: true,
-            checklists: { select: { title: true, isCompleted: true } }
+            checklist: { select: { text: true, marked: true } }
         }
     });
     return todos;
@@ -52,7 +52,6 @@ export const getNotesForAI = withErrorWrapper<any, [{ folderId?: string, limit?:
             description: true,
             color: true,
             folder: { select: { name: true } },
-            tags: true,
             createdAt: true,
             updatedAt: true
         }
@@ -83,10 +82,8 @@ export const getEventsForAI = withErrorWrapper<any, [{ startDate?: Date, endDate
             startDate: true,
             endDate: true,
             isAllDay: true,
-            isSpecialOccasion: true,
             location: true,
-            category: true,
-            originalYear: true
+            category: true
         }
     });
     return events;

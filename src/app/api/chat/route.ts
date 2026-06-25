@@ -4,6 +4,8 @@ import { google } from "@ai-sdk/google";
 import { promises as fs } from "fs";
 import path from "path";
 import { getUserId } from "@/lib/server/get-user";
+import { z } from "zod";
+import { createTodo, changeTodoStatus } from "@/server/actions/to-do-action";
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,10 +65,48 @@ ${primaryGuide}
       system: systemPrompt,
       messages,
       temperature: 0.7,
+      tools: {
+        createTask: {
+          description: "Create a new task on the user's to-do list. Use this when the user explicitly asks to create a task.",
+          parameters: z.object({
+            title: z.string().describe("The title of the task"),
+            description: z.string().optional().describe("A brief description of the task"),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task"),
+          }),
+          execute: async ({ title, description, priority }) => {
+            const res = await createTodo({
+              title,
+              description,
+              priority,
+              status: "PLAN",
+            });
+            if (res.success) {
+              return `Successfully created task: "${title}".`;
+            } else {
+              return `Failed to create task: ${res.error?.message}`;
+            }
+          },
+        },
+        changeTaskStatus: {
+          description: "Change the status of an existing task (e.g. mark it as DONE or CANCELLED). Only use this if you know the exact Task ID from the attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the task to update"),
+            status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]).describe("The new status for the task"),
+          }),
+          execute: async ({ id, status }) => {
+            const res = await changeTodoStatus({ id, status });
+            if (res.success) {
+              return `Successfully updated task status to ${status}.`;
+            } else {
+              return `Failed to update task: ${res.error?.message}`;
+            }
+          },
+        }
+      }
     });
 
     // 7. Stream response back to client
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
 
   } catch (error: any) {
     console.error("DURIA API Error:", error);
