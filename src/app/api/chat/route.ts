@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { streamText } from "ai";
+import { streamText, tool } from "ai";
 import { google } from "@ai-sdk/google";
 import { promises as fs } from "fs";
 import path from "path";
@@ -61,19 +61,20 @@ ${primaryGuide}
 
     // 6. Call Gemini
     const result = streamText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-1.5-flash-latest"),
       system: systemPrompt,
       messages,
       temperature: 0.7,
       tools: {
-        createTask: {
+        createTask: tool({
           description: "Create a new task on the user's to-do list. Use this when the user explicitly asks to create a task.",
           parameters: z.object({
             title: z.string().describe("The title of the task"),
             description: z.string().optional().describe("A brief description of the task"),
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task"),
           }),
-          execute: async ({ title, description, priority }) => {
+          // @ts-ignore - Ignore AI SDK execute type mismatch
+          execute: async ({ title, description, priority }: any) => {
             const res = await createTodo({
               title,
               description,
@@ -86,14 +87,15 @@ ${primaryGuide}
               return `Failed to create task: ${res.error?.message}`;
             }
           },
-        },
-        changeTaskStatus: {
+        }),
+        changeTaskStatus: tool({
           description: "Change the status of an existing task (e.g. mark it as DONE or CANCELLED). Only use this if you know the exact Task ID from the attached context.",
           parameters: z.object({
             id: z.string().describe("The unique ID of the task to update"),
-            status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]).describe("The new status for the task"),
+            status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]).describe("The new status for the task"),
           }),
-          execute: async ({ id, status }) => {
+          // @ts-ignore - Ignore AI SDK execute type mismatch
+          execute: async ({ id, status }: any) => {
             const res = await changeTodoStatus({ id, status });
             if (res.success) {
               return `Successfully updated task status to ${status}.`;
@@ -101,7 +103,7 @@ ${primaryGuide}
               return `Failed to update task: ${res.error?.message}`;
             }
           },
-        }
+        })
       }
     });
 
