@@ -28,6 +28,8 @@ model User {
   
   events        Event[]
   eventCategories EventCategory[]
+  
+  aiUsage       AIUsage?
 }
 
 // Todo Section 
@@ -226,4 +228,15 @@ model ResourceLink {
   @@index([userId])
   @@index([fromId, fromType])
   @@index([toId, toType])
+}
+
+// AI Usage Tracking
+
+model AIUsage {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  
+  requestsToday Int      @default(0)
+  lastRequestAt DateTime @default(now())
 }
