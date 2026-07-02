@@ -14,25 +14,27 @@ export default function DuriaChat() {
   const { aiPayload, removeContextItem, clearContext } = useDuria();
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [hasAskedToClear, setHasAskedToClear] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
 
-  const { messages, status, sendMessage } = useChat({
+  const { messages, status, sendMessage, error } = useChat({
     // @ts-ignore - Ignore type error for useChat options
     api: '/api/chat',
     body: {
       contextPayload: aiPayload
     },
     maxSteps: 5
-  });
+  }) as any;
 
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    // @ts-ignore - Ignore type error for sendMessage arguments
+    setHasAskedToClear(false);
+    // @ts-ignore
     sendMessage({ role: 'user', content: input });
     setInput('');
   };
@@ -61,10 +63,46 @@ export default function DuriaChat() {
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-6 max-w-4xl mx-auto">
           {messages.length === 0 && (
-             <div className="text-center mt-20 text-muted-foreground animate-in fade-in">
-                <Bot className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>Hello! I am DURIA. How can I help you manage your day?</p>
+             <div className="mt-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex flex-col items-center text-center mb-8">
+                  <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4">
+                    <Bot className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold">Welcome to DURIA</h3>
+                  <p className="text-muted-foreground mt-2 max-w-md">Your personal AI assistant, embedded directly into your workspace.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Paperclip size={16} className="text-primary"/> 1. Context is Key</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Use the paperclip icon below to attach your exact Tasks, Notes, and Events to the conversation. DURIA uses this specific context to answer accurately without hallucinations.
+                    </p>
+                  </div>
+                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Bot size={16} className="text-primary"/> 2. Action Taker</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      DURIA has hands! Tell it to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Mark this task as done"</strong>.
+                    </p>
+                  </div>
+                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center border-primary/20 bg-primary/5">
+                    <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Token Limits</h4>
+                    <p className="text-xs text-muted-foreground">
+                      To keep DURIA fast and free, you are limited to <strong>150 queries per day</strong>. Clear your context after a question to save tokens!
+                    </p>
+                  </div>
+                </div>
              </div>
+          )}
+          
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {error?.message?.includes("429") 
+                  ? "You have reached your daily limit of 150 AI queries. Please try again tomorrow!" 
+                  : error.message || "An error occurred while contacting DURIA."}
+              </span>
+            </div>
           )}
           
           {messages.map((msg: any, i: number) => (
@@ -74,12 +112,12 @@ export default function DuriaChat() {
               </div>
               <div className={`px-4 py-3 rounded-2xl max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-card border border-border/50 rounded-tl-sm shadow-sm'}`}>
                 {msg.role === 'user' ? (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{(msg.content as string) || (msg as any).parts?.find((p: any) => p.type === 'text')?.text}</p>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {msg.content && (
+                    {(msg.content || msg.parts?.find((p: any) => p.type === 'text')?.text) && (
                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-p:leading-relaxed prose-pre:bg-secondary prose-pre:border prose-pre:border-border/50">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown>{msg.content || msg.parts?.find((p: any) => p.type === 'text')?.text}</ReactMarkdown>
                       </div>
                     )}
                     {msg.toolInvocations?.map((toolInvocation: any) => {
@@ -106,11 +144,28 @@ export default function DuriaChat() {
             </div>
           ))}
           {isLoading && (
-             <div className="flex gap-3">
-               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-secondary text-foreground">
-                 <Loader2 className="w-4 h-4 animate-spin" />
-               </div>
-             </div>
+            <div className="flex justify-start px-4">
+              <div className="bg-secondary/50 text-secondary-foreground rounded-2xl rounded-tl-sm px-4 py-2 flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-sm">Thinking...</span>
+              </div>
+            </div>
+          )}
+
+          {!isLoading && messages.length > 0 && messages[messages.length - 1].role === 'assistant' && totalContextItems > 0 && !hasAskedToClear && (
+            <div className="flex justify-center px-4 pt-4 pb-2">
+              <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col items-center text-center gap-3 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                <p className="text-sm text-muted-foreground font-medium">Would you like to keep the attached context for your next question?</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setHasAskedToClear(true)}>
+                    Keep Data Attached
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => { clearContext(); setHasAskedToClear(true); }}>
+                    Clear Data (Saves Tokens)
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
           <div ref={scrollRef} />
         </div>

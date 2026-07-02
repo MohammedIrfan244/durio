@@ -6,6 +6,10 @@ import path from "path";
 import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";
 import { createTodo, changeTodoStatus } from "@/server/actions/to-do-action";
+import { createNote, deleteNote } from "@/server/actions/note-action";
+import { createEvent, updateEvent } from "@/server/actions/calendar-actions";
+
+import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,8 +19,16 @@ export async function POST(req: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    // 1.5 Check AI Limits
+    const usageCheck = await checkAndIncrementAIUsage();
+    if (!usageCheck.success) {
+      return new Response(usageCheck.error, { status: 429 });
+    }
+
     // 2. Parse request body
     const { messages, contextPayload } = await req.json();
+    
+    console.log("[DURIA AI CHAT] Incoming Messages:", JSON.stringify(messages, null, 2));
 
     // 3. Load Tier 1 Context (Primary Guide)
     let primaryGuide = "";
@@ -61,7 +73,7 @@ ${primaryGuide}
 
     // 6. Call Gemini
     const result = streamText({
-      model: google("gemini-1.5-flash-latest"),
+      model: google("gemini-2.5-flash"),
       system: systemPrompt,
       messages,
       temperature: 0.7,
@@ -103,12 +115,88 @@ ${primaryGuide}
               return `Failed to update task: ${res.error?.message}`;
             }
           },
+        }),
+        createNote: tool({
+          description: "Create a new note. Use this when the user explicitly asks to save or create a note, for example saving a summary as a note.",
+          parameters: z.object({
+            heading: z.string().describe("The title or heading of the note"),
+            description: z.string().describe("The content of the note (can be markdown)"),
+            color: z.string().optional().describe("Optional hex color string"),
+          }),
+          // @ts-ignore
+          execute: async (input: any) => {
+            const res = await createNote(input);
+            if (res.success) {
+              return `Successfully created note: "${input.heading}".`;
+            } else {
+              return `Failed to create note: ${res.error?.message}`;
+            }
+          },
+        }),
+        deleteNote: tool({
+          description: "Delete a note. Only use this if you know the exact Note ID from the attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the note to delete"),
+          }),
+          // @ts-ignore
+          execute: async ({ id }: any) => {
+            const res = await deleteNote({ id, softDelete: true });
+            if (res.success) {
+              return `Successfully deleted note.`;
+            } else {
+              return `Failed to delete note: ${res.error?.message}`;
+            }
+          },
+        }),
+        createEvent: tool({
+          description: "Create a new calendar event. Use this when the user asks to schedule something.",
+          parameters: z.object({
+            title: z.string().describe("The title of the event"),
+            description: z.string().optional().describe("Description of the event"),
+            location: z.string().optional().describe("Location of the event"),
+            isAllDay: z.boolean().optional().describe("Whether the event is all day"),
+            startDate: z.string().describe("The start date/time in ISO 8601 format"),
+            endDate: z.string().describe("The end date/time in ISO 8601 format"),
+          }),
+          // @ts-ignore
+          execute: async (input: any) => {
+            const res = await createEvent({
+              ...input,
+              startDate: new Date(input.startDate),
+              endDate: new Date(input.endDate),
+            });
+            if (res.success) {
+              return `Successfully created event: "${input.title}".`;
+            } else {
+              return `Failed to create event: ${res.error}`;
+            }
+          },
+        }),
+        updateEvent: tool({
+          description: "Update an existing calendar event (e.g. reschedule it). Only use this if you know the exact Event ID from the attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the event to update"),
+            startDate: z.string().optional().describe("The new start date/time in ISO 8601 format"),
+            endDate: z.string().optional().describe("The new end date/time in ISO 8601 format"),
+          }),
+          // @ts-ignore
+          execute: async ({ id, startDate, endDate }: any) => {
+            const updateData: any = {};
+            if (startDate) updateData.startDate = new Date(startDate);
+            if (endDate) updateData.endDate = new Date(endDate);
+            const res = await updateEvent(id, updateData);
+            if (res.success) {
+              return `Successfully updated event.`;
+            } else {
+              return `Failed to update event: ${res.error}`;
+            }
+          },
         })
       }
     });
 
     // 7. Stream response back to client
-    return result.toTextStreamResponse();
+    return result.toUIMessageStreamResponse();
 
   } catch (error: any) {
     console.error("DURIA API Error:", error);
