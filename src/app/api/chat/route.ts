@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { streamText, tool } from "ai";
+import { streamText, tool, convertToModelMessages } from "ai";
 import { google } from "@ai-sdk/google";
 import { promises as fs } from "fs";
 import path from "path";
@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse request body
-    const { messages, contextPayload } = await req.json();
+    const body = await req.json();
+    console.log("[DURIA API DEBUG] Body:", JSON.stringify(body, null, 2));
+    const { messages, contextPayload } = body;
     
     console.log("[DURIA AI CHAT] Incoming Messages:", JSON.stringify(messages, null, 2));
 
@@ -43,6 +45,8 @@ export async function POST(req: NextRequest) {
     let systemPrompt = `You are DURIA, an incredibly intelligent, friendly, and helpful AI assistant embedded directly within the Durio application. 
 Your goal is to help the user manage their life, tasks, notes, and calendar. 
 Be concise, use markdown formatting, and act as a highly capable personal assistant.
+
+CRITICAL INSTRUCTION: When you execute a tool (e.g. creating a task, note, or event), you MUST write a short text response confirming to the user that the action was successfully completed (or if it failed). Do not remain silent after executing a tool.
 
 Here is the primary architecture of the Durio application you are living in:
 === DURIO PRIMARY GUIDE ===
@@ -71,31 +75,79 @@ ${primaryGuide}
       }
     }
 
+    // Manually map UIMessages to ModelMessages to avoid AI SDK crashes
+    const coreMessages = (messages || []).map((msg: any) => {
+      if (msg.role === 'user') return { role: 'user', content: msg.content };
+      
+      if (msg.role === 'assistant') {
+        if (msg.toolInvocations) {
+          return {
+            role: 'assistant',
+            content: msg.toolInvocations.map((t: any) => ({
+              type: 'tool-call',
+              toolCallId: t.toolCallId,
+              toolName: t.toolName,
+              args: t.args
+            }))
+          };
+        }
+        let content = msg.content || "";
+        if (!content && msg.parts) {
+          const textPart = msg.parts.find((p: any) => p.type === 'text');
+          if (textPart) content = textPart.text;
+        }
+        return { role: 'assistant', content };
+      }
+      
+      if (msg.role === 'tool' || msg.toolInvocations) {
+        return {
+          role: 'tool',
+          content: msg.toolInvocations.map((t: any) => ({
+            type: 'tool-result',
+            toolCallId: t.toolCallId,
+            toolName: t.toolName,
+            result: t.result
+          }))
+        };
+      }
+      
+      return { role: msg.role, content: msg.content };
+    });
+
     // 6. Call Gemini
     const result = streamText({
       model: google("gemini-2.5-flash"),
       system: systemPrompt,
-      messages,
+      messages: coreMessages,
       temperature: 0.7,
       tools: {
         createTask: tool({
-          description: "Create a new task on the user's to-do list. Use this when the user explicitly asks to create a task.",
+          description: "Create a new task on the user's to-do list. You have full capability to set the title, description, priority (LOW/MEDIUM/HIGH), dueDate, and dueTime if the user mentions them. Do not tell the user you cannot set these.",
           parameters: z.object({
             title: z.string().describe("The title of the task"),
-            description: z.string().optional().describe("A brief description of the task"),
-            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task"),
+            description: z.string().optional().describe("A brief description of the task. Extract this from the user prompt if available."),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task: LOW, MEDIUM, or HIGH"),
+            dueDate: z.string().optional().describe("Due date in YYYY-MM-DD format if requested by the user"),
+            dueTime: z.string().optional().describe("Due time in HH:mm format if requested by the user"),
+            tags: z.array(z.string()).optional().describe("Array of tags for the task"),
           }),
           // @ts-ignore - Ignore AI SDK execute type mismatch
-          execute: async ({ title, description, priority }: any) => {
+          execute: async ({ title, description, priority, dueDate, dueTime, tags }: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to create Task: "${title}"`);
             const res = await createTodo({
               title,
               description,
               priority,
+              dueDate: dueDate ? new Date(dueDate) : undefined,
+              dueTime,
+              tags: tags || [],
               status: "PLAN",
             });
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Task created successfully!`);
               return `Successfully created task: "${title}".`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to create task: ${res.error?.message}`);
               return `Failed to create task: ${res.error?.message}`;
             }
           },
@@ -108,10 +160,13 @@ ${primaryGuide}
           }),
           // @ts-ignore - Ignore AI SDK execute type mismatch
           execute: async ({ id, status }: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to update Task Status to: "${status}" for ID: ${id}`);
             const res = await changeTodoStatus({ id, status });
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Task status updated!`);
               return `Successfully updated task status to ${status}.`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to update task: ${res.error?.message}`);
               return `Failed to update task: ${res.error?.message}`;
             }
           },
@@ -125,10 +180,13 @@ ${primaryGuide}
           }),
           // @ts-ignore
           execute: async (input: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to create Note: "${input.heading}"`);
             const res = await createNote(input);
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Note created successfully!`);
               return `Successfully created note: "${input.heading}".`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to create note: ${res.error?.message}`);
               return `Failed to create note: ${res.error?.message}`;
             }
           },
@@ -140,10 +198,13 @@ ${primaryGuide}
           }),
           // @ts-ignore
           execute: async ({ id }: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to delete Note ID: ${id}`);
             const res = await deleteNote({ id, softDelete: true });
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Note deleted!`);
               return `Successfully deleted note.`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to delete note: ${res.error?.message}`);
               return `Failed to delete note: ${res.error?.message}`;
             }
           },
@@ -160,14 +221,17 @@ ${primaryGuide}
           }),
           // @ts-ignore
           execute: async (input: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to create Event: "${input.title}"`);
             const res = await createEvent({
               ...input,
               startDate: new Date(input.startDate),
               endDate: new Date(input.endDate),
             });
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Event created successfully!`);
               return `Successfully created event: "${input.title}".`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to create event: ${res.error}`);
               return `Failed to create event: ${res.error}`;
             }
           },
@@ -181,13 +245,16 @@ ${primaryGuide}
           }),
           // @ts-ignore
           execute: async ({ id, startDate, endDate }: any) => {
+            console.log(`[DURIA ACTION] 🤖 Attempting to update Event ID: ${id}`);
             const updateData: any = {};
             if (startDate) updateData.startDate = new Date(startDate);
             if (endDate) updateData.endDate = new Date(endDate);
             const res = await updateEvent(id, updateData);
             if (res.success) {
+              console.log(`[DURIA ACTION SUCCESS] ✅ Event updated!`);
               return `Successfully updated event.`;
             } else {
+              console.log(`[DURIA ACTION FAILED] ❌ Failed to update event: ${res.error}`);
               return `Failed to update event: ${res.error}`;
             }
           },

@@ -143,11 +143,17 @@ export default function DuriaChat() {
               </div>
             </div>
           ))}
-          {isLoading && (
-            <div className="flex justify-start px-4">
-              <div className="bg-secondary/50 text-secondary-foreground rounded-2xl rounded-tl-sm px-4 py-2 flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                <span className="text-sm">Thinking...</span>
+
+          {/* Thinking Animation */}
+          {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+            <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-secondary text-foreground">
+                <Bot size={16} />
+              </div>
+              <div className="px-4 py-3 rounded-2xl max-w-[85%] bg-card border border-border/50 rounded-tl-sm shadow-sm flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
