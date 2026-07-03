@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createTodo, changeTodoStatus } from "@/server/actions/to-do-action";
 import { createNote, deleteNote } from "@/server/actions/note-action";
 import { createEvent, updateEvent } from "@/server/actions/calendar-actions";
+import { getUserTimezone } from "@/lib/server/date-utils";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
 
@@ -41,10 +42,18 @@ export async function POST(req: NextRequest) {
       console.warn("Could not load feature_guide.md for AI context");
     }
 
+    const timezone = await getUserTimezone(userId);
+    const now = new Date();
+    const localTimeString = now.toLocaleString("en-US", { timeZone: timezone });
+
     // 4. Build the powerful system prompt
     let systemPrompt = `You are DURIA, an incredibly intelligent, friendly, and helpful AI assistant embedded directly within the Durio application. 
 Your goal is to help the user manage their life, tasks, notes, and calendar. 
 Be concise, use markdown formatting, and act as a highly capable personal assistant.
+
+The user's local timezone is: ${timezone}
+The current local date and time for the user is: ${localTimeString}
+When creating events, ALWAYS use ISO 8601 format for dates/times based on the user's local timezone provided above.
 
 CRITICAL INSTRUCTION: When you execute a tool (e.g. creating a task, note, or event), you MUST write a short text response confirming to the user that the action was successfully completed (or if it failed). Do not remain silent after executing a tool.
 

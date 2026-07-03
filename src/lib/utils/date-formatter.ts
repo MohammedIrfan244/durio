@@ -16,8 +16,11 @@ export function formatDate(date: Date | string | number | undefined, maxLength?:
 
 
 export function convertToTime(time: string) {
-  const [timePart, rawMeridiem] = time.trim().split(/\s+/);
-  const meridiem = rawMeridiem.toUpperCase();
+  const parts = time.trim().split(/\s+/);
+  const timePart = parts[0];
+  const rawMeridiem = parts.length > 1 ? parts[1] : undefined;
+  
+  const meridiem = rawMeridiem ? rawMeridiem.toUpperCase() : undefined;
 
   let [hours, minutes] = timePart.split(":").map(Number);
 
@@ -27,7 +30,7 @@ export function convertToTime(time: string) {
     hours += 12;
   }
 
-  return hours * 60 + minutes;
+  return hours * 60 + (minutes || 0);
 }
 
 export function getCurrentTimeString(timeZone: string) {
