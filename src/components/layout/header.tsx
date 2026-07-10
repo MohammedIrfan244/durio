@@ -43,6 +43,7 @@ import {
 } from "../ui/tooltip";
 
 // Decorations & Dialogs
+import NotificationBell from "../shared/notification-bell";
 import PookieFlowers from "../decoration/pookie-flowers";
 import NaturalDecor from "../decoration/natural-decor";
 import GothicDecor from "../decoration/gothic-decor";
@@ -131,6 +132,7 @@ export default function Header() {
             loading={loading}
             onClick={() => handleFlag(pathname || "/")}
           />
+          <NotificationBell />
           <ModeToggle />
           <UserMenu
             username={username}

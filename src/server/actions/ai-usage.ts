@@ -29,6 +29,16 @@ export async function checkAndIncrementAIUsage(): Promise<{ success: boolean; er
       return { success: false, error: "Daily limit of 150 AI requests reached. Please try again tomorrow." };
     }
 
+    if (requestsToday + 1 === DAILY_LIMIT) {
+      await prisma.notification.create({
+        data: {
+          userId,
+          message: "You have reached your daily limit for Duria AI requests.",
+          date: new Date(),
+        }
+      });
+    }
+
     // Increment and update timestamp
     await prisma.aIUsage.update({
       where: { id: usage.id },
