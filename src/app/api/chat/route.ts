@@ -1,16 +1,24 @@
 import { NextRequest } from "next/server";
-import { streamText, tool, convertToModelMessages } from "ai";
+import { streamText, tool } from "ai";
 import { google } from "@ai-sdk/google";
 import { promises as fs } from "fs";
 import path from "path";
 import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";
-import { createTodo, changeTodoStatus } from "@/server/actions/to-do-action";
-import { createNote, deleteNote } from "@/server/actions/note-action";
-import { createEvent, updateEvent, getOrCreateDefaultCategories } from "@/server/actions/calendar-actions";
 import { getUserTimezone } from "@/lib/server/date-utils";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
+
+async function logToDebugFile(tag: string, data: any) {
+  try {
+    const logPath = path.join(process.cwd(), "duria-debug.log");
+    const timestamp = new Date().toISOString();
+    const logEntry = `\n--- [${timestamp}] ${tag} ---\n${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}\n`;
+    await fs.appendFile(logPath, logEntry, "utf-8");
+  } catch (e) {
+    console.error("Failed to write to duria-debug.log", e);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +36,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Parse request body
     const body = await req.json();
+    await logToDebugFile("RAW REQUEST BODY", body);
     console.log("[DURIA API DEBUG] Body:", JSON.stringify(body, null, 2));
     const { messages, contextPayload } = body;
     
@@ -55,7 +64,17 @@ The user's local timezone is: ${timezone}
 The current local date and time for the user is: ${localTimeString}
 When creating events, ALWAYS use ISO 8601 format for dates/times based on the user's local timezone provided above.
 
-CRITICAL INSTRUCTION: When you execute a tool (e.g. creating a task, note, or event), you MUST write a short text response confirming to the user that the action was successfully completed (or if it failed). Do not remain silent after executing a tool.
+MANAGE MODE RULES:
+- When the user asks to create, edit, or delete a task, note, or event, use the appropriate propose tool.
+- Your propose tool ONLY returns the structured data. You do NOT confirm the action yourself.
+- After you propose, the user will see an editable preview. They will click Confirm or Cancel.
+- You will then receive a [SYSTEM] message telling you the result. React to it naturally.
+- NEVER tell the user the action was completed before you receive the [SYSTEM] result message.
+
+BOUNDARY RULES:
+- You are an assistant specifically for managing the user's tasks, notes, and calendar within this application.
+- Firmly but politely dodge ANY requests that are not relevant to this project (e.g., political questions, geographical facts, coding questions outside of this app, general knowledge trivia).
+- Reply with a variation of: "I'm DURIA, your productivity assistant. I can only help you manage your tasks, notes, and calendar. I cannot answer questions about [Topic]."
 
 Here is the primary architecture of the Durio application you are living in:
 === DURIO PRIMARY GUIDE ===
@@ -143,103 +162,85 @@ ${primaryGuide}
       }
     });
 
+    await logToDebugFile("MAPPED CORE MESSAGES (To Gemini)", coreMessages);
+
     // 6. Call Gemini
     const result = streamText({
       model: google("gemini-2.5-flash"),
       system: systemPrompt,
       messages: coreMessages,
       temperature: 0.7,
+      onFinish: async (event) => {
+        await logToDebugFile("GEMINI RESPONSE (onFinish)", {
+          text: event.text,
+          toolCalls: event.toolCalls,
+          usage: event.usage,
+          finishReason: event.finishReason,
+        });
+      },
       tools: {
-        createTask: tool({
-          description: "Create a new task on the user's to-do list. You have full capability to set the title, description, priority (LOW/MEDIUM/HIGH), dueDate, and dueTime if the user mentions them. Do not tell the user you cannot set these.",
+        // @ts-ignore
+        proposeCreateTask: tool({
+          description: "Propose a new task for the user's to-do list. You have full capability to set the title, description, priority, dueDate, and dueTime if mentioned.",
           parameters: z.object({
             title: z.string().describe("The title of the task"),
-            description: z.string().optional().describe("A brief description of the task. Extract this from the user prompt if available."),
-            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task: LOW, MEDIUM, or HIGH"),
-            dueDate: z.string().optional().describe("Due date in YYYY-MM-DD format if requested by the user"),
-            dueTime: z.string().optional().describe("Due time in HH:mm format if requested by the user"),
+            description: z.string().optional().describe("A brief description of the task."),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task"),
+            dueDate: z.string().optional().describe("Due date in YYYY-MM-DD format"),
+            dueTime: z.string().optional().describe("Due time in HH:mm format"),
             tags: z.array(z.string()).optional().describe("Array of tags for the task"),
           }),
-          // @ts-ignore - Ignore AI SDK execute type mismatch
-          execute: async ({ title, description, priority, dueDate, dueTime, tags }: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to create Task: "${title}"`);
-            const res = await createTodo({
-              title,
-              description,
-              priority,
-              dueDate: dueDate ? new Date(dueDate) : undefined,
-              dueTime,
-              tags: tags || [],
-              status: "PLAN",
-            });
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Task created successfully!`);
-              return `Successfully created task: "${title}".`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to create task: ${res.error?.message}`);
-              return `Failed to create task: ${res.error?.message}`;
-            }
-          },
-        }),
-        changeTaskStatus: tool({
-          description: "Change the status of an existing task (e.g. mark it as DONE or CANCELLED). Only use this if you know the exact Task ID from the attached context.",
+        } as any),
+        // @ts-ignore
+        proposeUpdateTask: tool({
+          description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Requires exact Task ID from attached context.",
           parameters: z.object({
-            id: z.string().describe("The unique ID of the task to update"),
-            status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]).describe("The new status for the task"),
+            id: z.string().describe("The unique ID of the task"),
+            title: z.string().optional().describe("The new title of the task"),
+            description: z.string().optional().describe("The new description of the task"),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The new priority"),
+            dueDate: z.string().optional().describe("Due date in YYYY-MM-DD format"),
+            dueTime: z.string().optional().describe("Due time in HH:mm format"),
+            tags: z.array(z.string()).optional().describe("Array of tags"),
+            status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]).optional().describe("The new status for the task"),
           }),
-          // @ts-ignore - Ignore AI SDK execute type mismatch
-          execute: async ({ id, status }: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to update Task Status to: "${status}" for ID: ${id}`);
-            const res = await changeTodoStatus({ id, status });
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Task status updated!`);
-              return `Successfully updated task status to ${status}.`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to update task: ${res.error?.message}`);
-              return `Failed to update task: ${res.error?.message}`;
-            }
-          },
-        }),
-        createNote: tool({
-          description: "Create a new note for the user. Use this whenever the user asks to create, save, write, or make a note — even if they phrase it casually. You can always set the heading and description.",
+        } as any),
+        // @ts-ignore
+        proposeDeleteTask: tool({
+          description: "Propose deleting a task. Requires exact Task ID from attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the task to delete"),
+          }),
+        } as any),
+        // @ts-ignore
+        proposeCreateNote: tool({
+          description: "Propose a new note for the user. Use whenever the user asks to save or write a note.",
           parameters: z.object({
             heading: z.string().describe("The title or heading of the note"),
             description: z.string().describe("The body content of the note"),
             color: z.string().optional().describe("Optional hex color string for the note card"),
           }),
-          // @ts-ignore
-          execute: async (input: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to create Note: "${input.heading}"`);
-            const res = await createNote(input);
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Note created successfully!`);
-              return `Successfully created note: "${input.heading}".`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to create note: ${res.error?.message}`);
-              return `Failed to create note: ${res.error?.message}`;
-            }
-          },
-        }),
-        deleteNote: tool({
-          description: "Delete a note. Only use this if you know the exact Note ID from the attached context.",
+        } as any),
+        // @ts-ignore
+        proposeUpdateNote: tool({
+          description: "Propose updates to an existing note. Requires exact Note ID from attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the note to update"),
+            heading: z.string().optional().describe("The new heading of the note"),
+            description: z.string().optional().describe("The new body content"),
+            color: z.string().optional().describe("New optional hex color string"),
+          }),
+        } as any),
+        // @ts-ignore
+        proposeDeleteNote: tool({
+          description: "Propose deleting a note. Requires exact Note ID from attached context.",
           parameters: z.object({
             id: z.string().describe("The unique ID of the note to delete"),
           }),
-          // @ts-ignore
-          execute: async ({ id }: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to delete Note ID: ${id}`);
-            const res = await deleteNote({ id, softDelete: true });
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Note deleted!`);
-              return `Successfully deleted note.`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to delete note: ${res.error?.message}`);
-              return `Failed to delete note: ${res.error?.message}`;
-            }
-          },
-        }),
-        createEvent: tool({
-          description: "Create a new calendar event. Use this when the user asks to schedule something, add a birthday, anniversary, meeting, or reminder. Always try to infer the correct categoryName from context: use 'Birthdays' for birthdays, 'Anniversaries' for anniversaries, 'Meetings' for meetings, 'Reminders' for reminders, 'Work' for work events, and 'Personal' for everything else.",
+        } as any),
+        // @ts-ignore
+        proposeCreateEvent: tool({
+          description: "Propose a new calendar event. Always try to infer the correct categoryName from context: use 'Birthdays', 'Anniversaries', 'Meetings', 'Reminders', 'Work', or 'Personal'.",
           parameters: z.object({
             title: z.string().describe("The title of the event"),
             description: z.string().optional().describe("Description of the event"),
@@ -249,61 +250,26 @@ ${primaryGuide}
             endDate: z.string().describe("The end date/time in ISO 8601 format. If not specified, set it 1 hour after startDate."),
             categoryName: z.string().optional().describe("The category for the event. Must be one of: Personal, Work, Birthdays, Anniversaries, Meetings, Reminders"),
           }),
-          // @ts-ignore
-          execute: async (input: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to create Event: "${input.title}" in category: "${input.categoryName}"`);
-            
-            // Resolve categoryName to a categoryId from the user's categories
-            let categoryId: string | undefined;
-            if (input.categoryName) {
-              const categories = await getOrCreateDefaultCategories();
-              const matched = categories.find(
-                (c: any) => c.name.toLowerCase() === input.categoryName.toLowerCase()
-              );
-              if (matched) categoryId = matched.id;
-            }
-
-            const res = await createEvent({
-              title: input.title,
-              description: input.description,
-              location: input.location,
-              isAllDay: input.isAllDay,
-              startDate: new Date(input.startDate),
-              endDate: new Date(input.endDate),
-              categoryId,
-            });
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Event created! Category resolved: ${categoryId || 'none'}`);
-              return `Successfully created event: "${input.title}"${categoryId ? ` in the ${input.categoryName} category` : ''}.`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to create event: ${res.error}`);
-              return `Failed to create event: ${res.error}`;
-            }
-          },
-        }),
-        updateEvent: tool({
-          description: "Update an existing calendar event (e.g. reschedule it). Only use this if you know the exact Event ID from the attached context.",
+        } as any),
+        // @ts-ignore
+        proposeUpdateEvent: tool({
+          description: "Propose updates to an existing calendar event (e.g., reschedule). Requires exact Event ID from attached context.",
           parameters: z.object({
             id: z.string().describe("The unique ID of the event to update"),
+            title: z.string().optional().describe("The new title of the event"),
+            description: z.string().optional().describe("Description of the event"),
             startDate: z.string().optional().describe("The new start date/time in ISO 8601 format"),
             endDate: z.string().optional().describe("The new end date/time in ISO 8601 format"),
+            categoryName: z.string().optional().describe("The category for the event"),
           }),
-          // @ts-ignore
-          execute: async ({ id, startDate, endDate }: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to update Event ID: ${id}`);
-            const updateData: any = {};
-            if (startDate) updateData.startDate = new Date(startDate);
-            if (endDate) updateData.endDate = new Date(endDate);
-            const res = await updateEvent(id, updateData);
-            if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Event updated!`);
-              return `Successfully updated event.`;
-            } else {
-              console.log(`[DURIA ACTION FAILED] ❌ Failed to update event: ${res.error}`);
-              return `Failed to update event: ${res.error}`;
-            }
-          },
-        })
+        } as any),
+        // @ts-ignore
+        proposeDeleteEvent: tool({
+          description: "Propose deleting a calendar event. Requires exact Event ID from attached context.",
+          parameters: z.object({
+            id: z.string().describe("The unique ID of the event to delete"),
+          }),
+        } as any)
       }
     });
 

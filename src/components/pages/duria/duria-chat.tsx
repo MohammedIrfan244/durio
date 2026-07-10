@@ -9,6 +9,7 @@ import ContextAttachDialog from './context-attach-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
+import ProposalCard from './proposal-card';
 
 export default function DuriaChat() {
   const { aiPayload, removeContextItem, clearContext } = useDuria();
@@ -16,6 +17,7 @@ export default function DuriaChat() {
   const [input, setInput] = useState('');
   const [hasAskedToClear, setHasAskedToClear] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [proposalStatus, setProposalStatus] = useState<Record<string, 'pending' | 'confirmed' | 'cancelled' | 'error'>>({});
 
   const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
 
@@ -24,8 +26,7 @@ export default function DuriaChat() {
     api: '/api/chat',
     body: {
       contextPayload: aiPayload
-    },
-    maxSteps: 5
+    }
   }) as any;
 
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -128,6 +129,31 @@ export default function DuriaChat() {
                     )}
                     {msg.toolInvocations?.map((toolInvocation: any) => {
                       const toolCallId = toolInvocation.toolCallId;
+                      const toolName = toolInvocation.toolName;
+                      
+                      if (toolName.startsWith('propose')) {
+                        const status = proposalStatus[toolCallId] || 'pending';
+                        return (
+                          <div key={toolCallId} className="mt-2 w-full max-w-sm">
+                            <ProposalCard 
+                              toolName={toolName}
+                              args={toolInvocation.args}
+                              status={status}
+                              onConfirm={(payload, resultMsg) => {
+                                setProposalStatus(prev => ({ ...prev, [toolCallId]: 'confirmed' }));
+                                // @ts-ignore
+                                sendMessage({ role: 'user', content: `[SYSTEM] Result: ${resultMsg}` });
+                              }}
+                              onCancel={(cancelMsg) => {
+                                setProposalStatus(prev => ({ ...prev, [toolCallId]: 'cancelled' }));
+                                // @ts-ignore
+                                sendMessage({ role: 'user', content: `[SYSTEM] ${cancelMsg}` });
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+
                       if ('result' in toolInvocation) {
                         return (
                           <div key={toolCallId} className="bg-primary/10 border border-primary/20 text-primary rounded-md p-2 text-xs flex items-center gap-2 mt-2">
@@ -193,7 +219,7 @@ export default function DuriaChat() {
           </div>
           <div className="flex flex-wrap gap-2">
             {aiPayload.todos.map((t, i) => (
-               <ContextBadge key={`todo-${i}`} label={`Task: ${t.heading}`} onRemove={() => removeContextItem('todos', i)} />
+               <ContextBadge key={`todo-${i}`} label={`Task: ${t.title}`} onRemove={() => removeContextItem('todos', i)} />
             ))}
             {aiPayload.notes.map((n, i) => (
                <ContextBadge key={`note-${i}`} label={`Note: ${n.heading}`} onRemove={() => removeContextItem('notes', i)} />
