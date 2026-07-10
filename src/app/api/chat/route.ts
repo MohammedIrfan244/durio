@@ -48,6 +48,49 @@ function getToolCallsFromMessage(msg: any) {
   return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolCallId && toolCall.toolName);
 }
 
+function inferManageToolChoice(messages: any[]) {
+  const latestRawMessage = [...(messages || [])].reverse().find((msg: any) => getTextFromMessage(msg).trim());
+  if (getTextFromMessage(latestRawMessage || {}).trim().startsWith("[SYSTEM]")) {
+    return undefined;
+  }
+
+  const conversationMessages = (messages || []).filter((msg: any) => {
+    const text = getTextFromMessage(msg).trim();
+    return !text.startsWith("[SYSTEM]");
+  });
+  const latestUserText = getTextFromMessage(
+    [...conversationMessages].reverse().find((msg: any) => msg.role === 'user') || {}
+  );
+  const recentText = conversationMessages
+    .slice(-6)
+    .map((msg: any) => getTextFromMessage(msg))
+    .join("\n")
+    .toLowerCase();
+  const latest = String(latestUserText || '').toLowerCase();
+  const textToClassify = `${recentText}\n${latest}`;
+
+  const mentionsTask = /\b(todo|task|to-do|grocery|groceries)\b/.test(textToClassify);
+  const mentionsNote = /\b(note|notes)\b/.test(textToClassify);
+  const mentionsEvent = /\b(event|calendar|schedule|meeting|appointment|birthday|anniversary)\b/.test(textToClassify);
+
+  const wantsDelete = /\b(delete|remove|discard)\b/.test(latest);
+  const wantsUpdate = /\b(update|edit|change|set|mark|rename|reschedule|move|completed|complete|done|cancelled|canceled|pending|plan)\b/.test(latest);
+
+  if (wantsDelete) {
+    if (mentionsNote) return { type: 'tool' as const, toolName: 'proposeDeleteNote' };
+    if (mentionsEvent) return { type: 'tool' as const, toolName: 'proposeDeleteEvent' };
+    if (mentionsTask) return { type: 'tool' as const, toolName: 'proposeDeleteTask' };
+  }
+
+  if (wantsUpdate) {
+    if (mentionsNote) return { type: 'tool' as const, toolName: 'proposeUpdateNote' };
+    if (mentionsEvent) return { type: 'tool' as const, toolName: 'proposeUpdateEvent' };
+    if (mentionsTask) return { type: 'tool' as const, toolName: 'proposeUpdateTask' };
+  }
+
+  return undefined;
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
@@ -95,6 +138,9 @@ When creating events, ALWAYS use ISO 8601 format for dates/times based on the us
 MANAGE MODE RULES:
 - When the user asks to create, edit, or delete a task, note, or event, use the appropriate propose tool.
 - Your propose tool ONLY returns the structured data. You do NOT confirm the action yourself.
+- For edit or delete requests, do NOT ask the user for IDs. Propose the intended update/delete with the information you can infer. The application will show a separate selector so the user can choose the exact task, note, or event, and the application will perform the database operation.
+- If the user asks to edit/update but omits a new value, still call the appropriate update propose tool with partial or empty fields so the app can show the selector and editable preview.
+- If the user says a task is complete/completed/done, set task status to DONE.
 - After you propose, the user will see an editable preview. They will click Confirm or Cancel.
 - You will then receive a [SYSTEM] message telling you the result. React to it naturally.
 - NEVER tell the user the action was completed before you receive the [SYSTEM] result message.
@@ -170,6 +216,8 @@ ${primaryGuide}
     });
 
     await logToDebugFile("MAPPED CORE MESSAGES (To Gemini)", coreMessages);
+    const toolChoice = inferManageToolChoice(messages);
+    await logToDebugFile("INFERRED TOOL CHOICE", toolChoice || "auto");
 
     // 6. Call Gemini
     const result = streamText({
@@ -177,6 +225,7 @@ ${primaryGuide}
       system: systemPrompt,
       messages: coreMessages,
       temperature: 0.7,
+      toolChoice: toolChoice as any,
       onFinish: async (event) => {
         await logToDebugFile("GEMINI RESPONSE (onFinish)", {
           text: event.text,
@@ -200,9 +249,8 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeUpdateTask: tool({
-          description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Requires exact Task ID from attached context.",
+          description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the task"),
             title: z.string().optional().describe("The new title of the task"),
             description: z.string().optional().describe("The new description of the task"),
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The new priority"),
@@ -214,9 +262,9 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeDeleteTask: tool({
-          description: "Propose deleting a task. Requires exact Task ID from attached context.",
+          description: "Propose deleting a task. Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the task to delete"),
+            reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any),
         // @ts-ignore
@@ -230,9 +278,8 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeUpdateNote: tool({
-          description: "Propose updates to an existing note. Requires exact Note ID from attached context.",
+          description: "Propose updates to an existing note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the note to update"),
             heading: z.string().optional().describe("The new heading of the note"),
             description: z.string().optional().describe("The new body content"),
             color: z.string().optional().describe("New optional hex color string"),
@@ -240,9 +287,9 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeDeleteNote: tool({
-          description: "Propose deleting a note. Requires exact Note ID from attached context.",
+          description: "Propose deleting a note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the note to delete"),
+            reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any),
         // @ts-ignore
@@ -260,11 +307,12 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeUpdateEvent: tool({
-          description: "Propose updates to an existing calendar event (e.g., reschedule). Requires exact Event ID from attached context.",
+          description: "Propose updates to an existing calendar event (e.g., reschedule). Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the event to update"),
             title: z.string().optional().describe("The new title of the event"),
             description: z.string().optional().describe("Description of the event"),
+            location: z.string().optional().describe("Location of the event"),
+            isAllDay: z.boolean().optional().describe("Whether the event is all day"),
             startDate: z.string().optional().describe("The new start date/time in ISO 8601 format"),
             endDate: z.string().optional().describe("The new end date/time in ISO 8601 format"),
             categoryName: z.string().optional().describe("The category for the event"),
@@ -272,9 +320,9 @@ ${primaryGuide}
         } as any),
         // @ts-ignore
         proposeDeleteEvent: tool({
-          description: "Propose deleting a calendar event. Requires exact Event ID from attached context.",
+          description: "Propose deleting a calendar event. Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
-            id: z.string().describe("The unique ID of the event to delete"),
+            reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any)
       }

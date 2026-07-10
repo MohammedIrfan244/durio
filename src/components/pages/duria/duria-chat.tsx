@@ -170,10 +170,8 @@ export default function DuriaChat() {
                                 // @ts-ignore
                                 sendMessage({ role: 'user', content: `[SYSTEM] Result: ${resultMsg}` });
                               }}
-                              onCancel={(cancelMsg) => {
+                              onCancel={() => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'cancelled' }));
-                                // @ts-ignore
-                                sendMessage({ role: 'user', content: `[SYSTEM] ${cancelMsg}` });
                               }}
                             />
                           </div>
