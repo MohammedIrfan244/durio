@@ -7,7 +7,7 @@ import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";
 import { createTodo, changeTodoStatus } from "@/server/actions/to-do-action";
 import { createNote, deleteNote } from "@/server/actions/note-action";
-import { createEvent, updateEvent } from "@/server/actions/calendar-actions";
+import { createEvent, updateEvent, getOrCreateDefaultCategories } from "@/server/actions/calendar-actions";
 import { getUserTimezone } from "@/lib/server/date-utils";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
@@ -85,12 +85,24 @@ ${primaryGuide}
     }
 
     // Manually map UIMessages to ModelMessages to avoid AI SDK crashes
-    const coreMessages = (messages || []).map((msg: any) => {
-      if (msg.role === 'user') return { role: 'user', content: msg.content };
-      
-      if (msg.role === 'assistant') {
-        if (msg.toolInvocations) {
-          return {
+    const coreMessages: any[] = [];
+    
+    (messages || []).forEach((msg: any) => {
+      if (msg.role === 'user') {
+        // Guard: content may be undefined in AI SDK v6 — fall back to parts
+        const userContent = msg.content ||
+          (msg.parts?.find((p: any) => p.type === 'text')?.text) ||
+          "";
+        coreMessages.push({ role: 'user', content: userContent });
+      } else if (msg.role === 'assistant') {
+        let content = msg.content || "";
+        if (!content && msg.parts) {
+          const textPart = msg.parts.find((p: any) => p.type === 'text');
+          if (textPart) content = textPart.text;
+        }
+        
+        if (msg.toolInvocations && msg.toolInvocations.length > 0) {
+          coreMessages.push({
             role: 'assistant',
             content: msg.toolInvocations.map((t: any) => ({
               type: 'tool-call',
@@ -98,29 +110,37 @@ ${primaryGuide}
               toolName: t.toolName,
               args: t.args
             }))
-          };
+          });
+          
+          const finishedTools = msg.toolInvocations.filter((t: any) => 'result' in t || t.state === 'result');
+          if (finishedTools.length > 0) {
+            coreMessages.push({
+              role: 'tool',
+              content: finishedTools.map((t: any) => ({
+                type: 'tool-result',
+                toolCallId: t.toolCallId,
+                toolName: t.toolName,
+                result: t.result
+              }))
+            });
+          }
+        } else {
+          coreMessages.push({ role: 'assistant', content });
         }
-        let content = msg.content || "";
-        if (!content && msg.parts) {
-          const textPart = msg.parts.find((p: any) => p.type === 'text');
-          if (textPart) content = textPart.text;
-        }
-        return { role: 'assistant', content };
-      }
-      
-      if (msg.role === 'tool' || msg.toolInvocations) {
-        return {
+      } else if (msg.role === 'tool') {
+        // If frontend explicitly sends a tool message
+        coreMessages.push({
           role: 'tool',
-          content: msg.toolInvocations.map((t: any) => ({
+          content: msg.toolInvocations?.map((t: any) => ({
             type: 'tool-result',
             toolCallId: t.toolCallId,
             toolName: t.toolName,
             result: t.result
-          }))
-        };
+          })) || []
+        });
+      } else {
+        coreMessages.push({ role: msg.role, content: msg.content });
       }
-      
-      return { role: msg.role, content: msg.content };
     });
 
     // 6. Call Gemini
@@ -181,11 +201,11 @@ ${primaryGuide}
           },
         }),
         createNote: tool({
-          description: "Create a new note. Use this when the user explicitly asks to save or create a note, for example saving a summary as a note.",
+          description: "Create a new note for the user. Use this whenever the user asks to create, save, write, or make a note — even if they phrase it casually. You can always set the heading and description.",
           parameters: z.object({
             heading: z.string().describe("The title or heading of the note"),
-            description: z.string().describe("The content of the note (can be markdown)"),
-            color: z.string().optional().describe("Optional hex color string"),
+            description: z.string().describe("The body content of the note"),
+            color: z.string().optional().describe("Optional hex color string for the note card"),
           }),
           // @ts-ignore
           execute: async (input: any) => {
@@ -219,26 +239,42 @@ ${primaryGuide}
           },
         }),
         createEvent: tool({
-          description: "Create a new calendar event. Use this when the user asks to schedule something.",
+          description: "Create a new calendar event. Use this when the user asks to schedule something, add a birthday, anniversary, meeting, or reminder. Always try to infer the correct categoryName from context: use 'Birthdays' for birthdays, 'Anniversaries' for anniversaries, 'Meetings' for meetings, 'Reminders' for reminders, 'Work' for work events, and 'Personal' for everything else.",
           parameters: z.object({
             title: z.string().describe("The title of the event"),
             description: z.string().optional().describe("Description of the event"),
             location: z.string().optional().describe("Location of the event"),
             isAllDay: z.boolean().optional().describe("Whether the event is all day"),
-            startDate: z.string().describe("The start date/time in ISO 8601 format"),
-            endDate: z.string().describe("The end date/time in ISO 8601 format"),
+            startDate: z.string().describe("The start date/time in ISO 8601 format based on the user's timezone"),
+            endDate: z.string().describe("The end date/time in ISO 8601 format. If not specified, set it 1 hour after startDate."),
+            categoryName: z.string().optional().describe("The category for the event. Must be one of: Personal, Work, Birthdays, Anniversaries, Meetings, Reminders"),
           }),
           // @ts-ignore
           execute: async (input: any) => {
-            console.log(`[DURIA ACTION] 🤖 Attempting to create Event: "${input.title}"`);
+            console.log(`[DURIA ACTION] 🤖 Attempting to create Event: "${input.title}" in category: "${input.categoryName}"`);
+            
+            // Resolve categoryName to a categoryId from the user's categories
+            let categoryId: string | undefined;
+            if (input.categoryName) {
+              const categories = await getOrCreateDefaultCategories();
+              const matched = categories.find(
+                (c: any) => c.name.toLowerCase() === input.categoryName.toLowerCase()
+              );
+              if (matched) categoryId = matched.id;
+            }
+
             const res = await createEvent({
-              ...input,
+              title: input.title,
+              description: input.description,
+              location: input.location,
+              isAllDay: input.isAllDay,
               startDate: new Date(input.startDate),
               endDate: new Date(input.endDate),
+              categoryId,
             });
             if (res.success) {
-              console.log(`[DURIA ACTION SUCCESS] ✅ Event created successfully!`);
-              return `Successfully created event: "${input.title}".`;
+              console.log(`[DURIA ACTION SUCCESS] ✅ Event created! Category resolved: ${categoryId || 'none'}`);
+              return `Successfully created event: "${input.title}"${categoryId ? ` in the ${input.categoryName} category` : ''}.`;
             } else {
               console.log(`[DURIA ACTION FAILED] ❌ Failed to create event: ${res.error}`);
               return `Failed to create event: ${res.error}`;

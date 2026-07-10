@@ -105,19 +105,25 @@ export default function DuriaChat() {
             </div>
           )}
           
-          {messages.map((msg: any, i: number) => (
+          {messages.map((msg: any, i: number) => {
+            // Normalize content: AI SDK v6 may store text in parts instead of content
+            const textContent = msg.content ||
+              msg.parts?.find((p: any) => p.type === 'text')?.text ||
+              "";
+
+            return (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
                 {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
               </div>
               <div className={`px-4 py-3 rounded-2xl max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-card border border-border/50 rounded-tl-sm shadow-sm'}`}>
                 {msg.role === 'user' ? (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{(msg.content as string) || (msg as any).parts?.find((p: any) => p.type === 'text')?.text}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{textContent}</p>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {(msg.content || msg.parts?.find((p: any) => p.type === 'text')?.text) && (
+                    {textContent && (
                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-p:leading-relaxed prose-pre:bg-secondary prose-pre:border prose-pre:border-border/50">
-                        <ReactMarkdown>{msg.content || msg.parts?.find((p: any) => p.type === 'text')?.text}</ReactMarkdown>
+                        <ReactMarkdown>{textContent}</ReactMarkdown>
                       </div>
                     )}
                     {msg.toolInvocations?.map((toolInvocation: any) => {
@@ -142,7 +148,8 @@ export default function DuriaChat() {
                 )}
               </div>
             </div>
-          ))}
+          );
+          })}
 
           {/* Thinking Animation */}
           {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
