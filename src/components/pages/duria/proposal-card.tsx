@@ -19,14 +19,43 @@ interface ProposalCardProps {
   status: 'pending' | 'confirmed' | 'cancelled' | 'error';
 }
 
+function normalizeProposalPayload(toolName: string, args: Record<string, any>) {
+  const normalized = { ...args };
+
+  if (toolName.includes('Task')) {
+    if (typeof normalized.priority === 'string') {
+      normalized.priority = normalized.priority.toUpperCase();
+    }
+    if (typeof normalized.dueTime === 'string') {
+      normalized.dueTime = normalized.dueTime.slice(0, 5);
+    }
+  }
+
+  if (toolName.includes('Note')) {
+    normalized.heading = normalized.heading ?? normalized.title;
+    normalized.description = normalized.description ?? normalized.content;
+    delete normalized.title;
+    delete normalized.content;
+  }
+
+  if (toolName.includes('Event')) {
+    normalized.startDate = normalized.startDate ?? normalized.startTime;
+    normalized.endDate = normalized.endDate ?? normalized.endTime;
+    delete normalized.startTime;
+    delete normalized.endTime;
+  }
+
+  return normalized;
+}
+
 export default function ProposalCard({ toolName, args, onConfirm, onCancel, status }: ProposalCardProps) {
-  const [payload, setPayload] = useState<any>(args);
+  const [payload, setPayload] = useState<any>(() => normalizeProposalPayload(toolName, args));
   const [isSaving, setIsSaving] = useState(false);
   
   // Update state if args change
   useEffect(() => {
-    setPayload(args);
-  }, [args]);
+    setPayload(normalizeProposalPayload(toolName, args));
+  }, [toolName, args]);
 
   const handleChange = (field: string, value: any) => {
     setPayload((prev: any) => ({ ...prev, [field]: value }));
@@ -73,8 +102,9 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
            const matched = categories.find((c: any) => c.name.toLowerCase() === payload.categoryName.toLowerCase());
            if (matched) categoryId = matched.id;
         }
+        const { categoryName, ...eventPayload } = payload;
         const res = await createEvent({
-            ...payload,
+            ...eventPayload,
             startDate: new Date(payload.startDate),
             endDate: new Date(payload.endDate),
             categoryId
@@ -84,8 +114,15 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
       } 
       else if (toolName === 'proposeUpdateEvent') {
         const updateData: any = { ...payload };
+        if (updateData.categoryName) {
+          const categories = await getOrCreateDefaultCategories();
+          const matched = categories.find((c: any) => c.name.toLowerCase() === updateData.categoryName.toLowerCase());
+          if (matched) updateData.categoryId = matched.id;
+          delete updateData.categoryName;
+        }
         if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
         if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
+        delete updateData.id;
         const res = await updateEvent(payload.id, updateData);
         if (!res.success) throw new Error(res.error || "Failed to update event");
         resultMessage = `Event "${payload.title || 'updated'}" updated successfully.`;

@@ -11,6 +11,34 @@ import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
 import ProposalCard from './proposal-card';
 
+function getMessageText(msg: any) {
+  return msg.content ||
+    msg.parts?.find((part: any) => part.type === 'text')?.text ||
+    "";
+}
+
+function getProposalToolCalls(msg: any) {
+  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation: any) => ({
+    toolCallId: toolInvocation.toolCallId,
+    toolName: toolInvocation.toolName,
+    args: toolInvocation.args ?? toolInvocation.input ?? {},
+    result: toolInvocation.result ?? toolInvocation.output,
+    state: toolInvocation.state,
+  }));
+
+  const partToolCalls = (msg.parts || [])
+    .filter((part: any) => typeof part.type === 'string' && part.type.startsWith('tool-'))
+    .map((part: any) => ({
+      toolCallId: part.toolCallId,
+      toolName: part.toolName || part.type.replace(/^tool-/, ''),
+      args: part.input ?? {},
+      result: part.output,
+      state: part.state,
+    }));
+
+  return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolName);
+}
+
 export default function DuriaChat() {
   const { aiPayload, removeContextItem, clearContext } = useDuria();
   const [isAttachOpen, setIsAttachOpen] = useState(false);
@@ -107,10 +135,8 @@ export default function DuriaChat() {
           )}
           
           {messages.map((msg: any, i: number) => {
-            // Normalize content: AI SDK v6 may store text in parts instead of content
-            const textContent = msg.content ||
-              msg.parts?.find((p: any) => p.type === 'text')?.text ||
-              "";
+            const textContent = getMessageText(msg);
+            const proposalToolCalls = getProposalToolCalls(msg);
 
             return (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -127,7 +153,7 @@ export default function DuriaChat() {
                         <ReactMarkdown>{textContent}</ReactMarkdown>
                       </div>
                     )}
-                    {msg.toolInvocations?.map((toolInvocation: any) => {
+                    {proposalToolCalls.map((toolInvocation: any) => {
                       const toolCallId = toolInvocation.toolCallId;
                       const toolName = toolInvocation.toolName;
                       
@@ -154,7 +180,7 @@ export default function DuriaChat() {
                         );
                       }
 
-                      if ('result' in toolInvocation) {
+                      if (toolInvocation.result !== undefined) {
                         return (
                           <div key={toolCallId} className="bg-primary/10 border border-primary/20 text-primary rounded-md p-2 text-xs flex items-center gap-2 mt-2">
                             <span className="font-semibold">✅ Executed: {toolInvocation.toolName}</span>

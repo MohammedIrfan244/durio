@@ -20,6 +20,34 @@ async function logToDebugFile(tag: string, data: any) {
   }
 }
 
+function getTextFromMessage(msg: any) {
+  return msg.content ||
+    (msg.parts?.find((part: any) => part.type === 'text')?.text) ||
+    "";
+}
+
+function getToolCallsFromMessage(msg: any) {
+  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation: any) => ({
+    toolCallId: toolInvocation.toolCallId,
+    toolName: toolInvocation.toolName,
+    input: toolInvocation.input ?? toolInvocation.args ?? {},
+    output: toolInvocation.output ?? toolInvocation.result,
+    state: toolInvocation.state,
+  }));
+
+  const partToolCalls = (msg.parts || [])
+    .filter((part: any) => typeof part.type === 'string' && part.type.startsWith('tool-'))
+    .map((part: any) => ({
+      toolCallId: part.toolCallId,
+      toolName: part.toolName || part.type.replace(/^tool-/, ''),
+      input: part.input ?? {},
+      output: part.output,
+      state: part.state,
+    }));
+
+  return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolCallId && toolCall.toolName);
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
@@ -108,54 +136,33 @@ ${primaryGuide}
     
     (messages || []).forEach((msg: any) => {
       if (msg.role === 'user') {
-        // Guard: content may be undefined in AI SDK v6 — fall back to parts
-        const userContent = msg.content ||
-          (msg.parts?.find((p: any) => p.type === 'text')?.text) ||
-          "";
-        coreMessages.push({ role: 'user', content: userContent });
+        coreMessages.push({ role: 'user', content: getTextFromMessage(msg) });
       } else if (msg.role === 'assistant') {
-        let content = msg.content || "";
-        if (!content && msg.parts) {
-          const textPart = msg.parts.find((p: any) => p.type === 'text');
-          if (textPart) content = textPart.text;
-        }
-        
-        if (msg.toolInvocations && msg.toolInvocations.length > 0) {
+        const content = getTextFromMessage(msg);
+        const toolCalls = getToolCallsFromMessage(msg);
+
+        if (toolCalls.length > 0) {
+          const proposalSummary = toolCalls
+            .map((toolCall: any) => `[DURIA proposed ${toolCall.toolName}: ${JSON.stringify(toolCall.input)}]`)
+            .join("\n");
+
           coreMessages.push({
             role: 'assistant',
-            content: msg.toolInvocations.map((t: any) => ({
-              type: 'tool-call',
-              toolCallId: t.toolCallId,
-              toolName: t.toolName,
-              args: t.args
-            }))
+            content: [content, proposalSummary].filter(Boolean).join("\n"),
           });
-          
-          const finishedTools = msg.toolInvocations.filter((t: any) => 'result' in t || t.state === 'result');
-          if (finishedTools.length > 0) {
-            coreMessages.push({
-              role: 'tool',
-              content: finishedTools.map((t: any) => ({
-                type: 'tool-result',
-                toolCallId: t.toolCallId,
-                toolName: t.toolName,
-                result: t.result
-              }))
-            });
-          }
-        } else {
+        } else if (content) {
           coreMessages.push({ role: 'assistant', content });
         }
       } else if (msg.role === 'tool') {
-        // If frontend explicitly sends a tool message
+        const toolCalls = getToolCallsFromMessage(msg);
         coreMessages.push({
           role: 'tool',
-          content: msg.toolInvocations?.map((t: any) => ({
+          content: toolCalls.map((toolCall: any) => ({
             type: 'tool-result',
-            toolCallId: t.toolCallId,
-            toolName: t.toolName,
-            result: t.result
-          })) || []
+            toolCallId: toolCall.toolCallId,
+            toolName: toolCall.toolName,
+            output: toolCall.output,
+          })),
         });
       } else {
         coreMessages.push({ role: msg.role, content: msg.content });
@@ -182,7 +189,7 @@ ${primaryGuide}
         // @ts-ignore
         proposeCreateTask: tool({
           description: "Propose a new task for the user's to-do list. You have full capability to set the title, description, priority, dueDate, and dueTime if mentioned.",
-          parameters: z.object({
+          inputSchema: z.object({
             title: z.string().describe("The title of the task"),
             description: z.string().optional().describe("A brief description of the task."),
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("The priority of the task"),
@@ -194,7 +201,7 @@ ${primaryGuide}
         // @ts-ignore
         proposeUpdateTask: tool({
           description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Requires exact Task ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the task"),
             title: z.string().optional().describe("The new title of the task"),
             description: z.string().optional().describe("The new description of the task"),
@@ -208,14 +215,14 @@ ${primaryGuide}
         // @ts-ignore
         proposeDeleteTask: tool({
           description: "Propose deleting a task. Requires exact Task ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the task to delete"),
           }),
         } as any),
         // @ts-ignore
         proposeCreateNote: tool({
           description: "Propose a new note for the user. Use whenever the user asks to save or write a note.",
-          parameters: z.object({
+          inputSchema: z.object({
             heading: z.string().describe("The title or heading of the note"),
             description: z.string().describe("The body content of the note"),
             color: z.string().optional().describe("Optional hex color string for the note card"),
@@ -224,7 +231,7 @@ ${primaryGuide}
         // @ts-ignore
         proposeUpdateNote: tool({
           description: "Propose updates to an existing note. Requires exact Note ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the note to update"),
             heading: z.string().optional().describe("The new heading of the note"),
             description: z.string().optional().describe("The new body content"),
@@ -234,14 +241,14 @@ ${primaryGuide}
         // @ts-ignore
         proposeDeleteNote: tool({
           description: "Propose deleting a note. Requires exact Note ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the note to delete"),
           }),
         } as any),
         // @ts-ignore
         proposeCreateEvent: tool({
           description: "Propose a new calendar event. Always try to infer the correct categoryName from context: use 'Birthdays', 'Anniversaries', 'Meetings', 'Reminders', 'Work', or 'Personal'.",
-          parameters: z.object({
+          inputSchema: z.object({
             title: z.string().describe("The title of the event"),
             description: z.string().optional().describe("Description of the event"),
             location: z.string().optional().describe("Location of the event"),
@@ -254,7 +261,7 @@ ${primaryGuide}
         // @ts-ignore
         proposeUpdateEvent: tool({
           description: "Propose updates to an existing calendar event (e.g., reschedule). Requires exact Event ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the event to update"),
             title: z.string().optional().describe("The new title of the event"),
             description: z.string().optional().describe("Description of the event"),
@@ -266,7 +273,7 @@ ${primaryGuide}
         // @ts-ignore
         proposeDeleteEvent: tool({
           description: "Propose deleting a calendar event. Requires exact Event ID from attached context.",
-          parameters: z.object({
+          inputSchema: z.object({
             id: z.string().describe("The unique ID of the event to delete"),
           }),
         } as any)
