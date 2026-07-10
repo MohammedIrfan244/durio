@@ -119,6 +119,25 @@ export async function updateEvent(id: string, data: Partial<IEventCreateInput>):
     }
 }
 
+export async function getEventById(id: string): Promise<ICalendarActionResponse<Event & { category?: EventCategory | null }>> {
+    try {
+        const user = await getUser();
+        if (!user || "error" in user) throw new Error("Unauthorized");
+
+        const event = await prisma.event.findFirst({
+            where: { id, userId: user.id as string },
+            include: { category: true },
+        });
+
+        if (!event) throw new Error("Event not found");
+
+        return { success: true, event };
+    } catch (error) {
+        console.error("Failed to get event:", error);
+        return { success: false, error: "Failed to get event" };
+    }
+}
+
 export async function deleteEvent(id: string): Promise<ICalendarActionResponse<void>> {
     try {
         const user = await getUser();

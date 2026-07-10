@@ -10,14 +10,14 @@ export default function NotFoundPage() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background text-foreground overflow-hidden">
-      {/* Background Decorative Elements */}
+      {/* bg things*/}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[100px] animate-pulse" />
         <div className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[100px] animate-pulse delay-700" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center space-y-8">
-        {/* Large 404 Text */}
+        {/* 404 */}
         <h1 className="text-[10rem] md:text-[14rem] font-bold leading-none tracking-tighter text-primary/10 select-none font-[family-name:var(--font-heading)]">
           404
         </h1>

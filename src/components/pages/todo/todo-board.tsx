@@ -114,8 +114,7 @@ function TodoColumn({
   };
 
   if (loading && todos.length === 0) return <TodoColumnSkeleton title={title} count={4} />;
-  if (todos.length === 0 && !loading) return <NoTodos status={title} />; // Should ensure NoTodos inside Card? Or keeps layout?
-  // Original layout uses Card as wrapper. Let's keep it.
+  if (todos.length === 0 && !loading) return <NoTodos status={title} />; 
 
   return (
     <Card

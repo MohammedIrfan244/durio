@@ -5,7 +5,7 @@ import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper
 import { LineChart } from "lucide-react";
 
 export const metadata = {
-    title: `${APP_NAME} - Statistics Calculator`,
+    title: "Statistics Calculator - Durio",
     description: "Analyze datasets seamlessly.",
 };
 

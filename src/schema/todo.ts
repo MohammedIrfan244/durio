@@ -90,7 +90,8 @@ export const updateTodoSchema = z.object({
   title: z
     .string()
     .min(1, "Title is required")
-    .max(100, "Title cannot exceed 100 characters"),
+    .max(100, "Title cannot exceed 100 characters")
+    .optional(),
   description: z.string().max(300, "Description cannot exceed 300 characters").optional(),
   priority: TodoPriorityEnum.optional(),
   tags: z.array(z.string()).optional(),

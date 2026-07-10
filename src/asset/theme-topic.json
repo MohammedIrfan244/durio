@@ -12,5 +12,26 @@
         "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019225/Gemini_Generated_Image_ff9a12ff9a12ff9a_d771k7.png",
         "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_7dduf07dduf07ddu_eg2s1w.png",
         "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_vexqmcvexqmcvexq_kff7iu.png"
+    },
+    "calendar":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_cabdbscabdbscabd_vokwtq.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_k6zzr7k6zzr7k6zz_dmrbro.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019225/Gemini_Generated_Image_ff9a12ff9a12ff9a_d771k7.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_7dduf07dduf07ddu_eg2s1w.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_vexqmcvexqmcvexq_kff7iu.png"
+    },
+    "calculator":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_cabdbscabdbscabd_vokwtq.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_k6zzr7k6zzr7k6zz_dmrbro.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019225/Gemini_Generated_Image_ff9a12ff9a12ff9a_d771k7.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_7dduf07dduf07ddu_eg2s1w.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_vexqmcvexqmcvexq_kff7iu.png"
+    },
+    "settings":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_cabdbscabdbscabd_vokwtq.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_k6zzr7k6zzr7k6zz_dmrbro.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019225/Gemini_Generated_Image_ff9a12ff9a12ff9a_d771k7.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019223/Gemini_Generated_Image_7dduf07dduf07ddu_eg2s1w.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1768019224/Gemini_Generated_Image_vexqmcvexqmcvexq_kff7iu.png"
     }
 }

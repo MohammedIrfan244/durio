@@ -11,9 +11,7 @@ import { tokenize } from "@/lib/logic/calculator/core/engine/tokenizer";
 import { parse } from "@/lib/logic/calculator/core/engine/parser";
 import { matrixLogic } from "@/lib/logic/calculator/matrix";
 
-// -----------------------------------------------
-// SIDEBAR CONTENT — dynamic by tab
-// -----------------------------------------------
+//sidebar
 const sidebarContent = {
   algebra: {
     theorem: {
@@ -54,10 +52,7 @@ const sidebarContent = {
     ]
   }
 };
-
-// -----------------------------------------------
-// POLYNOMIAL CONFIGS — dynamic labels per degree
-// -----------------------------------------------
+// polynomial
 const polyConfigs = {
   2: {
     label: "Quadratic",
@@ -99,12 +94,12 @@ type PolyDeg = 2 | 3 | 4;
 export default function ComplexMath() {
   const [activeTab, setActiveTab] = useState<"algebra" | "calculus" | "systems">("algebra");
 
-  // --- SOLVER STATE ---
+  // polynomial solver state
   const [polyDeg, setPolyDeg] = useState<PolyDeg>(2);
   const [coeffs, setCoeffs] = useState({ a: "1", b: "-5", c: "6", d: "0", e: "0" });
   const [roots, setRoots] = useState<(number | string)[] | null>(null);
 
-  // --- CALCULUS STATE ---
+  // calculus state
   const [funcStr, setFuncStr] = useState("x^2 + 2*x + 1");
   const [diff1Result, setDiff1Result] = useState("");
   const [diff2Result, setDiff2Result] = useState("");
@@ -115,15 +110,13 @@ export default function ComplexMath() {
   const [intResult, setIntResult] = useState<number | null>(null);
   const [int2Result, setInt2Result] = useState<number | null>(null);
 
-  // --- SYSTEMS STATE ---
+  // systems state
   const [sysSize, setSysSize] = useState<2 | 3>(2);
   const [sysA, setSysA] = useState([["2","1"],["1","3"]]);
   const [sysB, setSysB] = useState(["5","10"]);
   const [sysResult, setSysResult] = useState<number[] | string | null>(null);
 
-  // -----------------------------------------------
-  // HANDLERS
-  // -----------------------------------------------
+  // handlers
   const setCoeff = (key: string, val: string) => setCoeffs(prev => ({ ...prev, [key]: val }));
 
   const handleSolve = () => {
@@ -133,9 +126,8 @@ export default function ComplexMath() {
     if (polyDeg === 2) result = symbolicLogic.solveQuadratic(a, b, c);
     else if (polyDeg === 3) result = symbolicLogic.solveCubic(a, b, c, d);
     else if (polyDeg === 4) {
-      // Ferrari: find resolvent cubic, then decompose into two quadratics
+      // ferrari's resolvent
       try {
-        // Depress quartic by substituting x = t - b/(4a)
         const p = (-3*b*b/(8*a*a)) + c/a;
         const q = (b*b*b/(8*a*a*a)) - (b*c/(2*a*a)) + d/a;
         const r2 = (-3*b*b*b*b/(256*a*a*a*a)) + (c*b*b/(16*a*a*a)) - (b*d/(4*a*a)) + e/a;
@@ -181,8 +173,7 @@ export default function ComplexMath() {
     const result = symbolicLogic.integral(funcStr, a, b);
     if (order === 1) setIntResult(result);
     else {
-      // Second order: integrate once more over the same bounds
-      // Build antiderivative numerically as f(x2) = ∫₀ˣ² f(x1) dx1 sampled at N points
+      // second order integral
       const N = 50;
       const step = (b - a) / N;
       let sum = 0;
@@ -204,7 +195,6 @@ export default function ComplexMath() {
         return [...rowCoeffs, Number(sysB[i] ?? 0)];
       });
       const rref = matrixLogic.rref(mat);
-      // Extract the last column (solution vector) and guard against undefined
       const solution = rref.slice(0, n).map(row => {
         const val = row[n];
         return typeof val === "number" && !isNaN(val) ? val : 0;
@@ -215,14 +205,13 @@ export default function ComplexMath() {
     }
   };
 
-  // Dynamic sidebar
   const sidebar = sidebarContent[activeTab];
   const polyConfig = polyConfigs[polyDeg];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-      {/* ── MAIN CARD ── */}
+{/* main */}
       <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 lg:col-span-2 overflow-hidden">
         <CardHeader className="pb-0 bg-secondary/10">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4 pb-4">
@@ -255,10 +244,9 @@ export default function ComplexMath() {
 
         <CardContent className="pt-6 space-y-6">
 
-          {/* ═══════════ ALGEBRA TAB ═══════════ */}
+          {/* algebraic tab */}
           {activeTab === "algebra" && (
             <div className="space-y-6">
-              {/* Degree selector */}
               <div className="flex justify-between items-center gap-3">
                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Equation Type</span>
                 <div className="flex gap-2">
@@ -272,12 +260,12 @@ export default function ComplexMath() {
                 </div>
               </div>
 
-              {/* Form label */}
+                  
               <div className="font-mono text-sm text-muted-foreground bg-secondary/20 px-4 py-2 rounded-lg border border-border/30">
                 {polyConfig.form}
               </div>
 
-              {/* Coefficient inputs — dynamic labels */}
+              {/* Coefficient inputs  */}
               <div className={cn("grid gap-3", polyDeg === 4 ? "grid-cols-5" : polyDeg === 3 ? "grid-cols-4" : "grid-cols-3")}>
                 {polyConfig.coeffs.filter(c => c.relevant).map(({ key, exp }) => (
                   <div key={key} className="space-y-1.5">
@@ -326,7 +314,7 @@ export default function ComplexMath() {
             </div>
           )}
 
-          {/* ═══════════ CALCULUS TAB ═══════════ */}
+          {/* calculus tab */}
           {activeTab === "calculus" && (
             <div className="space-y-6">
               {/* Function input */}
@@ -340,7 +328,8 @@ export default function ComplexMath() {
                 />
               </div>
 
-              {/* Derivatives Section */}
+
+              {/* derivatives section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Symbolic Differentiation</span>
@@ -428,7 +417,7 @@ export default function ComplexMath() {
             </div>
           )}
 
-          {/* ═══════════ SYSTEMS TAB ═══════════ */}
+          {/* systems tab */}
           {activeTab === "systems" && (
             <div className="space-y-6">
               <div className="flex items-start gap-3 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
@@ -512,7 +501,7 @@ export default function ComplexMath() {
         </CardContent>
       </Card>
 
-      {/* ── SIDEBAR — dynamic per tab ── */}
+      {/* sidebar dynamic tab */}
       <div className="space-y-6">
         <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-3">

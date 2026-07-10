@@ -392,11 +392,23 @@ export const changeTodoStatus = withErrorWrapper<ITodo, [ChangeTodoStatusInput]>
 
   // Update completedAt if status is DONE
   const completedAt = validatedInput.status === "DONE" ? new Date() : null;
-  return await prisma.todo.update({
+  const updatedTodo = await prisma.todo.update({
     where: { id: validatedInput.id },
     data: { status: validatedInput.status as ITodoStatus, completedAt },
     include: { checklist: true },
-  }) as ITodo;
+  });
+
+  if (validatedInput.status === "DONE" && todo.status !== "DONE") {
+    await prisma.notification.create({
+      data: {
+        userId,
+        message: `Great job! You completed task: ${todo.title}`,
+        date: new Date(),
+      }
+    });
+  }
+
+  return updatedTodo as ITodo;
 });
 
 // Action to bulk change status cancelled

@@ -14,10 +14,32 @@ export function formatDate(date: Date | string | number | undefined, maxLength?:
   return formattedDate;
 }
 
+export function timeAgo(dateInput: Date | string | number): string {
+  const date = new Date(dateInput);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (seconds < 60) return "just now";
+  
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  
+  return format(date, "MMM dd");
+}
+
 
 export function convertToTime(time: string) {
-  const [timePart, rawMeridiem] = time.trim().split(/\s+/);
-  const meridiem = rawMeridiem.toUpperCase();
+  const parts = time.trim().split(/\s+/);
+  const timePart = parts[0];
+  const rawMeridiem = parts.length > 1 ? parts[1] : undefined;
+  
+  const meridiem = rawMeridiem ? rawMeridiem.toUpperCase() : undefined;
 
   let [hours, minutes] = timePart.split(":").map(Number);
 
@@ -27,7 +49,7 @@ export function convertToTime(time: string) {
     hours += 12;
   }
 
-  return hours * 60 + minutes;
+  return hours * 60 + (minutes || 0);
 }
 
 export function getCurrentTimeString(timeZone: string) {

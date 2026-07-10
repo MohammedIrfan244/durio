@@ -1,6 +1,7 @@
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import themeTopic from "@/asset/theme-topic.json";
+import { useSettings } from "@/components/providers/settings-provider";
 
 type ThemeTopic = typeof themeTopic;
 type ModuleName = keyof ThemeTopic;
@@ -8,8 +9,9 @@ type ModuleName = keyof ThemeTopic;
 export function useThemeImage(): string | null {
   const { resolvedTheme } = useTheme();
   const pathname = usePathname();
+  const { fancyMode } = useSettings();
 
-  if (!resolvedTheme || !pathname) return null;
+  if (!resolvedTheme || !pathname || !fancyMode) return null;
 
   const moduleName = pathname.split("/")[1]?.toLowerCase();
 

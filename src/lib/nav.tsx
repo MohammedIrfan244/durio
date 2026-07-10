@@ -3,6 +3,7 @@ import {
   Calculator, Image as ImageIcon, Moon, Heart, Zap, 
   PenLine, Rocket, BookOpen, Hourglass, SmilePlus 
 } from "lucide-react";
+import { APP_REGISTRY } from "@/config/modules";
 
 export interface NavItem {
   label: string;
@@ -22,7 +23,8 @@ export const navItems: NavItem[] = [
     description: "Your comfy starting point. Good vibes only.",
     icon: <Home size={18} />,
     color: "#F87171",
-    animationClass: "animate-home"
+    animationClass: "animate-home",
+    disabled: !APP_REGISTRY.MODULES.HOME.enabled || APP_REGISTRY.MODULES.HOME.systemDisabled
   },
   {
     label: "My To-Dos",
@@ -30,7 +32,8 @@ export const navItems: NavItem[] = [
     description: "Let's get that sweet, sweet done feeling.",
     icon: <CheckCircle size={18} />,
     color: "#60A5FA",
-    animationClass: "animate-check"
+    animationClass: "animate-check",
+    disabled: !APP_REGISTRY.MODULES.TODO.enabled || APP_REGISTRY.MODULES.TODO.systemDisabled
   },
     {
     label: "My Notes",
@@ -38,7 +41,8 @@ export const navItems: NavItem[] = [
     icon: <StickyNote size={18} />,
     description: "Catching those random brainstorms.",
     color: "#F472B6",
-    animationClass: "animate-note"
+    animationClass: "animate-note",
+    disabled: !APP_REGISTRY.MODULES.NOTES.enabled || APP_REGISTRY.MODULES.NOTES.systemDisabled
   },
 
   {
@@ -47,7 +51,8 @@ export const navItems: NavItem[] = [
     icon: <CalendarDays size={18} />,
     description: "Plotting the adventures and chilling time.",
     color: "#FBBF24",
-    animationClass: "animate-calendar"
+    animationClass: "animate-calendar",
+    disabled: !APP_REGISTRY.MODULES.CALENDAR.enabled || APP_REGISTRY.MODULES.CALENDAR.systemDisabled
   },
   {
     label: "Reading List",
@@ -56,7 +61,7 @@ export const navItems: NavItem[] = [
     description: "Escaping reality, one chapter at a time.",
     color: "#34D399",
     animationClass: "animate-book",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.BOOKS.enabled || APP_REGISTRY.MODULES.BOOKS.systemDisabled
   },
   {
     label: "My Journal",
@@ -65,7 +70,7 @@ export const navItems: NavItem[] = [
     description: "Your safe space to vent and reflect.",
     color: "#C084FC",
     animationClass: "animate-journal",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.JOURNAL.enabled || APP_REGISTRY.MODULES.JOURNAL.systemDisabled
   },
   {
     label: "Photo Album",
@@ -74,7 +79,7 @@ export const navItems: NavItem[] = [
     description: "Memories are just a click away.",
     color: "#FCD34D",
     animationClass: "animate-photo",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.ALBUM.enabled || APP_REGISTRY.MODULES.ALBUM.systemDisabled
   },
   {
     label: "Workouts",
@@ -83,7 +88,7 @@ export const navItems: NavItem[] = [
     description: "Get those endorphins movin' and groovin'.",
     color: "#4ADE80",
     animationClass: "animate-dumbbell",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.WORKOUT.enabled || APP_REGISTRY.MODULES.WORKOUT.systemDisabled
   },
   {
     label: "Sleep Tracker",
@@ -92,7 +97,7 @@ export const navItems: NavItem[] = [
     description: "Optimizing rest for maximum chill.",
     color: "#6366F1",
     animationClass: "animate-moon",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.SLEEP.enabled || APP_REGISTRY.MODULES.SLEEP.systemDisabled
   },
   {
     label: "Cycle Tracker",
@@ -101,7 +106,7 @@ export const navItems: NavItem[] = [
     description: "Staying in tune with the body's flow.",
     color: "#FB7185",
     animationClass: "animate-heart",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.MENSTRUATION.enabled || APP_REGISTRY.MODULES.MENSTRUATION.systemDisabled
   },
   {
     label: "My Projects",
@@ -110,7 +115,7 @@ export const navItems: NavItem[] = [
     description: "Where the magic and big things happen.",
     color: "#FB923C",
     animationClass: "animate-rocket",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.PROJECTS.enabled || APP_REGISTRY.MODULES.PROJECTS.systemDisabled
   },
   {
     label: "Focus Time",
@@ -119,7 +124,7 @@ export const navItems: NavItem[] = [
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
     animationClass: "animate-hourglass",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.FOCUS.enabled || APP_REGISTRY.MODULES.FOCUS.systemDisabled
   },
   {
     label: "Quick Calc",
@@ -128,6 +133,7 @@ export const navItems: NavItem[] = [
     description: "Math? We just need fast answers.",
     color: "#818CF8",
     animationClass: "animate-calc",
+    disabled: !APP_REGISTRY.MODULES.CALCULATOR.enabled || APP_REGISTRY.MODULES.CALCULATOR.systemDisabled,
     subItems: [
       { label: "Essential Toolkit", url: "/calculator/essential" },
       { label: "Scientific", url: "/calculator/scientific" },
@@ -144,6 +150,6 @@ export const navItems: NavItem[] = [
     description: "Your friendly AI companion.",
     color: "#22D3EE",
     animationClass: "animate-smile",
-    disabled: true
+    disabled: !APP_REGISTRY.MODULES.DURIA.enabled || APP_REGISTRY.MODULES.DURIA.systemDisabled
   }
 ];
