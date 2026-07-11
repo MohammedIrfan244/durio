@@ -7,8 +7,7 @@ import { differenceInCalendarDays } from "date-fns";
 
 const DAILY_LIMIT = 150;
 
-export const getAIUsage = withErrorWrapper<{ used: number; limit: number }, []>(async () => {
-  const userId = await getUserId();
+export async function getEffectiveAIUsageForUser(userId: string): Promise<{ used: number; limit: number }> {
   const usage = await prisma.aIUsage.findUnique({
     where: { userId },
   });
@@ -22,6 +21,11 @@ export const getAIUsage = withErrorWrapper<{ used: number; limit: number }, []>(
     : usage.requestsToday;
 
   return { used, limit: DAILY_LIMIT };
+}
+
+export const getAIUsage = withErrorWrapper<{ used: number; limit: number }, []>(async () => {
+  const userId = await getUserId();
+  return getEffectiveAIUsageForUser(userId);
 });
 
 export async function checkAndIncrementAIUsage(): Promise<{ success: boolean; error?: string }> {
