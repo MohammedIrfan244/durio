@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDuria } from '@/components/providers/duria-provider';
-import { Paperclip, Send, Bot, User, Loader2, X } from 'lucide-react';
+import { Paperclip, Send, User, Loader2, X } from 'lucide-react';
+import { DuriaAvatar } from '@/components/shared/duria-avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ContextAttachDialog from './context-attach-dialog';
@@ -80,7 +81,7 @@ export default function DuriaChat() {
       {/* Header */}
       <div className="h-14 border-b border-border/50 bg-card flex items-center px-4 justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <Bot className="w-5 h-5 text-primary" />
+          <DuriaAvatar size={20} />
           <h2 className="font-semibold">DURIA Assistant</h2>
         </div>
         {messages.length > 0 && (
@@ -94,9 +95,7 @@ export default function DuriaChat() {
           {messages.length === 0 && (
              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4">
                 <div className="flex flex-col items-center text-center mb-8">
-                  <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4">
-                    <Bot className="w-8 h-8" />
-                  </div>
+                  <DuriaAvatar size={80} className="mb-4 shadow-sm ring-4 ring-primary/10" />
                   <h3 className="text-xl font-bold">Welcome to DURIA</h3>
                   <p className="text-muted-foreground mt-2 max-w-md">Your personal AI assistant, embedded directly into your workspace.</p>
                 </div>
@@ -109,7 +108,7 @@ export default function DuriaChat() {
                     </p>
                   </div>
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Bot size={16} className="text-primary"/> 2. Action Taker</h4>
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. Action Taker</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       DURIA has hands! Tell it to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Mark this task as done"</strong>.
                     </p>
@@ -140,9 +139,13 @@ export default function DuriaChat() {
 
             return (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
-                {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
-              </div>
+              {msg.role === 'user' ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
+                  <User size={16} />
+                </div>
+              ) : (
+                <DuriaAvatar size={32} />
+              )}
               <div className={`px-4 py-3 rounded-2xl max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-card border border-border/50 rounded-tl-sm shadow-sm'}`}>
                 {msg.role === 'user' ? (
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{textContent}</p>
@@ -204,9 +207,7 @@ export default function DuriaChat() {
           {/* Thinking Animation */}
           {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
             <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-secondary text-foreground">
-                <Bot size={16} />
-              </div>
+              <DuriaAvatar size={32} />
               <div className="px-4 py-3 rounded-2xl max-w-[85%] bg-card border border-border/50 rounded-tl-sm shadow-sm flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
