@@ -81,7 +81,9 @@ export default function Header() {
   // Logic: Clock & Initialization
   useEffect(() => {
     setMounted(true);
-    flagTimestamp(pathname || "/");
+    flagTimestamp(pathname || "/").catch((error) => {
+      console.error("Failed to update page timestamp", error);
+    });
 
     const updateClock = () => {
       const now = new Date();

@@ -10,6 +10,25 @@ import {
     IEvent 
 } from "@/types/calendar";
 import { Event, EventCategory } from "@prisma/client";
+import { z } from "zod";
+import { MONGOID } from "@/schema/mongo";
+
+const eventCreateSchema = z.object({
+    title: z.string().trim().min(1).max(200),
+    description: z.string().trim().max(10000).optional(),
+    location: z.string().trim().max(200).optional(),
+    isAllDay: z.boolean().optional(),
+    startDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+    endDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+    categoryId: MONGOID.optional(),
+    linkedResources: z.array(z.object({
+        id: MONGOID,
+        type: z.enum(["EVENT", "TODO", "NOTE", "PROJECT"]),
+    })).max(20).optional(),
+});
+
+const eventUpdateSchema = eventCreateSchema.partial().omit({ linkedResources: true });
+const searchSchema = z.string().trim().max(100);
 
 const DEFAULT_CATEGORIES = [
     { name: "Personal", color: "#3B82F6", isSystem: true },
@@ -57,10 +76,11 @@ export async function getOrCreateDefaultCategories(): Promise<EventCategory[]> {
 
 export async function createEvent(data: IEventCreateInput): Promise<ICalendarActionResponse<Event>> {
     try {
+        const validatedData = eventCreateSchema.parse(data);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
-        const { linkedResources, ...eventData } = data;
+        const { linkedResources, ...eventData } = validatedData;
 
         const event = await prisma.event.create({
             data: {
@@ -103,12 +123,14 @@ export async function createEvent(data: IEventCreateInput): Promise<ICalendarAct
 
 export async function updateEvent(id: string, data: Partial<IEventCreateInput>): Promise<ICalendarActionResponse<Event>> {
     try {
+        const eventId = MONGOID.parse(id);
+        const validatedData = eventUpdateSchema.parse(data);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
         const event = await prisma.event.update({
-            where: { id, userId: user.id as string },
-            data,
+            where: { id: eventId, userId: user.id as string },
+            data: validatedData,
         });
 
         revalidatePath("/calendar");
@@ -121,11 +143,12 @@ export async function updateEvent(id: string, data: Partial<IEventCreateInput>):
 
 export async function getEventById(id: string): Promise<ICalendarActionResponse<Event & { category?: EventCategory | null }>> {
     try {
+        const eventId = MONGOID.parse(id);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
         const event = await prisma.event.findFirst({
-            where: { id, userId: user.id as string },
+            where: { id: eventId, userId: user.id as string },
             include: { category: true },
         });
 
@@ -140,11 +163,12 @@ export async function getEventById(id: string): Promise<ICalendarActionResponse<
 
 export async function deleteEvent(id: string): Promise<ICalendarActionResponse<void>> {
     try {
+        const eventId = MONGOID.parse(id);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
         await prisma.event.delete({
-            where: { id, userId: user.id as string },
+            where: { id: eventId, userId: user.id as string },
         });
 
         revalidatePath("/calendar");
@@ -157,6 +181,7 @@ export async function deleteEvent(id: string): Promise<ICalendarActionResponse<v
 
 export async function searchEvents(query: string): Promise<Event[]> {
     try {
+        const validatedQuery = searchSchema.parse(query);
         const user = await getUser();
         if (!user || "error" in user) return [];
 
@@ -164,8 +189,8 @@ export async function searchEvents(query: string): Promise<Event[]> {
             where: {
                 userId: user.id as string,
                 OR: [
-                    { title: { contains: query, mode: "insensitive" } },
-                    { description: { contains: query, mode: "insensitive" } },
+                    { title: { contains: validatedQuery, mode: "insensitive" } },
+                    { description: { contains: validatedQuery, mode: "insensitive" } },
                 ],
             },
             take: 10,
@@ -213,6 +238,11 @@ async function fetchFunFactForDate(month: number, day: number): Promise<string |
 
 export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Promise<ICalendarEvent[]> {
     try {
+        const rangeSchema = z.object({
+            startDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+            endDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+        });
+        const validatedRange = rangeSchema.parse({ startDate, endDate });
         const user = await getUser();
         if (!user || "error" in user) return [];
 
@@ -220,7 +250,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             where: {
                 userId: user.id as string,
                 OR: [
-                    { startDate: { gte: startDate, lte: endDate } },
+                    { startDate: { gte: validatedRange.startDate, lte: validatedRange.endDate } },
                     { category: { name: { in: ["Birthdays", "Anniversaries"] } } }
                 ]
             },
@@ -230,7 +260,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         const todosWithDates = await prisma.todo.findMany({
             where: {
                 userId: user.id as string,
-                dueDate: { gte: startDate, lte: endDate },
+                dueDate: { gte: validatedRange.startDate, lte: validatedRange.endDate },
                 OR: [
                     { renewInterval: { isSet: false } },
                     { renewInterval: null }
@@ -246,8 +276,8 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             const isBirthday = e.category?.name === "Birthdays";
             
             if (isAnnualRecurrent) {
-                const startYear = startDate.getFullYear();
-                const endYear = endDate.getFullYear();
+                const startYear = validatedRange.startDate.getFullYear();
+                const endYear = validatedRange.endDate.getFullYear();
                 
                 for (let year = startYear; year <= endYear; year++) {
                     const recurrentStart = new Date(e.startDate);
@@ -255,7 +285,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                     const recurrentEnd = new Date(e.endDate);
                     recurrentEnd.setFullYear(year);
 
-                    if (recurrentStart >= startDate && recurrentStart <= endDate) {
+                    if (recurrentStart >= validatedRange.startDate && recurrentStart <= validatedRange.endDate) {
                         const yearsSince = year - e.startDate.getFullYear();
                         const titleSuffix = yearsSince > 0 ? ` (${yearsSince}${getOrdinalIndicator(yearsSince)})` : '';
                         
@@ -272,7 +302,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
                     }
                 }
             } else {
-                if (e.startDate >= startDate && e.startDate <= endDate) {
+                if (e.startDate >= validatedRange.startDate && e.startDate <= validatedRange.endDate) {
                     mappedEvents.push({
                         id: e.id,
                         title: e.title,
@@ -379,20 +409,26 @@ export async function rescheduleCalendarItem(
     newEnd: Date
 ): Promise<{ success: boolean; error?: string }> {
     try {
+        const validated = z.object({
+            id: MONGOID,
+            type: z.enum(["event", "todo"]),
+            newStart: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+            newEnd: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
+        }).parse({ id, type, newStart, newEnd });
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
-        if (type === "event") {
+        if (validated.type === "event") {
             await prisma.event.update({
-                where: { id, userId: user.id as string },
-                data: { startDate: newStart, endDate: newEnd },
+                where: { id: validated.id, userId: user.id as string },
+                data: { startDate: validated.newStart, endDate: validated.newEnd },
             });
-        } else if (type === "todo") {
-            const timeStr = newStart.toTimeString().slice(0, 5); // "HH:MM"
+        } else if (validated.type === "todo") {
+            const timeStr = validated.newStart.toTimeString().slice(0, 5); // "HH:MM"
             await prisma.todo.update({
-                where: { id, userId: user.id as string },
+                where: { id: validated.id, userId: user.id as string },
                 data: {
-                    dueDate: newStart,
+                    dueDate: validated.newStart,
                     dueTime: timeStr !== "00:00" ? timeStr : undefined,
                 },
             });

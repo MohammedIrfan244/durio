@@ -8,6 +8,24 @@ import {
     ILinkedResource, 
     IResourceLinkInput 
 } from "@/types/resource-link";
+import { z } from "zod";
+import { MONGOID } from "@/schema/mongo";
+
+const resourceTypeSchema = z.enum(["EVENT", "TODO", "NOTE", "PROJECT"]);
+const resourceLinkInputSchema = z.object({
+    fromId: MONGOID,
+    fromType: resourceTypeSchema,
+    toId: MONGOID,
+    toType: resourceTypeSchema,
+});
+const linkedResourcesInputSchema = z.object({
+    resourceId: MONGOID,
+    resourceType: resourceTypeSchema,
+});
+const searchInputSchema = z.object({
+    query: z.string().trim().max(100),
+    type: resourceTypeSchema,
+});
 
 /**
  * Create a bidirectional link between two resources.
@@ -15,6 +33,7 @@ import {
  */
 export async function linkResources(input: IResourceLinkInput) {
     try {
+        const validatedInput = resourceLinkInputSchema.parse(input);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
@@ -23,8 +42,8 @@ export async function linkResources(input: IResourceLinkInput) {
             where: {
                 userId: user.id as string,
                 OR: [
-                    { fromId: input.fromId, fromType: input.fromType, toId: input.toId, toType: input.toType },
-                    { fromId: input.toId, fromType: input.toType, toId: input.fromId, toType: input.fromType },
+                    { fromId: validatedInput.fromId, fromType: validatedInput.fromType, toId: validatedInput.toId, toType: validatedInput.toType },
+                    { fromId: validatedInput.toId, fromType: validatedInput.toType, toId: validatedInput.fromId, toType: validatedInput.fromType },
                 ],
             },
         });
@@ -36,10 +55,10 @@ export async function linkResources(input: IResourceLinkInput) {
         const link = await prisma.resourceLink.create({
             data: {
                 userId: user.id as string,
-                fromId: input.fromId,
-                fromType: input.fromType,
-                toId: input.toId,
-                toType: input.toType,
+                fromId: validatedInput.fromId,
+                fromType: validatedInput.fromType,
+                toId: validatedInput.toId,
+                toType: validatedInput.toType,
             },
         });
 
@@ -56,11 +75,12 @@ export async function linkResources(input: IResourceLinkInput) {
  */
 export async function unlinkResources(linkId: string) {
     try {
+        const validatedLinkId = MONGOID.parse(linkId);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
 
         await prisma.resourceLink.delete({
-            where: { id: linkId, userId: user.id as string },
+            where: { id: validatedLinkId, userId: user.id as string },
         });
 
         revalidatePath("/");
@@ -80,6 +100,7 @@ export async function getLinkedResources(
     resourceType: ResourceType
 ): Promise<ILinkedResource[]> {
     try {
+        const validatedInput = linkedResourcesInputSchema.parse({ resourceId, resourceType });
         const user = await getUser();
         if (!user || "error" in user) return [];
 
@@ -87,8 +108,8 @@ export async function getLinkedResources(
             where: {
                 userId: user.id as string,
                 OR: [
-                    { fromId: resourceId, fromType: resourceType },
-                    { toId: resourceId, toType: resourceType },
+                    { fromId: validatedInput.resourceId, fromType: validatedInput.resourceType },
+                    { toId: validatedInput.resourceId, toType: validatedInput.resourceType },
                 ],
             },
         });
@@ -98,11 +119,11 @@ export async function getLinkedResources(
 
         for (const link of links) {
             // Determine which side is the "other" resource
-            const isFrom = link.fromId === resourceId && link.fromType === resourceType;
+            const isFrom = link.fromId === validatedInput.resourceId && link.fromType === validatedInput.resourceType;
             const otherId = isFrom ? link.toId : link.fromId;
             const otherType = isFrom ? link.toType : link.fromType;
 
-            const resolved = await resolveResource(otherId, otherType as ResourceType);
+            const resolved = await resolveResource(otherId, otherType as ResourceType, user.id as string);
             if (resolved) {
                 results.push({
                     linkId: link.id,
@@ -129,12 +150,13 @@ export async function getLinkedResources(
  */
 async function resolveResource(
     id: string, 
-    type: ResourceType
+    type: ResourceType,
+    userId: string
 ): Promise<{ title: string; subtitle?: string; color?: string } | null> {
     try {
         switch (type) {
             case "TODO": {
-                const todo = await prisma.todo.findUnique({ where: { id } });
+                const todo = await prisma.todo.findFirst({ where: { id, userId } });
                 if (!todo) return null;
                 return { 
                     title: todo.title, 
@@ -143,7 +165,7 @@ async function resolveResource(
                 };
             }
             case "NOTE": {
-                const note = await prisma.note.findUnique({ where: { id } });
+                const note = await prisma.note.findFirst({ where: { id, userId } });
                 if (!note) return null;
                 return { 
                     title: note.heading, 
@@ -152,8 +174,8 @@ async function resolveResource(
                 };
             }
             case "EVENT": {
-                const event = await prisma.event.findUnique({ 
-                    where: { id },
+                const event = await prisma.event.findFirst({ 
+                    where: { id, userId },
                     include: { category: true } 
                 });
                 if (!event) return null;
@@ -180,13 +202,14 @@ export async function searchLinkableResources(
     type: ResourceType
 ): Promise<{ id: string; title: string; subtitle?: string }[]> {
     try {
+        const validatedInput = searchInputSchema.parse({ query, type });
         const user = await getUser();
         if (!user || "error" in user) return [];
 
-        const q = query.trim();
+        const q = validatedInput.query;
         if (!q) return [];
 
-        switch (type) {
+        switch (validatedInput.type) {
             case "TODO": {
                 const todos = await prisma.todo.findMany({
                     where: {

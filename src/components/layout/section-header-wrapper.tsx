@@ -29,6 +29,7 @@ export function SectionHeaderWrapper({
             src={backgroundImage}
             alt="Header Background"
             fill
+            sizes="100vw"
             className="object-cover opacity-25 transition-all duration-700 ease-in-out animate-ken-burns"
           />
           <div className="absolute inset-0 bg-background/50 mix-blend-overlay" />

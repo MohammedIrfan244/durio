@@ -1,13 +1,36 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { statistics } from "@/lib/logic/calculator/statistics";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart as LineChartIcon } from "lucide-react";
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+const ResponsiveContainer = dynamic(
+  () => import("recharts").then((mod) => mod.ResponsiveContainer),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-full w-full rounded-lg" />,
+  }
+);
+const LineChart = dynamic(() => import("recharts").then((mod) => mod.LineChart), {
+  ssr: false,
+});
+const Line = dynamic(() => import("recharts").then((mod) => mod.Line), {
+  ssr: false,
+});
+const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), {
+  ssr: false,
+});
+const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), {
+  ssr: false,
+});
+const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), {
+  ssr: false,
+});
 
 export default function Statistics() {
   const [inputStr, setInputStr] = useState<string>("");

@@ -1,18 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useDuria } from '@/components/providers/duria-provider';
 import { Paperclip, Send, User, Loader2, X } from 'lucide-react';
 import { DuriaAvatar } from '@/components/shared/duria-avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import ContextAttachDialog from './context-attach-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
 import ProposalCard from './proposal-card';
 import { getAIUsage } from '@/server/actions/ai-usage';
+
+const ContextAttachDialog = dynamic(() => import('./context-attach-dialog'), {
+  ssr: false,
+});
 
 const MESSAGE_LIMIT = 2000;
 

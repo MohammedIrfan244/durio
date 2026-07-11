@@ -3,6 +3,12 @@
 import {prisma} from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user"; 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const userSettingsSchema = z.object({
+    fancyMode: z.boolean().optional(),
+    disabledModules: z.array(z.string().trim().min(1).max(50)).max(50).optional(),
+});
 
 export async function getUserSettings() {
     try {
@@ -35,6 +41,7 @@ export async function getUserSettings() {
 
 export async function updateUserSettings(data: { fancyMode?: boolean; disabledModules?: string[] }) {
     try {
+        const validatedData = userSettingsSchema.parse(data);
         const userId = await getUserId();
         if (!userId) {
             throw new Error("Unauthorized");
@@ -43,8 +50,8 @@ export async function updateUserSettings(data: { fancyMode?: boolean; disabledMo
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
-                ...(data.fancyMode !== undefined && { fancyMode: data.fancyMode }),
-                ...(data.disabledModules !== undefined && { disabledModules: data.disabledModules })
+                ...(validatedData.fancyMode !== undefined && { fancyMode: validatedData.fancyMode }),
+                ...(validatedData.disabledModules !== undefined && { disabledModules: validatedData.disabledModules })
             },
             select: {
                 fancyMode: true,

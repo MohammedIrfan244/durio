@@ -4,9 +4,12 @@ import { MONGOID } from "./mongo";
 export const NoteStatusEnum = z.enum(['ACTIVE', 'ARCHIVED', 'DELETED']);
 export type NoteStatus = z.infer<typeof NoteStatusEnum>;
 
+const shortText = z.string().trim().min(1).max(200);
+const longText = z.string().trim().min(1).max(10000);
+
 export const CreateNoteSchema = z.object({
-  heading: z.string().min(1, "Heading is required").max(100),
-  description: z.string().min(1, "Description is required"),
+  heading: shortText,
+  description: longText,
   color: z.string().optional(),
   folderId: MONGOID.optional(),
   linkedResources: z
@@ -23,8 +26,8 @@ export const CreateNoteSchema = z.object({
 
 export const UpdateNoteSchema = z.object({
   id: MONGOID,
-  heading: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
+  heading: shortText.optional(),
+  description: longText.optional(),
   color: z.string().optional(),
   folderId: MONGOID.optional(),
   status: NoteStatusEnum.optional(),
@@ -36,14 +39,14 @@ export const DeleteNoteSchema = z.object({
 });
 
 export const CreateFolderSchema = z.object({
-  name: z.string().min(1, "Folder name is required").max(50),
+  name: shortText,
   color: z.string().min(1, "Color is required"),
   icon: z.string().optional(),
 });
 
 export const UpdateFolderSchema = z.object({
   id: MONGOID,
-  name: z.string().min(1).optional(),
+  name: shortText.optional(),
   color: z.string().optional(),
   icon: z.string().optional(),
 });

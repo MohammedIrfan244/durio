@@ -6,11 +6,13 @@ import path from "path";
 import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";
 import { getUserTimezone } from "@/lib/server/date-utils";
+import { checkRateLimit } from "@/lib/server/rate-limit";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
 
 const MAX_REQUEST_BODY_BYTES = 50 * 1024;
 const isDevelopment = process.env.NODE_ENV === "development";
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 
 async function logToDebugFile(tag: string, data: any) {
   try {
@@ -94,8 +96,52 @@ function inferManageToolChoice(messages: any[]) {
   return undefined;
 }
 
+function getClientIp(req: NextRequest) {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || "unknown";
+  }
+
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
+function rateLimitResponse(retryAfter?: number) {
+  return new Response("Too Many Requests", {
+    status: 429,
+    headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined,
+  });
+}
+
+function getLatestUserMessageText(messages: any[]) {
+  const latestUserMessage = [...(messages || [])]
+    .reverse()
+    .find((msg: any) => msg.role === "user");
+
+  return getTextFromMessage(latestUserMessage || {});
+}
+
+function hasPromptInjectionPattern(input: string) {
+  const normalized = input.toLowerCase();
+  return [
+    /ignore (all )?(previous|prior|above) instructions/,
+    /forget (all )?(your|previous|prior|above) instructions/,
+    /you are now/,
+    /act as/,
+    /jailbreak/,
+    /\bdan\b/,
+    /override (the )?(system|developer) instructions/,
+    /disregard (the )?(system|previous|prior|above) instructions/,
+  ].some((pattern) => pattern.test(normalized));
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const ipLimit = checkRateLimit(`ip:${clientIp}`, 10, RATE_LIMIT_WINDOW_MS);
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(ipLimit.retryAfter);
+    }
+
     const rawBody = await req.text();
     if (Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BODY_BYTES) {
       return new Response("Request body too large", { status: 413 });
@@ -107,9 +153,18 @@ export async function POST(req: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    const userLimit = checkRateLimit(`user:${userId}`, 20, RATE_LIMIT_WINDOW_MS);
+    if (!userLimit.allowed) {
+      return rateLimitResponse(userLimit.retryAfter);
+    }
+
     // 1.1 Check API Key
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.error("[DURIA API] Missing GOOGLE_GENERATIVE_AI_API_KEY in production.");
+      if (isDevelopment) {
+        console.warn("[DURIA API] Missing GOOGLE_GENERATIVE_AI_API_KEY in development.");
+      } else {
+        console.error("[DURIA API] Missing GOOGLE_GENERATIVE_AI_API_KEY in production.");
+      }
       return new Response("Missing Google AI API Key in environment variables.", { status: 500 });
     }
 
@@ -132,6 +187,22 @@ export async function POST(req: NextRequest) {
     }
 
     const { messages, contextPayload } = body;
+    const latestUserText = getLatestUserMessageText(messages);
+
+    if (hasPromptInjectionPattern(latestUserText)) {
+      if (isDevelopment) {
+        await logToDebugFile("PROMPT INJECTION DETECTED", {
+          clientIp,
+          userId,
+          message: latestUserText,
+        });
+      }
+
+      return new Response(
+        "I noticed something unusual in your message. Please ask me about your tasks, notes, or calendar instead.",
+        { status: 200 }
+      );
+    }
 
     // 3. Load Tier 1 Context (Primary Guide)
     let primaryGuide = "";
