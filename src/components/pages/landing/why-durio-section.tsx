@@ -12,20 +12,32 @@ export function WhyDurioSection() {
   });
 
   // Chaotic parallax transforms
-  const y1 = useTransform(scrollYProgress, [0, 1], [200, -200]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [-100, 300]);
-  const x1 = useTransform(scrollYProgress, [0, 1], [-150, 100]);
-  const rotate1 = useTransform(scrollYProgress, [0, 1], [-45, 45]);
-  const scale1 = useTransform(scrollYProgress, [0, 1], [0.8, 1.2]);
+  const y1 = useTransform(scrollYProgress, [0, 1], [300, -300]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [-300, 400]);
+  const x1 = useTransform(scrollYProgress, [0, 1], [-300, 200]);
+  const rotate1 = useTransform(scrollYProgress, [0, 1], [-90, 90]);
+  const scale1 = useTransform(scrollYProgress, [0, 1], [0.5, 1.5]);
 
   return (
     <section ref={containerRef} className="py-40 bg-[#0A0A0A] relative overflow-hidden">
       
       {/* Background phrases */}
-      <motion.div style={{ x: y1 }} className="absolute top-20 right-10 text-white/5 font-[family-name:var(--font-heading)] text-7xl font-black whitespace-nowrap">
+      <motion.div 
+        style={{ x: y1 }} 
+        initial={{ opacity: 0.2 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="absolute top-20 right-10 text-white/10 font-[family-name:var(--font-heading)] text-7xl font-black whitespace-nowrap"
+      >
         Too many tabs open.
       </motion.div>
-      <motion.div style={{ x: y2 }} className="absolute bottom-20 left-10 text-[#ff6a00]/5 font-[family-name:var(--font-heading)] text-8xl font-black whitespace-nowrap">
+      <motion.div 
+        style={{ x: y2 }} 
+        initial={{ opacity: 0.2 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="absolute bottom-20 left-10 text-[#ff6a00]/10 font-[family-name:var(--font-heading)] text-8xl font-black whitespace-nowrap"
+      >
         Where did I put that?
       </motion.div>
 
@@ -82,11 +94,12 @@ export function WhyDurioSection() {
 
           {/* Central Unified UI */}
           <motion.div
+            style={{ y: y1 }}
             initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
             whileInView={{ opacity: 1, scale: 1, rotate: 2 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1, type: "spring", bounce: 0.5 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] aspect-[4/3] bg-white/5 border border-white/10 rounded-[40px] backdrop-blur-2xl shadow-[0_0_80px_rgba(255,106,0,0.15)] flex flex-col items-center justify-center overflow-hidden"
+            viewport={{ once: false, margin: "-100px" }}
+            transition={{ duration: 0.4, type: "spring", bounce: 0.6 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[80%] aspect-[4/3] bg-white/5 border border-white/10 rounded-[40px] backdrop-blur-2xl shadow-[0_0_80px_rgba(255,106,0,0.15)] flex flex-col items-center justify-center overflow-hidden"
           >
              <div className="absolute inset-0 bg-gradient-to-br from-[#ff6a00]/10 to-transparent" />
              <div className="text-4xl md:text-5xl font-[family-name:var(--font-heading)] text-white font-black text-center z-10 px-8">

@@ -3,8 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import PrivacyModal from "@/components/auth/login/privacy-policy";
+import ContactModal from "./contact-modal";
 
 export function CtaFooter() {
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+
   return (
     <>
       <section className="py-40 bg-[#ff6a00] text-center relative overflow-hidden">
@@ -43,21 +49,26 @@ export function CtaFooter() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotate: -3 }}
             whileInView={{ opacity: 1, scale: 1, rotate: 2 }}
-            viewport={{ once: true }}
+            viewport={{ once: false }}
             transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
             className="space-y-12"
           >
             <h2 className="text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white drop-shadow-lg leading-none">
               Ready?<br />
-              <span className="inline-block mt-4 -rotate-3 text-white">I've been waiting. 🍊</span>
+              <span className="inline-block mt-4 -rotate-3 text-white">I've been waiting.</span>
             </h2>
             
             <div className="flex justify-center relative">
               <Link href="/dashboard">
-                <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
-                  <Button size="lg" className="bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-2xl rounded-[2rem] px-12 py-10 shadow-2xl transition-all border-b-8 border-orange-200">
-                    Open DURIO
-                  </Button>
+                <motion.div 
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
+                    <Button size="lg" className="bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-2xl rounded-[2rem] px-12 py-10 shadow-2xl transition-all border-b-8 border-orange-200">
+                      Open DURIO
+                    </Button>
+                  </motion.div>
                 </motion.div>
               </Link>
             </div>
@@ -83,16 +94,20 @@ export function CtaFooter() {
               Web App
             </Link>
             <span className="opacity-30">|</span>
-            <Link href="#" className="hover:text-white transition-colors">
+            <button onClick={() => setPrivacyOpen(true)} className="hover:text-white transition-colors text-muted-foreground">
               Privacy
-            </Link>
+            </button>
             <span className="opacity-30">|</span>
-            <Link href="#" className="hover:text-white transition-colors">
+            <button onClick={() => setContactOpen(true)} className="hover:text-white transition-colors text-muted-foreground">
               Contact
-            </Link>
+            </button>
           </div>
         </div>
       </footer>
+
+      {/* Modals */}
+      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </>
   );
 }

@@ -2,6 +2,8 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import images from "@/asset/images.json";
+import { RotateCcwSquareIcon } from "lucide-react";
 
 export function MeetDuriaSection() {
   const containerRef = useRef(null);
@@ -12,7 +14,7 @@ export function MeetDuriaSection() {
 
   const y1 = useTransform(scrollYProgress, [0, 1], [100, -100]);
   const y2 = useTransform(scrollYProgress, [0, 1], [200, -200]);
-  const rotate1 = useTransform(scrollYProgress, [0, 1], [5, -5]);
+  const rotate1 = useTransform(scrollYProgress, [0, 1], [25, -25]);
 
   return (
     <section ref={containerRef} className="py-40 bg-[#0A0A0A] overflow-hidden relative">
@@ -22,18 +24,29 @@ export function MeetDuriaSection() {
       <div className="container mx-auto px-6 max-w-5xl relative z-10">
         
         <div className="text-center mb-24 relative">
-          <motion.h2 
+          <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white"
+            viewport={{ once: false }}
+            className="text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            Meet Duria.
-          </motion.h2>
+            <span>Meet</span>
+            <span className="text-8xl md:text-9xl text-[#ff6a00] bubbly-text inline-flex font-[family-name:var(--font-bubbly)] tracking-tight pt-2">
+              {"Duria.".split("").map((char, index) => (
+                <span
+                  key={index}
+                  className="letter-bubble inline-block"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
+            </span>
+          </motion.div>
           <motion.h3 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false }}
             transition={{ delay: 0.1 }}
             className="text-3xl md:text-5xl font-[family-name:var(--font-body)] text-[#ff6a00] mt-4 -rotate-2"
           >
@@ -44,21 +57,29 @@ export function MeetDuriaSection() {
         <div className="relative h-[600px] flex items-center justify-center">
           
           {/* Duria Image (Center, tilted) */}
-          <motion.div 
-            style={{ y: y1, rotate: rotate1 }}
-            className="absolute z-10 w-[300px] md:w-[400px] aspect-square rounded-[40px] overflow-hidden border-[8px] border-white/10 shadow-[0_0_80px_rgba(255,106,0,0.4)]"
-          >
-             <img 
-                src="https://res.cloudinary.com/doseusf1y/image/upload/v1783762396/duria2_n5jccz.jpg" 
-                alt="Duria Character" 
-                className="w-full h-full object-cover"
-             />
-          </motion.div>
+<motion.div 
+  initial={{ opacity: 0, scale: 0.8 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  viewport={{ once: false }}
+  style={{ y: y1, rotate: rotate1 }}
+  className="absolute z-10 w-[300px] md:w-[400px] aspect-square rounded-[40px] overflow-hidden border-[8px] border-white/10 shadow-[0_0_80px_rgba(255,106,0,0.4)]"
+>
+   <img 
+      src={images.duria} 
+      alt="Duria Character" 
+      className="w-full h-full object-cover"
+   />
+</motion.div>
 
           {/* Chat Bubbles Overlapping */}
           <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring" }}
             style={{ y: y2 }}
-            className="absolute z-20 top-10 md:-left-10 left-4 w-[80%] md:w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl rounded-tr-sm p-6 shadow-2xl rotate-3"
+            className="absolute z-20 top-10 md:-left-10 left-4 w-[80%] md:w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl rounded-tr-sm p-6 shadow-2xl rotate-3 cursor-pointer"
           >
              <div className="text-white font-[family-name:var(--font-body)] text-lg">
                I feel so overwhelmed today. Too many tasks.
@@ -66,15 +87,20 @@ export function MeetDuriaSection() {
           </motion.div>
 
           <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", delay: 0.1 }}
             style={{ y: y1 }}
-            className="absolute z-30 bottom-10 md:-right-10 right-4 w-[90%] md:w-[450px] bg-[#ff6a00]/90 backdrop-blur-xl border border-[#ff6a00] rounded-3xl rounded-tl-sm p-6 shadow-2xl -rotate-2"
+            className="absolute z-30 bottom-10 md:-right-10 right-4 w-[90%] md:w-[450px] bg-[#ff6a00]/90 backdrop-blur-xl border border-[#ff6a00] rounded-3xl rounded-tl-sm p-6 shadow-2xl -rotate-2 cursor-pointer"
           >
              <div className="flex gap-4 items-start">
-               <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 flex items-center justify-center font-bold font-[family-name:var(--font-heading)] text-[#ff6a00] text-xl">
-                 D
+               <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg">
+                 <img src={images.duria} alt="Duria Avatar" className="w-full h-full object-cover" />
                </div>
                <div className="text-white font-[family-name:var(--font-body)] text-lg leading-relaxed">
-                 Got you. No worries, let's figure it out together. I've rearranged your calendar so you can focus on just the top 2 things today. Need a hand with the first one? 🍊
+                 Got you. No worries, let's figure it out together. I've rearranged your calendar so you can focus on just the top 2 things today. Need a hand with the first one?
                </div>
              </div>
           </motion.div>
