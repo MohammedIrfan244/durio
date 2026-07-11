@@ -104,7 +104,7 @@ export default function Header() {
       if (3 <= hrs && hrs < 12) setGreeting("Good Morning");
       else if (12 <= hrs && hrs < 18) setGreeting("Good Afternoon");
       else if (18 <= hrs && hrs < 22) setGreeting("Good Evening");
-      else if (22 <= hrs && hrs < 1) setGreeting("Good Night");
+      else if (hrs >= 22 || hrs < 3) setGreeting("Get some sleep bro !");
       else setGreeting("Get some sleep bro !");
     };
 
@@ -347,8 +347,6 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
             </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="relative z-10" />
-
         <DropdownMenuSeparator className="relative z-10" />
 
         <DropdownMenuItem

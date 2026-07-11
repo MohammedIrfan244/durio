@@ -9,6 +9,9 @@ import { getUserTimezone } from "@/lib/server/date-utils";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
 
+const MAX_REQUEST_BODY_BYTES = 50 * 1024;
+const isDevelopment = process.env.NODE_ENV === "development";
+
 async function logToDebugFile(tag: string, data: any) {
   try {
     const logPath = path.join(process.cwd(), "duria-debug.log");
@@ -93,6 +96,11 @@ function inferManageToolChoice(messages: any[]) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rawBody = await req.text();
+    if (Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BODY_BYTES) {
+      return new Response("Request body too large", { status: 413 });
+    }
+
     // 1. Authenticate user
     const userId = await getUserId();
     if (!userId) {
@@ -112,12 +120,18 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse request body
-    const body = await req.json();
-    await logToDebugFile("RAW REQUEST BODY", body);
-    console.log("[DURIA API DEBUG] Body:", JSON.stringify(body, null, 2));
+    let body: any;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return new Response("Invalid JSON body", { status: 400 });
+    }
+
+    if (isDevelopment) {
+      await logToDebugFile("RAW REQUEST BODY", body);
+    }
+
     const { messages, contextPayload } = body;
-    
-    console.log("[DURIA AI CHAT] Incoming Messages:", JSON.stringify(messages, null, 2));
 
     // 3. Load Tier 1 Context (Primary Guide)
     let primaryGuide = "";
@@ -221,9 +235,15 @@ ${primaryGuide}
       }
     });
 
-    await logToDebugFile("MAPPED CORE MESSAGES (To Gemini)", coreMessages);
+    if (isDevelopment) {
+      await logToDebugFile("MAPPED CORE MESSAGES (To Gemini)", coreMessages);
+    }
+
     const toolChoice = inferManageToolChoice(messages);
-    await logToDebugFile("INFERRED TOOL CHOICE", toolChoice || "auto");
+
+    if (isDevelopment) {
+      await logToDebugFile("INFERRED TOOL CHOICE", toolChoice || "auto");
+    }
 
     // 6. Call Gemini
     const result = streamText({
@@ -233,12 +253,14 @@ ${primaryGuide}
       temperature: 0.7,
       toolChoice: toolChoice as any,
       onFinish: async (event) => {
-        await logToDebugFile("GEMINI RESPONSE (onFinish)", {
-          text: event.text,
-          toolCalls: event.toolCalls,
-          usage: event.usage,
-          finishReason: event.finishReason,
-        });
+        if (isDevelopment) {
+          await logToDebugFile("GEMINI RESPONSE (onFinish)", {
+            text: event.text,
+            toolCalls: event.toolCalls,
+            usage: event.usage,
+            finishReason: event.finishReason,
+          });
+        }
       },
       tools: {
         // @ts-ignore

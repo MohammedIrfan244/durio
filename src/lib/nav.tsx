@@ -1,6 +1,6 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
-  Calculator, Image as ImageIcon, Moon, Heart, Zap, 
+  Calculator, Image as ImageIcon, Moon, Heart, 
   PenLine, Rocket, BookOpen, Hourglass
 } from "lucide-react";
 import Image from "next/image";

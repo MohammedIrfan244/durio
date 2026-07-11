@@ -14,6 +14,8 @@ import ReactMarkdown from 'react-markdown';
 import ProposalCard from './proposal-card';
 import { getAIUsage } from '@/server/actions/ai-usage';
 
+const MESSAGE_LIMIT = 2000;
+
 function getMessageText(msg: any) {
   return msg.content ||
     msg.parts?.find((part: any) => part.type === 'text')?.text ||
@@ -72,13 +74,17 @@ export default function DuriaChat() {
   }) as any;
 
   const isLoading = status === 'submitted' || status === 'streaming';
+  const trimmedInput = input.trim();
+  const trimmedInputLength = trimmedInput.length;
+  const isMessageTooLong = trimmedInputLength > MESSAGE_LIMIT;
+  const shouldShowCharacterCount = trimmedInputLength >= MESSAGE_LIMIT * 0.8;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!trimmedInput || isLoading || isMessageTooLong) return;
     setHasAskedToClear(false);
     // @ts-ignore
-    sendMessage({ role: 'user', content: input });
+    sendMessage({ role: 'user', content: trimmedInput });
     setInput('');
   };
 
@@ -276,25 +282,33 @@ export default function DuriaChat() {
 
       {/* Input Area */}
       <div className="p-4 bg-card border-t border-border/50 shrink-0">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex gap-2">
-          <Button 
-            type="button"
-            variant="outline" 
-            size="icon" 
-            className="shrink-0 rounded-xl"
-            onClick={() => setIsAttachOpen(true)}
-          >
-            <Paperclip className="w-5 h-5 text-muted-foreground" />
-          </Button>
-          <Input 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask DURIA anything..."
-            className="rounded-xl bg-secondary/50 border-border/50 focus-visible:ring-primary/20"
-          />
-          <Button type="submit" disabled={isLoading || !input.trim()} size="icon" className="shrink-0 rounded-xl">
-            <Send className="w-5 h-5" />
-          </Button>
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button 
+              type="button"
+              variant="outline" 
+              size="icon" 
+              className="shrink-0 rounded-xl"
+              onClick={() => setIsAttachOpen(true)}
+            >
+              <Paperclip className="w-5 h-5 text-muted-foreground" />
+            </Button>
+            <Input 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              maxLength={MESSAGE_LIMIT}
+              placeholder="Ask DURIA anything..."
+              className="rounded-xl bg-secondary/50 border-border/50 focus-visible:ring-primary/20"
+            />
+            <Button type="submit" disabled={isLoading || !trimmedInput || isMessageTooLong} size="icon" className="shrink-0 rounded-xl">
+              <Send className="w-5 h-5" />
+            </Button>
+          </div>
+          {shouldShowCharacterCount && (
+            <div className={`self-end text-xs font-medium ${trimmedInputLength >= MESSAGE_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {trimmedInputLength}/{MESSAGE_LIMIT}
+            </div>
+          )}
         </form>
       </div>
 
