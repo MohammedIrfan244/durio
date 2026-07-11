@@ -66,14 +66,15 @@ export default function Header() {
 
   const username = formatName(user?.name);
   const userEmail = user?.email;
-  const item = navItems.find((i) => pathname.startsWith(i.url) && i.url !== "/");
+  const item = navItems.find((i) => {
+    if (pathname === "/") {
+      return i.url === "/";
+    }
+
+    return i.url !== "/" && pathname.startsWith(i.url);
+  });
   const title = item?.label || "Page";
   const description = item?.description || "Manage your daily activities";
-
-  console.log("pathname : ", pathname);
-  console.log("nav item : ", item);
-  console.log("title : ", title);
-  console.log("description : ", description);
 
   // Logic: Timestamp flagging
   const handleFlag = async (path: string) => {
