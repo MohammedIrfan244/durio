@@ -4,9 +4,22 @@ import { APP_NAME } from "@/lib/brand";
 import DuriaChat from '@/components/pages/duria/duria-chat';
 
 export const metadata: Metadata = {
+  title: `DURIA AI - ${APP_NAME}`,
+  description:
+    "Chat with DURIA, your intelligent daily assistant. Get help with planning, summarization, and everyday decisions.",
+  openGraph: {
     title: `DURIA AI - ${APP_NAME}`,
-    description: "Your intelligent daily assistant.",
+    description: "Chat with DURIA, your intelligent AI companion for daily planning and productivity.",
+    type: "website",
+    siteName: APP_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: `DURIA AI - ${APP_NAME}`,
+    description: "Chat with DURIA, your intelligent AI companion for daily planning and productivity.",
+  },
 };
+
 
 export default function DuriaPage() {
   return (

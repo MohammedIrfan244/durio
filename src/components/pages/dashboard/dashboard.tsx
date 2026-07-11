@@ -210,9 +210,9 @@ function Dashboard() {
               Daily command center
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-4xl">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-4xl">
                 {greeting}, {displayName}
-              </h1>
+              </h2>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
                 The whole system at a glance: commitments, knowledge, calendar, tools, and DURIA.
               </p>

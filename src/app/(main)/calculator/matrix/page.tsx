@@ -4,10 +4,26 @@ import { Grid3x3 } from "lucide-react";
 
 import MatrixCalculator from '@/components/pages/calculator/matrix/matrix';
 
-export const metadata = {
-    title: "Matrix Algebra - Durio",
-    description: "Transform multidimensional arrays rapidly.",
+import { APP_NAME } from '@/lib/brand';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: `Matrix & Linear Algebra - ${APP_NAME}`,
+  description:
+    "Perform complex matrix arithmetic, determinants, inversions, and standard linear transformations.",
+  openGraph: {
+    title: `Matrix & Linear Algebra - ${APP_NAME}`,
+    description: "Complex matrix arithmetic, determinants, and linear transformations.",
+    type: "website",
+    siteName: APP_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: `Matrix & Linear Algebra - ${APP_NAME}`,
+    description: "Complex matrix arithmetic, determinants, and linear transformations.",
+  },
 };
+
 
 export default function MatrixCalculatorPage() {
   return (
@@ -15,9 +31,9 @@ export default function MatrixCalculatorPage() {
       <SectionHeaderWrapper>
         <div className="flex items-center gap-3">
           <Grid3x3 className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-extrabold tracking-tight">
+          <h2 className="text-2xl font-extrabold tracking-tight">
             Matrix & Linear Algebra
-          </h1>
+          </h2>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           Perform complex matrix arithmetic, determinants, and standard linear transformations.

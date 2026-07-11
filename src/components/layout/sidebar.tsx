@@ -104,7 +104,7 @@ export default function Sidebar() {
               style={{ fontFamily: "var(--font-bubbly)" }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold cursor-pointer text-foreground tracking-tigh transform -translate-x-1 title"
             >
-              <h1>{APP_NAME[0]}</h1>
+              <span>{APP_NAME[0]}</span>
             </Link>
           )}
         </SidebarHeader>

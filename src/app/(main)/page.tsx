@@ -6,8 +6,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
   title: `Dashboard - ${APP_NAME}`,
-  description: "Your personal daily companion",
+  description:
+    "Your personal daily command center. See your tasks, notes, calendar events, and AI usage at a glance.",
+  openGraph: {
+    title: `Dashboard - ${APP_NAME}`,
+    description: "Your personal daily command center — tasks, notes, calendar, and AI in one place.",
+    type: "website",
+    siteName: APP_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: `Dashboard - ${APP_NAME}`,
+    description: "Your personal daily command center — tasks, notes, calendar, and AI in one place.",
+  },
 };
+
 
 export default function Home() {
   return (
