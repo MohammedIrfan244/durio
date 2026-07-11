@@ -28,11 +28,11 @@ export function HeroSection() {
   return (
     <section 
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen flex flex-col items-center justify-center pt-32 overflow-hidden bg-[#0A0A0A] perspective-[1000px]"
+      className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-24 sm:py-32 overflow-hidden bg-[#0A0A0A] perspective-[1000px]"
     >
       {/* Chaotic background glows */}
-      <motion.div style={{ y: y1 }} className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-[#ff6a00]/20 rounded-full blur-[150px] mix-blend-screen" />
-      <motion.div style={{ y: y2 }} className="absolute bottom-1/4 -right-1/4 w-[800px] h-[800px] bg-pink-500/10 rounded-full blur-[150px] mix-blend-screen" />
+      <motion.div style={{ y: y1 }} className="absolute top-1/4 -left-1/4 w-[280px] h-[280px] sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] bg-[#ff6a00]/20 rounded-full blur-[100px] sm:blur-[150px] mix-blend-screen" />
+      <motion.div style={{ y: y2 }} className="absolute bottom-1/4 -right-1/4 w-[320px] h-[320px] sm:w-[650px] sm:h-[650px] lg:w-[800px] lg:h-[800px] bg-pink-500/10 rounded-full blur-[100px] sm:blur-[150px] mix-blend-screen" />
       
       {/* Floating scattered text phrases */}
       <motion.div 
@@ -48,7 +48,7 @@ export function HeroSection() {
         No worries.
       </motion.div>
 
-      <div className="z-10 w-full max-w-7xl px-6 flex flex-col items-start relative pointer-events-none">
+      <div className="z-10 w-full max-w-7xl px-0 sm:px-2 flex flex-col items-center sm:items-start relative pointer-events-none">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -71,28 +71,28 @@ export function HeroSection() {
             variants={{ hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: { type: "spring", bounce: 0.5 } } }}
             className="flex flex-col gap-2 font-[family-name:var(--font-heading)] leading-[0.9] text-white drop-shadow-lg tracking-tighter"
           >
-            <span className="text-4xl md:text-5xl font-bold -rotate-1">Need a</span>
-            <div className="flex items-center gap-4 rotate-1">
-              <span className="text-2xl md:text-3xl font-medium opacity-60">second</span>
-              <span className="text-6xl md:text-8xl font-black text-[#ff6a00]">brain?</span>
+            <span className="text-5xl sm:text-6xl md:text-7xl font-bold -rotate-1">Need a</span>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 rotate-1">
+              <span className="text-3xl sm:text-4xl md:text-5xl font-medium opacity-60">second</span>
+              <span className="text-6xl sm:text-7xl md:text-8xl font-black text-[#ff6a00]">brain?</span>
             </div>
-            <span className="text-3xl md:text-5xl font-extrabold mt-4 -rotate-2 opacity-90">I got your back.</span>
+            <span className="text-4xl sm:text-5xl md:text-6xl font-extrabold mt-4 -rotate-2 opacity-90">I got your back.</span>
           </motion.h1>
 
           <motion.p 
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring" } } }}
-            className="text-lg md:text-xl font-[family-name:var(--font-body)] text-white/70 mt-8 max-w-lg leading-relaxed font-medium"
+            className="text-base sm:text-lg md:text-xl font-[family-name:var(--font-body)] text-white/70 mt-8 max-w-lg leading-relaxed font-medium"
           >
             Your friendly daily companion. Got you. No corporate jargon. Just a cozy place to keep your life together.
           </motion.p>
           
           <motion.div 
             variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: { type: "spring" } } }}
-            className="flex flex-col sm:flex-row items-start gap-6 pt-8"
+            className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pt-6 sm:pt-8"
           >
             <Link href="/dashboard">
               <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
-                <Button size="lg" className="bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-2xl rounded-[2rem] px-12 py-10 shadow-2xl transition-all border-b-8 border-orange-200">
+                <Button size="lg" className="w-full sm:w-auto bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-xl sm:text-2xl rounded-[2rem] px-8 sm:px-12 py-8 sm:py-10 shadow-2xl transition-all border-b-8 border-orange-200">
                   Open DURIO
                 </Button>
               </motion.div>

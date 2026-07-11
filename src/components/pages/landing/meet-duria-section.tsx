@@ -17,21 +17,21 @@ export function MeetDuriaSection() {
   const rotate1 = useTransform(scrollYProgress, [0, 1], [25, -25]);
 
   return (
-    <section ref={containerRef} className="py-40 bg-[#0A0A0A] overflow-hidden relative">
+    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] overflow-hidden relative">
       {/* Background elements */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#ff6a00]/10 blur-[150px] rounded-full pointer-events-none" />
 
-      <div className="container mx-auto px-6 max-w-5xl relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
         
         <div className="text-center mb-24 relative">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false }}
-            className="text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="text-5xl sm:text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4"
           >
             <span>Meet</span>
-            <span className="text-8xl md:text-9xl text-[#ff6a00] bubbly-text inline-flex font-[family-name:var(--font-bubbly)] tracking-tight pt-2">
+            <span className="text-7xl sm:text-8xl md:text-9xl text-[#ff6a00] bubbly-text inline-flex font-[family-name:var(--font-bubbly)] tracking-tight pt-2">
               {"Duria.".split("").map((char, index) => (
                 <span
                   key={index}
@@ -48,13 +48,13 @@ export function MeetDuriaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-[family-name:var(--font-body)] text-[#ff6a00] mt-4 -rotate-2"
+            className="text-2xl sm:text-3xl md:text-5xl font-[family-name:var(--font-body)] text-[#ff6a00] mt-4 -rotate-2"
           >
             She's got your back.
           </motion.h3>
         </div>
 
-        <div className="relative h-[600px] flex items-center justify-center">
+        <div className="relative min-h-[480px] sm:min-h-[560px] md:min-h-[650px] flex items-center justify-center">
           
           {/* Duria Image (Center, tilted) */}
 <motion.div 
@@ -62,7 +62,7 @@ export function MeetDuriaSection() {
   whileInView={{ opacity: 1, scale: 1 }}
   viewport={{ once: false }}
   style={{ y: y1, rotate: rotate1 }}
-  className="absolute z-10 w-[300px] md:w-[400px] aspect-square rounded-[40px] overflow-hidden border-[8px] border-white/10 shadow-[0_0_80px_rgba(255,106,0,0.4)]"
+  className="absolute z-10 w-[240px] sm:w-[320px] md:w-[400px] aspect-square rounded-[32px] sm:rounded-[40px] overflow-hidden border-[6px] sm:border-[8px] border-white/10 shadow-[0_0_80px_rgba(255,106,0,0.4)]"
 >
    <img 
       src={images.duria} 
@@ -79,7 +79,7 @@ export function MeetDuriaSection() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring" }}
             style={{ y: y2 }}
-            className="absolute z-20 top-10 md:-left-10 left-4 w-[80%] md:w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl rounded-tr-sm p-6 shadow-2xl rotate-3 cursor-pointer"
+            className="absolute z-20 top-4 sm:top-10 left-2 right-2 sm:left-4 sm:w-[85%] md:-left-10 md:w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl rounded-tr-sm p-4 sm:p-6 shadow-2xl rotate-3 cursor-pointer"
           >
              <div className="text-white font-[family-name:var(--font-body)] text-lg">
                I feel so overwhelmed today. Too many tasks.
@@ -93,7 +93,7 @@ export function MeetDuriaSection() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", delay: 0.1 }}
             style={{ y: y1 }}
-            className="absolute z-30 bottom-10 md:-right-10 right-4 w-[90%] md:w-[450px] bg-[#ff6a00]/90 backdrop-blur-xl border border-[#ff6a00] rounded-3xl rounded-tl-sm p-6 shadow-2xl -rotate-2 cursor-pointer"
+            className="absolute z-30 bottom-4 sm:bottom-10 left-2 right-2 sm:right-4 sm:w-[90%] md:-right-10 md:w-[450px] bg-[#ff6a00]/90 backdrop-blur-xl border border-[#ff6a00] rounded-3xl rounded-tl-sm p-4 sm:p-6 shadow-2xl -rotate-2 cursor-pointer"
           >
              <div className="flex gap-4 items-start">
                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg">

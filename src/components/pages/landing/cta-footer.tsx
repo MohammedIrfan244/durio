@@ -13,7 +13,7 @@ export function CtaFooter() {
 
   return (
     <>
-      <section className="py-40 bg-[#ff6a00] text-center relative overflow-hidden">
+      <section className="py-24 sm:py-40 bg-[#ff6a00] text-center relative overflow-hidden">
         {/* Wild background blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div 
@@ -45,7 +45,7 @@ export function CtaFooter() {
           Together.
         </motion.div>
 
-        <div className="container mx-auto px-6 relative z-10 flex flex-col items-center">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotate: -3 }}
             whileInView={{ opacity: 1, scale: 1, rotate: 2 }}
@@ -53,7 +53,7 @@ export function CtaFooter() {
             transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
             className="space-y-12"
           >
-            <h2 className="text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white drop-shadow-lg leading-none">
+            <h2 className="text-4xl sm:text-6xl md:text-8xl font-black font-[family-name:var(--font-heading)] text-white drop-shadow-lg leading-none">
               Ready?<br />
               <span className="inline-block mt-4 -rotate-3 text-white">I've been waiting.</span>
             </h2>
@@ -65,7 +65,7 @@ export function CtaFooter() {
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
-                    <Button size="lg" className="bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-2xl rounded-[2rem] px-12 py-10 shadow-2xl transition-all border-b-8 border-orange-200">
+                    <Button size="lg" className="w-full sm:w-auto bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-xl sm:text-2xl rounded-[2rem] px-8 sm:px-12 py-8 sm:py-10 shadow-2xl transition-all border-b-8 border-orange-200">
                       Open DURIO
                     </Button>
                   </motion.div>
@@ -77,8 +77,8 @@ export function CtaFooter() {
       </section>
 
       <footer className="bg-black py-16 border-t border-white/10 relative z-20">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-6">
+        <div className="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
             <img 
                src="https://res.cloudinary.com/doseusf1y/image/upload/v1783781057/durio_u3ixtn.png"
                alt="DURIO Logo"
@@ -89,7 +89,7 @@ export function CtaFooter() {
             </span>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-6 text-muted-foreground font-[family-name:var(--font-body)] text-sm font-semibold">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-muted-foreground font-[family-name:var(--font-body)] text-sm font-semibold">
             <Link href="/dashboard" className="hover:text-[#ff6a00] transition-colors">
               Web App
             </Link>

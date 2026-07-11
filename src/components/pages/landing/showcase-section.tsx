@@ -16,24 +16,24 @@ export function ShowcaseSection() {
   const rotate1 = useTransform(scrollYProgress, [0, 1], [-10, 10]);
 
   return (
-    <section ref={containerRef} className="py-40 bg-[#0A0A0A] relative overflow-hidden min-h-[120vh] flex items-center">
+    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] relative overflow-hidden min-h-[100vh] sm:min-h-[120vh] flex items-center">
       <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#ff6a00]/5 to-[#0A0A0A] pointer-events-none" />
 
-      <div className="container mx-auto px-6 relative z-10 w-full">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10 w-full">
         {/* Quirky floating texts */}
-        <motion.div style={{ y: y1 }} className="absolute -left-10 top-0 text-[#ff6a00]/20 font-[family-name:var(--font-heading)] text-5xl font-bold -rotate-12 pointer-events-none whitespace-nowrap">
+        <motion.div style={{ y: y1 }} className="hidden lg:block absolute -left-10 top-0 text-[#ff6a00]/20 font-[family-name:var(--font-heading)] text-5xl font-bold -rotate-12 pointer-events-none whitespace-nowrap">
           So much room for activities!
         </motion.div>
         
-        <motion.div style={{ y: y2 }} className="absolute right-0 top-[20%] text-white/10 font-[family-name:var(--font-heading)] text-4xl font-bold rotate-6 pointer-events-none whitespace-nowrap">
+        <motion.div style={{ y: y2 }} className="hidden lg:block absolute right-0 top-[20%] text-white/10 font-[family-name:var(--font-heading)] text-4xl font-bold rotate-6 pointer-events-none whitespace-nowrap">
           Wait, what day is it?
         </motion.div>
         
-        <motion.div style={{ y: y3 }} className="absolute left-[10%] bottom-[10%] text-white/10 font-[family-name:var(--font-heading)] text-6xl font-black -rotate-3 pointer-events-none whitespace-nowrap">
+        <motion.div style={{ y: y3 }} className="hidden lg:block absolute left-[10%] bottom-[10%] text-white/10 font-[family-name:var(--font-heading)] text-6xl font-black -rotate-3 pointer-events-none whitespace-nowrap">
           Oh right. Here.
         </motion.div>
         
-        <div className="relative h-[800px] w-full max-w-6xl mx-auto perspective-[2000px]">
+        <div className="hidden lg:block relative h-[800px] w-full max-w-6xl mx-auto perspective-[2000px]">
           
           {/* Back pane (Calendar) */}
           <motion.div
@@ -110,6 +110,29 @@ export function ShowcaseSection() {
             </div>
           </motion.div>
 
+        </div>
+
+        <div className="lg:hidden flex flex-col gap-4 pt-4">
+          <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className="text-sm uppercase tracking-[0.3em] text-[#ff6a00] mb-3">Calendar</div>
+            <div className="grid grid-cols-7 gap-2">
+              {Array.from({ length: 21 }).map((_, i) => (
+                <div key={i} className={`h-8 rounded-md ${i % 5 === 0 ? "bg-[#ff6a00]/70" : "bg-white/10"}`} />
+              ))}
+            </div>
+          </div>
+          <div className="rounded-[32px] border border-white/15 bg-white/10 p-6 backdrop-blur-md">
+            <div className="text-sm uppercase tracking-[0.3em] text-blue-300 mb-4">Brain Dump</div>
+            <div className="space-y-3">
+              <div className="h-3 rounded-full bg-white/20" />
+              <div className="h-3 w-3/4 rounded-full bg-white/30" />
+              <div className="h-3 w-1/2 rounded-full bg-white/20" />
+            </div>
+          </div>
+          <div className="rounded-[32px] border border-[#ff6a00]/30 bg-black/60 p-6 text-center backdrop-blur-2xl">
+            <div className="text-2xl font-[family-name:var(--font-heading)] text-white font-bold">Math? Handled.</div>
+            <div className="mt-2 text-sm text-white/60">A little less chaos, a lot more calm.</div>
+          </div>
         </div>
       </div>
     </section>
