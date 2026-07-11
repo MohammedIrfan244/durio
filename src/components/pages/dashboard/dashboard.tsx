@@ -229,7 +229,7 @@ function Dashboard() {
         {topInsights.map((card) => (
           <Card
             key={card.label}
-            className="group h-full border-border/50 bg-card/80 py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-border"
+            className="group dashboard-card h-full border-border/50 bg-card/80 py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-border"
           >
             <CardContent className="flex items-center gap-4 p-4">
               <div
@@ -378,7 +378,7 @@ function ModuleCard({
   }
 
   return (
-    <Link href={navItem.url} className="group">
+    <Link href={navItem.url} className="group dashboard-card">
       {content}
     </Link>
   );
