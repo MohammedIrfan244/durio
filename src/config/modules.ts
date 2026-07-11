@@ -8,7 +8,7 @@ export const APP_REGISTRY = {
     SIDEBAR: { enabled: true, aiAccess: false, description: "Main left-side navigation" },
   },
   MODULES: {
-    HOME:         { enabled: true,  systemDisabled: false, aiAccess: false, path: "/" },
+    HOME:         { enabled: true,  systemDisabled: false, aiAccess: false, path: "/dashboard" },
     TODO:         { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/todo" },
     NOTES:        { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/notes" },
     CALENDAR:     { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/calendar" },

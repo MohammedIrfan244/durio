@@ -47,7 +47,7 @@ export default function NotFoundPage() {
             size="lg"
             className="w-full sm:w-auto font-[family-name:var(--font-body)]"
           >
-            <Link href="/">
+            <Link href="/dashboard">
               <Home className="mr-2 h-4 w-4" />
               Back to Home
             </Link>

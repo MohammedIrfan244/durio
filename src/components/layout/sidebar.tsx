@@ -77,7 +77,7 @@ export default function Sidebar() {
         <SidebarHeader className="px-5">
           {isOpen ? (
             <Link
-              href="/"
+              href="/dashboard"
               className="flex flex-col border-b cursor-pointer pb-4 pt-2 space-y-1"
             >
               <h2
@@ -100,7 +100,7 @@ export default function Sidebar() {
             </Link>
           ) : (
             <Link
-              href="/"
+              href="/dashboard"
               style={{ fontFamily: "var(--font-bubbly)" }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold cursor-pointer text-foreground tracking-tigh transform -translate-x-1 title"
             >

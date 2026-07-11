@@ -22,7 +22,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   {
     label: "Home",
-    url: "/",
+    url: "/dashboard",
     description: "Your comfy starting point. Good vibes only.",
     icon: <Home size={18} />,
     color: "#F87171",

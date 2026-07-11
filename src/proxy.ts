@@ -13,13 +13,14 @@ export async function proxy(req: NextRequest) {
   info("SESSION TOKEN:", token?.email ?? "NO TOKEN");
 
   const isAuthPage = req.nextUrl.pathname.startsWith("/auth/login");
+  const isLandingPage = req.nextUrl.pathname === "/";
 
-  if (token && isAuthPage) {
-    info("REDIRECTING TO MAIN");
-    return NextResponse.redirect(new URL("/", req.url));
+  if (token && (isAuthPage || isLandingPage)) {
+    info("REDIRECTING TO DASHBOARD");
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  if (!token && !isAuthPage) {
+  if (!token && !isAuthPage && !isLandingPage) {
     error("NOT AUTHENTICATED");
     info("REDIRECTING TO LOGIN");
     return NextResponse.redirect(new URL("/auth/login", req.url));
