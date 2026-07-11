@@ -21,7 +21,7 @@ export function Navigation() {
       style={{ y: navY, opacity, scale }}
       className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl z-50 px-4 py-2 flex items-center justify-between bg-black/20 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-2xl"
     >
-      <Link href="/" className="flex items-center group h-8 w-8 rounded-md overflow-hidden">
+      <Link href="/" className="flex items-center group h-8 w-8 rounded-full overflow-hidden">
         <motion.img
           whileHover={{ rotate: -10, scale: 1.1 }}
           transition={{ type: "spring", stiffness: 300 }}
