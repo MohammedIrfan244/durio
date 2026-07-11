@@ -11,9 +11,9 @@ import FloatingCalculator from "@/components/shared/floating-calculator";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const authPages = ["/auth/login"];
+  const isDuriaPage = pathname === "/duria";
 
-  if (authPages.includes(pathname)) return <>{children}</>;
+  if (pathname.startsWith("/auth")) return <>{children}</>;
 
   return (
     <SidebarProvider>
@@ -40,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-        <FloatingCalculator />
+        {!isDuriaPage && <FloatingCalculator />}
       </div>
     </SidebarProvider>
   );

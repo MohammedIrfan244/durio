@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDuria } from '@/components/providers/duria-provider';
 import { Paperclip, Send, User, Loader2, X } from 'lucide-react';
 import { DuriaAvatar } from '@/components/shared/duria-avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import ContextAttachDialog from './context-attach-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
 import ProposalCard from './proposal-card';
+import { getAIUsage } from '@/server/actions/ai-usage';
 
 function getMessageText(msg: any) {
   return msg.content ||
@@ -45,17 +47,28 @@ export default function DuriaChat() {
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [input, setInput] = useState('');
   const [hasAskedToClear, setHasAskedToClear] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [isUsageLoading, setIsUsageLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [proposalStatus, setProposalStatus] = useState<Record<string, 'pending' | 'confirmed' | 'cancelled' | 'error'>>({});
 
   const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
+  const refreshUsage = useCallback(async () => {
+    setIsUsageLoading(true);
+    const response = await getAIUsage();
+    if (response.success && response.data) {
+      setUsage(response.data);
+    }
+    setIsUsageLoading(false);
+  }, []);
 
   const { messages, status, sendMessage, error } = useChat({
     // @ts-ignore - Ignore type error for useChat options
     api: '/api/chat',
     body: {
       contextPayload: aiPayload
-    }
+    },
+    onFinish: refreshUsage,
   }) as any;
 
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -76,6 +89,10 @@ export default function DuriaChat() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    refreshUsage();
+  }, [refreshUsage]);
+
   return (
     <div className="flex flex-col h-full bg-secondary/10">
       {/* Header */}
@@ -84,9 +101,7 @@ export default function DuriaChat() {
           <DuriaAvatar size={20} />
           <h2 className="font-semibold">DURIA Assistant</h2>
         </div>
-        {messages.length > 0 && (
-           <span className="text-xs text-muted-foreground">AI Stream Active</span>
-        )}
+        <AIUsageIndicator usage={usage} isLoading={isUsageLoading} />
       </div>
 
       {/* Chat Area */}
@@ -295,6 +310,44 @@ function ContextBadge({ label, onRemove }: { label: string, onRemove: () => void
       <button type="button" onClick={onRemove} className="hover:text-destructive shrink-0">
         <X size={12} />
       </button>
+    </div>
+  );
+}
+
+function AIUsageIndicator({
+  usage,
+  isLoading,
+}: {
+  usage: { used: number; limit: number } | null;
+  isLoading: boolean;
+}) {
+  if (isLoading || !usage) {
+    return <Skeleton className="h-6 w-28 rounded-full" />;
+  }
+
+  const percentage = usage.limit > 0 ? (usage.used / usage.limit) * 100 : 0;
+  const toneClass = percentage > 95
+    ? 'text-destructive border-destructive/30 bg-destructive/10'
+    : percentage >= 80
+      ? 'text-amber-500 border-amber-500/30 bg-amber-500/10'
+      : 'text-muted-foreground border-border/50 bg-secondary/40';
+  const progressClass = percentage > 95
+    ? 'bg-destructive'
+    : percentage >= 80
+      ? 'bg-amber-500'
+      : 'bg-primary';
+
+  return (
+    <div className={`flex items-center gap-2 rounded-full border px-2.5 py-1 ${toneClass}`}>
+      <span className="text-xs font-medium whitespace-nowrap">
+        {usage.used} / {usage.limit} queries
+      </span>
+      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-background/60">
+        <div
+          className={`h-full rounded-full transition-all ${progressClass}`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
+      </div>
     </div>
   );
 }
