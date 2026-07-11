@@ -99,6 +99,12 @@ export async function POST(req: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    // 1.1 Check API Key
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      console.error("[DURIA API] Missing GOOGLE_GENERATIVE_AI_API_KEY in production.");
+      return new Response("Missing Google AI API Key in environment variables.", { status: 500 });
+    }
+
     // 1.5 Check AI Limits
     const usageCheck = await checkAndIncrementAIUsage();
     if (!usageCheck.success) {
@@ -221,7 +227,7 @@ ${primaryGuide}
 
     // 6. Call Gemini
     const result = streamText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-3.5-flash"),
       system: systemPrompt,
       messages: coreMessages,
       temperature: 0.7,
