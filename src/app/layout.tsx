@@ -42,8 +42,59 @@ const dynaPuff = DynaPuff({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://durio.vercel.app"),
   title: APP_NAME,
-  description: "A simple Daily manager app",
+  description:
+    "DURIO — Your personal daily companion. Manage your tasks, notes, calendar, and AI assistant — all in one place.",
+  keywords: [
+    "personal productivity",
+    "task manager",
+    "daily planner",
+    "AI assistant",
+    "notes",
+    "calendar",
+    "DURIO",
+  ],
+  authors: [{ name: "DURIO" }],
+  verification: {
+    google: "fv4gvgKrQ3owE9Zc-uAINkHPfHLgZwJm9NCXBMMFKs0"
+  },
+  alternates: {
+    canonical: "/",
+  },
+  category: "productivity",
+  themeColor: "#ff6a00",
+  manifest: "/favicons/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/favicons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    title: "DURIO",
+    description: "Your personal daily companion",
+    type: "website",
+    locale: "en_US",
+    siteName: "DURIO",
+    images: [
+      {
+        url: "https://res.cloudinary.com/doseusf1y/image/upload/v1783781053/opengraph_sthvcq.png",
+        width: 1200,
+        height: 630,
+        alt: "DURIO — Your personal daily companion",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "DURIO",
+    description: "Your personal daily companion",
+    images: ["https://res.cloudinary.com/doseusf1y/image/upload/v1783781053/opengraph_sthvcq.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -66,9 +66,14 @@ export default function Header() {
 
   const username = formatName(user?.name);
   const userEmail = user?.email;
-  const item = navItems.find((i) => i.url === pathname);
+  const item = navItems.find((i) => pathname.startsWith(i.url) && i.url !== "/");
   const title = item?.label || "Page";
   const description = item?.description || "Manage your daily activities";
+
+  console.log("pathname : ", pathname);
+  console.log("nav item : ", item);
+  console.log("title : ", title);
+  console.log("description : ", description);
 
   // Logic: Timestamp flagging
   const handleFlag = async (path: string) => {
@@ -81,7 +86,9 @@ export default function Header() {
   // Logic: Clock & Initialization
   useEffect(() => {
     setMounted(true);
-    flagTimestamp(pathname || "/");
+    flagTimestamp(pathname || "/").catch((error) => {
+      console.error("Failed to update page timestamp", error);
+    });
 
     const updateClock = () => {
       const now = new Date();
@@ -104,7 +111,7 @@ export default function Header() {
       if (3 <= hrs && hrs < 12) setGreeting("Good Morning");
       else if (12 <= hrs && hrs < 18) setGreeting("Good Afternoon");
       else if (18 <= hrs && hrs < 22) setGreeting("Good Evening");
-      else if (22 <= hrs && hrs < 1) setGreeting("Good Night");
+      else if (hrs >= 22 || hrs < 3) setGreeting("Get some sleep bro !");
       else setGreeting("Get some sleep bro !");
     };
 
@@ -347,8 +354,6 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
             </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="relative z-10" />
-
         <DropdownMenuSeparator className="relative z-10" />
 
         <DropdownMenuItem

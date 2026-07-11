@@ -5,6 +5,7 @@ import { getUser } from "@/lib/server/get-user";
 import { revalidatePath } from "next/cache";
 import { Notification } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges } from "@/lib/server/date-utils";
+import { MONGOID } from "@/schema/mongo";
 
 export async function getNotifications(): Promise<Notification[]> {
   try {
@@ -72,12 +73,13 @@ export async function markAllAsRead(): Promise<{ success: boolean; error?: strin
 
 export async function markAsRead(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const notificationId = MONGOID.parse(id);
     const user = await getUser();
     if (!user || "error" in user) throw new Error("Unauthorized");
 
     await prisma.notification.update({
       where: {
-        id: id,
+        id: notificationId,
         userId: user.id as string,
       },
       data: {
@@ -95,12 +97,13 @@ export async function markAsRead(id: string): Promise<{ success: boolean; error?
 
 export async function deleteNotification(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const notificationId = MONGOID.parse(id);
     const user = await getUser();
     if (!user || "error" in user) throw new Error("Unauthorized");
 
     await prisma.notification.delete({
       where: {
-        id: id,
+        id: notificationId,
         userId: user.id as string,
       },
     });

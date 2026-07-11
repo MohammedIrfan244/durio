@@ -1,9 +1,10 @@
 "use server";
 
 import { getServerSession } from "next-auth";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
-export async function getUser() {
+export const getUser = cache(async () => {
   try {
     const session = await getServerSession();
 
@@ -23,7 +24,7 @@ export async function getUser() {
   } catch (error) {
     throw error;
   }
-}
+});
 
 export async function getUserId(): Promise<string> {
   const user = await getUser();

@@ -899,6 +899,81 @@ body {
   animation: emoji-wiggle 0.8s ease-in-out;
 }
 
+/* ---------------------------
+   DASHBOARD CARD HOVER TRIGGERS
+   Same animations fired when the custom `dashboard-card` ancestor (ModuleCard Link) is hovered.
+   The icon element carries both the animationClass AND acts as the direct target.
+   --------------------------- */
+.dashboard-card:hover .nav-item-group .animate-home {
+  animation: home-welcome 0.8s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-check {
+  animation: check-complete 0.6s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-calendar {
+  animation: calendar-flip 1s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.dashboard-card:hover .nav-item-group .animate-book {
+  animation: book-flip 0.8s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.dashboard-card:hover .nav-item-group .animate-zap {
+  animation: zap-pulse 0.5s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-journal {
+  animation: journal-write 0.7s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-photo {
+  animation: photo-capture 0.6s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-dumbbell {
+  animation: dumbbell-lift 0.8s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-moon {
+  animation: moon-orbit 1.2s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-heart {
+  animation: heart-beat 0.8s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-rocket {
+  animation: rocket-launch 0.6s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-hourglass {
+  animation: hourglass-flip 0.6s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-note {
+  animation: note-flutter 0.8s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-archive {
+  animation: archive-stack 0.7s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-calc {
+  animation: calc-press 0.6s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-smile {
+  animation: emoji-wiggle 0.8s ease-in-out;
+}
+
+.dashboard-card:hover .nav-item-group .animate-settings {
+  animation: gear-rotate 0.6s ease-in-out;
+}
+
 
 /* ---------------------------
    THEMED SIDEBAR DECORATIONS

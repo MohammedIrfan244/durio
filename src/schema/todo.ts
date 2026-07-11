@@ -11,23 +11,29 @@ export type TodoPriority = z.infer<typeof TodoPriorityEnum>;
 export const RenewIntervalEnum = z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"]);
 export type RenewInterval = z.infer<typeof RenewIntervalEnum>;
 
+const shortText = z.string().trim().min(1).max(200);
+const optionalLongText = z.string().trim().max(10000);
+const tagSchema = z.string().trim().min(1).max(50);
+
 // TODO THINGS
 
 // Schema for creating a new to-do item
 export const createTodoSchema = z.object({
   title: z
     .string()
+    .trim()
     .min(1, "Title is required")
-    .max(100, "Title cannot exceed 100 characters"),
+    .max(200, "Title cannot exceed 200 characters"),
 
   description: z
     .string()
-    .max(300, "Description cannot exceed 300 characters")
+    .trim()
+    .max(10000, "Description cannot exceed 10000 characters")
     .optional(),
 
   priority: TodoPriorityEnum.optional(),
 
-  tags: z.array(z.string()).optional(),
+  tags: z.array(tagSchema).max(10, "You can add up to 10 tags").optional(),
 
   dueDate: z.union([z.string(), z.date()]).optional(),
   dueTime: z.string().optional(),
@@ -42,6 +48,7 @@ export const createTodoSchema = z.object({
       z.object({
         text: z
           .string()
+          .trim()
           .min(1, "Checklist item cannot be empty")
           .max(200, "Checklist item too long"),
       })
@@ -66,8 +73,8 @@ export const createTodoSchema = z.object({
 export const todoFilterSchema = z.object({
   status: TodoStatusEnum.optional(),
   priority: TodoPriorityEnum.optional(),
-  tags: z.array(z.string()).optional(),
-  query : z.string().max(100, "Search query too long").optional(),
+  tags: z.array(tagSchema).max(10).optional(),
+  query : z.string().trim().max(100, "Search query too long").optional(),
   sortBy: z
     .enum([
       "CREATED_AT",
@@ -87,14 +94,10 @@ export const getTodoByIdSchema = z.object({
 // Schema for updating a to-do item
 export const updateTodoSchema = z.object({
   id: MONGOID,
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(100, "Title cannot exceed 100 characters")
-    .optional(),
-  description: z.string().max(300, "Description cannot exceed 300 characters").optional(),
+  title: shortText.optional(),
+  description: optionalLongText.optional(),
   priority: TodoPriorityEnum.optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.array(tagSchema).max(10, "You can add up to 10 tags").optional(),
   dueDate: z.union([z.string(), z.date()]).optional(),
   dueTime: z.string().optional(),
   renewStart: z.union([z.string(), z.date()]).optional(),
@@ -107,6 +110,7 @@ export const updateTodoSchema = z.object({
         id: MONGOID.optional(),
         text: z
           .string()
+          .trim()
           .min(1, "Checklist item cannot be empty")
           .max(200, "Checklist item too long"),
       })
@@ -148,7 +152,7 @@ export const restoreTodoFromArchiveSchema = z.object({
 });
 
 export const searchArchiveTodosSchema = z.object({
-  query: z.string().max(100, "Search query too long").optional(),
+  query: z.string().trim().max(100, "Search query too long").optional(),
 })
 
 // type aliases for inferred types

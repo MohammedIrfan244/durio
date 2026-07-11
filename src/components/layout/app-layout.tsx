@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
@@ -7,13 +8,17 @@ import {
   SidebarProvider,
   Sidebar as ShadSidebar,
 } from "@/components/ui/sidebar";
-import FloatingCalculator from "@/components/shared/floating-calculator";
+
+const FloatingCalculator = dynamic(
+  () => import("@/components/shared/floating-calculator"),
+  { ssr: false }
+);
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const authPages = ["/auth/login"];
+  const isDuriaPage = pathname === "/duria";
 
-  if (authPages.includes(pathname)) return <>{children}</>;
+  if (pathname.startsWith("/auth")) return <>{children}</>;
 
   return (
     <SidebarProvider>
@@ -40,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-        <FloatingCalculator />
+        {!isDuriaPage && <FloatingCalculator />}
       </div>
     </SidebarProvider>
   );

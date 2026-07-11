@@ -49,9 +49,9 @@ export default function CalendarDashboard({
                 <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col gap-1">
-                            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+                            <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
                                 My Calendar
-                            </h1>
+                            </h2>
                             <p className="text-sm text-muted-foreground font-medium">
                                 Plotting the adventures and chillin...
                             </p>

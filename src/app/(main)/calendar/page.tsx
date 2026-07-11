@@ -1,13 +1,28 @@
 import { Metadata } from "next";
+import { APP_NAME } from "@/lib/brand";
 import CalendarDashboard from "@/components/pages/calendar/calendar";
 import { getUnifiedCalendarData, getUpcomingMilestones, getOrCreateDefaultCategories } from "@/server/actions/calendar-actions";
 import { ICalendarEvent, IEvent } from "@/types/calendar";
 import { EventCategory } from "@prisma/client";
 
+
 export const metadata: Metadata = {
-    title: "Calendar - Durio",
-    description: "Manage your schedule, tasks, and upcoming events.",
+  title: `My Calendar - ${APP_NAME}`,
+  description:
+    "Plan your schedule, track upcoming events, and manage key milestones — all from your personal DURIO calendar.",
+  openGraph: {
+    title: `My Calendar - ${APP_NAME}`,
+    description: "Manage your schedule, events, and milestones with ease.",
+    type: "website",
+    siteName: "DURIO",
+  },
+  twitter: {
+    card: "summary",
+    title: `My Calendar - ${APP_NAME}`,
+    description: "Manage your schedule, events, and milestones with ease.",
+  },
 };
+
 
 export default async function CalendarPage() {
     // current month daa

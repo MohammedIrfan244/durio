@@ -1,9 +1,12 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
-  Calculator, Image as ImageIcon, Moon, Heart, Zap, 
-  PenLine, Rocket, BookOpen, Hourglass, SmilePlus 
+  Calculator, Image as ImageIcon, Moon, Heart, 
+  PenLine, Rocket, BookOpen, Hourglass
 } from "lucide-react";
+import Image from "next/image";
 import { APP_REGISTRY } from "@/config/modules";
+import images from "@/asset/images.json";
+import { DuriaAvatar } from "@/components/shared/duria-avatar";
 
 export interface NavItem {
   label: string;
@@ -146,7 +149,7 @@ export const navItems: NavItem[] = [
   {
     label: "Talk with DURIA",
     url: "/duria",
-    icon: <SmilePlus size={18} />,
+    icon: <DuriaAvatar size={18} />,
     description: "Your friendly AI companion.",
     color: "#22D3EE",
     animationClass: "animate-smile",

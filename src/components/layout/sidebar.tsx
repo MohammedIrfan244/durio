@@ -40,6 +40,19 @@ export default function Sidebar() {
   const isOpen = state === "expanded";
   const { theme } = useTheme();
   const { fancyMode, disabledModules } = useSettings();
+  const moduleKeyByPath = React.useMemo(() => {
+    return new Map(
+      Object.entries(APP_REGISTRY.MODULES).map(([key, module]) => [
+        module.path,
+        key,
+      ])
+    );
+  }, []);
+
+  const disabledModuleSet = React.useMemo(
+    () => new Set(disabledModules),
+    [disabledModules]
+  );
 
   useEffect(() => {
     // Auto-collapse any manually opened groups when navigating out of their scope
@@ -48,11 +61,15 @@ export default function Sidebar() {
     );
   }, [pathname]);
 
-  const toggleGroup = (url: string) => {
+  const toggleGroup = React.useCallback((url: string) => {
     setOpenGroups((prev) =>
       prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]
     );
-  };
+  }, []);
+
+  const goToSettings = React.useCallback(() => {
+    router.push("/settings");
+  }, [router]);
 
   return (
     <>
@@ -87,7 +104,7 @@ export default function Sidebar() {
               style={{ fontFamily: "var(--font-bubbly)" }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold cursor-pointer text-foreground tracking-tigh transform -translate-x-1 title"
             >
-              <h1>{APP_NAME[0]}</h1>
+              <span>{APP_NAME[0]}</span>
             </Link>
           )}
         </SidebarHeader>
@@ -104,10 +121,8 @@ export default function Sidebar() {
               const isExpanded = inGroup || openGroups.includes(item.url);
               const isStrictlyActive = pathname === item.url;
               
-              const moduleKey = Object.keys(APP_REGISTRY.MODULES).find(
-                key => APP_REGISTRY.MODULES[key as keyof typeof APP_REGISTRY.MODULES].path === item.url
-              );
-              const isUserDisabled = moduleKey ? disabledModules.includes(moduleKey) : false;
+              const moduleKey = moduleKeyByPath.get(item.url);
+              const isUserDisabled = moduleKey ? disabledModuleSet.has(moduleKey) : false;
               const isDisabled = item.disabled || isUserDisabled;
               
               // Define content for the navigation button to avoid duplication
@@ -205,7 +220,7 @@ export default function Sidebar() {
           <SidebarMenuItem className="list-none ">
             <SidebarMenuButton
               className="text-foreground cursor-pointer settings-button flex items-center gap-3 text-sm"
-              onClick={() => router.push("/settings")}
+              onClick={goToSettings}
             >
               <Settings className="settings-icon" size={18} />
               <span>Settings</span>

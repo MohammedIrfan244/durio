@@ -14,6 +14,7 @@ import {
   bulkChangeTodoStatusSchema,
   markChecklistItemSchema,
   restoreTodoFromArchiveSchema,
+  searchArchiveTodosSchema,
   CreateTodoInput,
   TodoFilterInput,
   GetTodoByIdInput,
@@ -153,7 +154,7 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
 
     // Pagination logic
     const page = validatedFilters.page || 1;
-    const limit = validatedFilters.limit || 100; // Default limit if not specified
+    const limit = Math.min(validatedFilters.limit || 100, 100); // Default limit if not specified
     const skip = (page - 1) * limit;
 
     const todos = await prisma.todo.findMany({
@@ -161,8 +162,8 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
       orderBy: {
         [prismaSortField]: prismaSortOrder,
       },
-      skip: validatedFilters.status ? skip : undefined, 
-      take: validatedFilters.status ? limit : undefined, 
+      skip, 
+      take: limit, 
     });
 
     const grouped: IGetTodoListPayload = {
@@ -570,6 +571,7 @@ export const getArchivedTodos = withErrorWrapper<IGetArchivedTodoListPayload,[]>
       status: "ARCHIVED",
     },
     orderBy: { updatedAt: "desc" },
+    take: 100,
     select: {
       id: true,
       title: true,
@@ -617,7 +619,8 @@ export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async 
       renewStart: true,
       renewInterval: true,
       renewEvery: true,
-    }
+    },
+    take: 100,
   });
   return todos as IGetTodoList[];
 });
@@ -637,8 +640,9 @@ export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async ():
 
 // Action to search archived todos done
 export const searchArchivedTodos = withErrorWrapper(async (input: SearchArchiveTodosInput) => {
+    const validatedInput = searchArchiveTodosSchema.parse(input);
     const userId = await getUserId();
-    const { query } = input;
+    const { query } = validatedInput;
 
     const archivedTodos = await prisma.todo.findMany({
       where: {
@@ -670,6 +674,7 @@ export const searchArchivedTodos = withErrorWrapper(async (input: SearchArchiveT
       orderBy: {
         updatedAt: "desc",
       },
+      take: 50,
     });
 
     return archivedTodos;

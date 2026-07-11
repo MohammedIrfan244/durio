@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const updateUserProfileSchema = z.object({
   timezone: z.string().optional(),
-  displayName: z.string().optional(),
+  displayName: z.string().trim().max(200).optional(),
 });
 
 type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;

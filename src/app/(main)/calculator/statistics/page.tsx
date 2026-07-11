@@ -4,10 +4,25 @@ import { APP_NAME } from '@/lib/brand';
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
 import { LineChart } from "lucide-react";
 
-export const metadata = {
-    title: "Statistics Calculator - Durio",
-    description: "Analyze datasets seamlessly.",
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: `Statistics Calculator - ${APP_NAME}`,
+  description:
+    "Analyze datasets with ease — evaluate variations, modes, permutations, standard deviations, and regression logic.",
+  openGraph: {
+    title: `Statistics Calculator - ${APP_NAME}`,
+    description: "Statistical analysis tools: variations, modes, permutations, and regression.",
+    type: "website",
+    siteName: APP_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: `Statistics Calculator - ${APP_NAME}`,
+    description: "Statistical analysis tools: variations, modes, permutations, and regression.",
+  },
 };
+
 
 export default function StatisticsCalculatorPage() {
   return (
@@ -15,9 +30,9 @@ export default function StatisticsCalculatorPage() {
       <SectionHeaderWrapper>
         <div className="flex items-center gap-3">
           <LineChart className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-extrabold tracking-tight">
+          <h2 className="text-2xl font-extrabold tracking-tight">
             Statistics Analysis
-          </h1>
+          </h2>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           Evaluate variations, modes, permutations, and regression logic instantly.

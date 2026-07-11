@@ -1,8 +1,32 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
+import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { getUserId } from "@/lib/server/get-user";
 import { differenceInCalendarDays } from "date-fns";
 
 const DAILY_LIMIT = 150;
+
+export async function getEffectiveAIUsageForUser(userId: string): Promise<{ used: number; limit: number }> {
+  const usage = await prisma.aIUsage.findUnique({
+    where: { userId },
+  });
+
+  if (!usage) {
+    return { used: 0, limit: DAILY_LIMIT };
+  }
+
+  const used = differenceInCalendarDays(new Date(), usage.lastRequestAt) > 0
+    ? 0
+    : usage.requestsToday;
+
+  return { used, limit: DAILY_LIMIT };
+}
+
+export const getAIUsage = withErrorWrapper<{ used: number; limit: number }, []>(async () => {
+  const userId = await getUserId();
+  return getEffectiveAIUsageForUser(userId);
+});
 
 export async function checkAndIncrementAIUsage(): Promise<{ success: boolean; error?: string }> {
   try {

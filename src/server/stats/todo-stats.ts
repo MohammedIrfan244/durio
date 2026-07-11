@@ -11,7 +11,6 @@ export const getTodoStat = withErrorWrapper<
   ITodoStatsResponsePayload | null,
   []
 >(async (): Promise<ITodoStatsResponsePayload | null> => {
-  console.log("called")
   const userId = await getUserId();
   const timeZone = await prisma.user.findUnique({
     where: { id: userId },

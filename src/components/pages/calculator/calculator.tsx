@@ -14,9 +14,9 @@ export default function Calculator() {
       <SectionHeaderWrapper>
         <div className="flex items-center gap-3">
           <CalculatorIcon className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-extrabold tracking-tight">
+          <h2 className="text-2xl font-extrabold tracking-tight">
             Essential Toolkit
-          </h1>
+          </h2>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           Your daily calculators for straightforward answers.

@@ -67,7 +67,7 @@ export default function Settings() {
     <div className="section-wrapper">
       <SectionHeaderWrapper>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Settings</h1>
+          <h2 className="text-3xl font-bold tracking-tight mb-2">Settings</h2>
           <p className="text-muted-foreground">Manage your app preferences and toggle active modules.</p>
         </div>
       </SectionHeaderWrapper>
