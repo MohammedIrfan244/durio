@@ -123,11 +123,16 @@ export function HeroSection() {
             <motion.div 
               animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 5 }}
               style={{ transform: "translateZ(50px)" }}
-              className="absolute -top-10 -left-10 w-48 h-48 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-lg p-4 -rotate-6 shadow-2xl"
+              className="absolute -top-10 -left-10 w-48 h-48 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-lg p-5 -rotate-6 shadow-2xl flex flex-col justify-center"
             >
-               <div className="w-10 h-10 bg-[#ff6a00] rounded-full mb-4" />
-               <div className="h-4 w-full bg-white/10 rounded-full mb-2" />
-               <div className="h-4 w-2/3 bg-white/10 rounded-full" />
+               <div className="w-12 h-12 bg-[#ff6a00] rounded-full mb-4 flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(255,106,0,0.4)]">
+                 ☕
+               </div>
+               <div className="text-white/80 font-bold text-sm mb-1">Fueling up...</div>
+               <div className="h-2 w-full bg-white/10 rounded-full mb-2 overflow-hidden">
+                 <div className="h-full w-2/3 bg-[#ff6a00] rounded-full" />
+               </div>
+               <div className="h-2 w-2/3 bg-white/10 rounded-full" />
             </motion.div>
 
             <motion.div 
@@ -135,19 +140,68 @@ export function HeroSection() {
               style={{ transform: "translateZ(80px)" }}
               className="absolute bottom-10 -right-12 w-64 h-32 bg-gradient-to-br from-[#ff6a00]/30 to-amber-500/10 border border-[#ff6a00]/30 rounded-3xl backdrop-blur-xl p-4 rotate-12 flex items-center justify-center shadow-2xl"
             >
-              <span className="text-white/60 font-[family-name:var(--font-heading)] text-2xl font-bold">Need a hand?</span>
+              <span className="text-white/80 font-[family-name:var(--font-heading)] text-2xl font-bold flex items-center gap-2">
+                Need a hand? <span className="text-3xl">🤘</span>
+              </span>
             </motion.div>
 
             {/* Main Center UI Block */}
             <div className="w-full h-full border border-white/10 rounded-3xl bg-white/5 p-6 flex gap-6 overflow-hidden" style={{ transform: "translateZ(20px)" }}>
                <div className="w-48 shrink-0 flex flex-col gap-4">
-                 <div className="h-12 w-full bg-white/10 rounded-2xl" />
-                 <div className="h-full w-full bg-white/5 rounded-2xl border border-white/10" />
+                 <div className="h-12 w-full bg-white/10 rounded-2xl flex items-center px-4 gap-2">
+                   <div className="w-4 h-4 rounded-full bg-[#ff6a00]/50" />
+                   <div className="h-2 flex-1 bg-white/20 rounded-full" />
+                 </div>
+                 <div className="h-full w-full bg-white/5 rounded-2xl border border-white/10 p-4 space-y-4">
+                   {[
+                     { icon: "🚀", color: "text-[#ff6a00]" },
+                     { icon: "📝", color: "text-blue-400" },
+                     { icon: "📅", color: "text-pink-400" },
+                     { icon: "✨", color: "text-yellow-400" },
+                   ].map((item, i) => (
+                     <div key={i} className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-sm border border-white/5 shadow-sm">
+                         {item.icon}
+                       </div>
+                       <div className="space-y-1.5 flex-1">
+                         <div className={`h-2 w-${[3, 4, 2, 3][i]}/4 bg-white/20 rounded-full`} />
+                         <div className={`h-2 w-${[1, 2, 1, 2][i]}/3 bg-white/10 rounded-full`} />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
                </div>
                <div className="flex-1 flex flex-col gap-4">
-                 <div className="h-24 w-full bg-white/10 rounded-2xl" />
-                 <div className="flex-1 bg-[#ff6a00]/10 border border-[#ff6a00]/20 rounded-2xl p-6 relative overflow-hidden">
-                    <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-[#ff6a00]/30 rounded-full blur-xl" />
+                 <div className="h-24 w-full bg-white/10 rounded-2xl flex items-center px-6 gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#ff6a00] to-pink-500 p-0.5">
+                      <div className="w-full h-full bg-black/50 rounded-full flex items-center justify-center text-xl">
+                        😎
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                       <div className="h-4 w-32 bg-white/30 rounded-full" />
+                       <div className="h-3 w-48 bg-white/10 rounded-full" />
+                    </div>
+                 </div>
+                 <div className="flex-1 bg-[#ff6a00]/10 border border-[#ff6a00]/20 rounded-2xl p-6 relative overflow-hidden flex flex-col gap-4">
+                    <div className="absolute -right-4 -bottom-4 w-40 h-40 bg-[#ff6a00]/20 rounded-full blur-2xl" />
+                    
+                    <div className="flex justify-between items-center z-10">
+                      <div className="h-5 w-24 bg-white/30 rounded-full" />
+                      <div className="w-8 h-8 rounded-full border-2 border-white/20 flex items-center justify-center text-xs">⋯</div>
+                    </div>
+
+                    {[1, 2].map((i) => (
+                      <div key={i} className="w-full bg-black/20 rounded-xl border border-white/5 p-4 flex items-center gap-4 z-10 backdrop-blur-sm">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${i === 1 ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                          {i === 1 ? '✓' : '⚡'}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                           <div className="h-3 w-3/4 bg-white/40 rounded-full" />
+                           <div className="h-2 w-1/2 bg-white/20 rounded-full" />
+                        </div>
+                      </div>
+                    ))}
                  </div>
                </div>
             </div>

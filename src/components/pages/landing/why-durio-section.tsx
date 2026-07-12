@@ -19,7 +19,7 @@ export function WhyDurioSection() {
   const scale1 = useTransform(scrollYProgress, [0, 1], [0.5, 1.5]);
 
   return (
-    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] relative overflow-hidden">
+    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] relative z-20 overflow-x-clip overflow-y-visible">
       
       {/* Background phrases */}
       <motion.div 

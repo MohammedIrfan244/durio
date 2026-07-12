@@ -16,7 +16,7 @@ export function ShowcaseSection() {
   const rotate1 = useTransform(scrollYProgress, [0, 1], [-10, 10]);
 
   return (
-    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] relative overflow-hidden min-h-[100vh] sm:min-h-[120vh] flex items-center">
+    <section ref={containerRef} className="py-24 sm:py-40 bg-[#0A0A0A] relative z-10 overflow-hidden min-h-[100vh] sm:min-h-[120vh] flex items-center">
       <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#ff6a00]/5 to-[#0A0A0A] pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10 w-full">
@@ -49,9 +49,11 @@ export function ShowcaseSection() {
                <div className="w-24 h-6 bg-yellow-500/20 rounded-full" />
                <div className="w-8 h-8 rounded-full bg-white/10" />
             </div>
-            <div className="flex-1 grid grid-cols-7 grid-rows-5 gap-2 opacity-30">
+            <div className="flex-1 grid grid-cols-7 grid-rows-5 gap-2 opacity-50">
                {Array.from({ length: 35 }).map((_, i) => (
-                 <div key={i} className={`rounded-md ${i === 12 || i === 18 ? 'bg-[#ff6a00]' : 'bg-white/10'}`} />
+                 <div key={i} className={`rounded-md flex items-center justify-center text-[10px] font-bold ${i === 12 || i === 18 ? 'bg-[#ff6a00] text-white shadow-lg' : 'bg-white/10 text-white/40 hover:bg-white/20'}`}>
+                   {i + 1 <= 31 ? i + 1 : ''}
+                 </div>
                ))}
             </div>
           </motion.div>
@@ -69,20 +71,20 @@ export function ShowcaseSection() {
             <div className="w-32 h-8 bg-blue-500/20 rounded-full text-blue-300 font-bold px-4 flex items-center text-sm font-[family-name:var(--font-heading)]">
               Brain Dump
             </div>
-            <div className="space-y-4 flex-1 opacity-80">
-               <div className="flex items-center gap-4">
-                 <div className="w-6 h-6 rounded-full border-2 border-white/30" />
-                 <div className="flex-1 h-4 bg-white/20 rounded-full" />
+            <div className="space-y-5 flex-1 opacity-90 mt-2">
+               <div className="flex items-center gap-4 group">
+                 <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center text-transparent group-hover:border-[#ff6a00] transition-colors cursor-pointer" />
+                 <div className="flex-1 text-white/70 font-medium text-lg">Call mom 📞</div>
                </div>
-               <div className="flex items-center gap-4">
-                 <div className="w-6 h-6 rounded-full bg-[#ff6a00]/80 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full" />
+               <div className="flex items-center gap-4 opacity-50">
+                 <div className="w-6 h-6 rounded-full bg-[#ff6a00]/80 flex items-center justify-center text-white text-xs">
+                    ✓
                  </div>
-                 <div className="flex-1 h-4 bg-white/40 rounded-full line-through" />
+                 <div className="flex-1 text-white/50 font-medium text-lg line-through">Buy more coffee ☕</div>
                </div>
-               <div className="flex items-center gap-4">
-                 <div className="w-6 h-6 rounded-full border-2 border-white/30" />
-                 <div className="w-2/3 h-4 bg-white/20 rounded-full" />
+               <div className="flex items-center gap-4 group">
+                 <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center text-transparent group-hover:border-[#ff6a00] transition-colors cursor-pointer" />
+                 <div className="w-2/3 text-white/70 font-medium text-lg">World domination 🌎</div>
                </div>
             </div>
           </motion.div>
@@ -123,10 +125,19 @@ export function ShowcaseSection() {
           </div>
           <div className="rounded-[32px] border border-white/15 bg-white/10 p-6 backdrop-blur-md">
             <div className="text-sm uppercase tracking-[0.3em] text-blue-300 mb-4">Brain Dump</div>
-            <div className="space-y-3">
-              <div className="h-3 rounded-full bg-white/20" />
-              <div className="h-3 w-3/4 rounded-full bg-white/30" />
-              <div className="h-3 w-1/2 rounded-full bg-white/20" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full border border-white/30" />
+                <div className="text-white/80 text-sm">Call mom 📞</div>
+              </div>
+              <div className="flex items-center gap-3 opacity-50">
+                <div className="w-5 h-5 rounded-full bg-[#ff6a00]/80 flex items-center justify-center text-white text-[10px]">✓</div>
+                <div className="text-white/60 text-sm line-through">Buy more coffee ☕</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full border border-white/30" />
+                <div className="text-white/80 text-sm">World domination 🌎</div>
+              </div>
             </div>
           </div>
           <div className="rounded-[32px] border border-[#ff6a00]/30 bg-black/60 p-6 text-center backdrop-blur-2xl">
