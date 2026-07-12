@@ -41,7 +41,7 @@ export function Navigation() {
         <Link href="/dashboard">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button size="sm" className="bg-[#ff6a00] hover:bg-[#ff6a00]/90 text-white font-[family-name:var(--font-body)] rounded-full px-3 sm:px-4 text-xs sm:text-sm shadow-[0_0_15px_rgba(255,106,0,0.3)] hover:shadow-[0_0_25px_rgba(255,106,0,0.5)] transition-shadow border border-[#ff6a00]/50">
-              Open App
+              Come in
             </Button>
           </motion.div>
         </Link>

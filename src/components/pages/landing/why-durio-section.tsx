@@ -55,9 +55,9 @@ export function WhyDurioSection() {
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-black font-[family-name:var(--font-heading)] text-white tracking-tighter leading-none">
             Your life isn't scattered.<br />
             <span className="text-muted-foreground italic text-3xl sm:text-4xl md:text-6xl">Your apps are.</span>
-          </h2>
+          </h2> 
           <p className="text-base sm:text-lg md:text-xl font-[family-name:var(--font-body)] text-muted-foreground max-w-lg leading-relaxed">
-            You've got tasks in one place, notes in another, and calendar events somewhere else. 
+            You already told me. Now let's do something about it. You've got tasks in one place, notes in another, and calendar events somewhere else. 
             DURIO brings it all together so you can stop switching tabs and start chilling. Together.
           </p>
         </motion.div>
@@ -66,30 +66,34 @@ export function WhyDurioSection() {
           {/* Scattered Apps Parallaxing around */}
           <motion.div
             style={{ y: y1, rotate: rotate1 }}
-            className="absolute top-[8%] right-[8%] sm:right-[20%] w-20 h-20 sm:w-24 sm:h-24 bg-pink-500/10 border border-pink-500/30 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl"
+            className="absolute top-[8%] right-[8%] sm:right-[20%] p-3 sm:p-4 bg-pink-500/10 border border-pink-500/30 backdrop-blur-xl rounded-3xl flex flex-col items-center justify-center shadow-2xl gap-2"
           >
-            <StickyNote className="w-10 h-10 text-pink-400" />
+            <StickyNote className="w-8 h-8 sm:w-10 sm:h-10 text-pink-400" />
+            <span className="text-[10px] text-pink-300 font-medium whitespace-nowrap hidden sm:block">Saved that thought.</span>
           </motion.div>
 
           <motion.div
             style={{ y: y2, x: x1 }}
-            className="absolute bottom-[20%] left-[5%] sm:left-[10%] w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 border border-blue-500/30 backdrop-blur-xl rounded-[2rem] flex items-center justify-center shadow-2xl"
+            className="absolute bottom-[20%] left-[5%] sm:left-[10%] p-4 bg-blue-500/10 border border-blue-500/30 backdrop-blur-xl rounded-[2rem] flex flex-col items-center justify-center shadow-2xl gap-2"
           >
-            <CheckCircle className="w-14 h-14 text-blue-400" />
+            <CheckCircle className="w-10 h-10 sm:w-14 sm:h-14 text-blue-400" />
+            <span className="text-[10px] text-blue-300 font-medium whitespace-nowrap hidden sm:block">Crossed that off for you.</span>
           </motion.div>
 
           <motion.div
             style={{ y: y1, scale: scale1 }}
-            className="absolute top-[40%] left-[2%] sm:left-[0%] w-16 h-16 sm:w-20 sm:h-20 bg-yellow-500/10 border border-yellow-500/30 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-2xl"
+            className="absolute top-[40%] left-[2%] sm:left-[0%] p-3 sm:p-4 bg-yellow-500/10 border border-yellow-500/30 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center shadow-2xl gap-1"
           >
-            <CalendarDays className="w-8 h-8 text-yellow-400" />
+            <CalendarDays className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
+            <span className="text-[9px] text-yellow-300 font-medium whitespace-nowrap text-center hidden sm:block">Moved the boring<br/>stuff to Thursday.</span>
           </motion.div>
 
           <motion.div
             style={{ y: x1, rotate: y1 }}
-            className="absolute bottom-[38%] right-[2%] sm:right-[5%] w-20 h-20 sm:w-28 sm:h-28 bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl"
+            className="absolute bottom-[38%] right-[2%] sm:right-[5%] p-3 sm:p-4 bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-xl rounded-3xl flex flex-col items-center justify-center shadow-2xl gap-2"
           >
-            <Calculator className="w-12 h-12 text-indigo-400" />
+            <Calculator className="w-10 h-10 sm:w-12 sm:h-12 text-indigo-400" />
+            <span className="text-[10px] text-indigo-300 font-medium whitespace-nowrap hidden sm:block">Math handled.</span>
           </motion.div>
 
           {/* Central Unified UI */}
@@ -105,6 +109,9 @@ export function WhyDurioSection() {
              <div className="text-3xl sm:text-4xl md:text-5xl font-[family-name:var(--font-heading)] text-white font-black text-center z-10 px-4 sm:px-8">
                 <span className="text-[#ff6a00]">One</span> place.<br/>
                 All yours.
+                <div className="text-lg md:text-xl text-white/60 mt-4 font-[family-name:var(--font-body)] font-medium">
+                  See? Already feels lighter.
+                </div>
              </div>
           </motion.div>
         </div>

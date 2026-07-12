@@ -48,12 +48,12 @@ export function AndroidSection() {
             viewport={{ once: false }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl sm:text-5xl md:text-7xl font-black font-[family-name:var(--font-heading)] text-white leading-none">
-              Take me<br />
-              with you.
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-[family-name:var(--font-heading)] text-white leading-tight">
+              Home, work,<br />
+              in line for coffee.
             </h2>
             <p className="text-xl font-[family-name:var(--font-body)] text-muted-foreground mt-6 max-w-sm">
-              Cross-platform companionship. I'll be in your pocket soon.
+              She doesn't mind waiting either.
             </p>
           </motion.div>
           
@@ -66,12 +66,15 @@ export function AndroidSection() {
             className="inline-flex cursor-pointer"
           >
             {/* Readable Badge */}
-            <div className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)]">
-              <Play className="w-6 h-6 fill-current" />
-              <div>
-                <div className="text-xs uppercase tracking-widest text-black/60">Coming Soon</div>
-                <div>Google Play</div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)]">
+                <Play className="w-6 h-6 fill-current" />
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-black/60">Coming Soon</div>
+                  <div>Google Play</div>
+                </div>
               </div>
+              <div className="text-sm text-white/50 italic ml-2">Almost ready to ride in your pocket.</div>
             </div>
           </motion.div>
         </div>

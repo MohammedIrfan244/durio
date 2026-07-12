@@ -50,7 +50,7 @@ export function MeetDuriaSection() {
             transition={{ delay: 0.1 }}
             className="text-2xl sm:text-3xl md:text-5xl font-[family-name:var(--font-body)] text-[#ff6a00] mt-4 -rotate-2"
           >
-            She's got your back.
+            This is Duria. She's been listening.
           </motion.h3>
         </div>
 
@@ -106,6 +106,16 @@ export function MeetDuriaSection() {
           </motion.div>
           
         </div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          transition={{ delay: 1 }}
+          className="text-center mt-12 text-white/50 font-[family-name:var(--font-body)] text-xl italic"
+        >
+          She's not just smart. She's on your side.
+        </motion.div>
       </div>
     </section>
   );

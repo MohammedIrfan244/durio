@@ -66,7 +66,7 @@ export function CtaFooter() {
                 >
                   <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
                     <Button size="lg" className="w-full sm:w-auto bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-xl sm:text-2xl rounded-[2rem] px-8 sm:px-12 py-8 sm:py-10 shadow-2xl transition-all border-b-8 border-orange-200">
-                      Open DURIO
+                      Let's start
                     </Button>
                   </motion.div>
                 </motion.div>
@@ -86,6 +86,9 @@ export function CtaFooter() {
             />
             <span className="text-muted-foreground font-[family-name:var(--font-body)] text-sm">
               &copy; 2026 DURIO
+            </span>
+            <span className="text-muted-foreground/50 font-[family-name:var(--font-body)] text-xs italic sm:ml-4">
+              Still here.
             </span>
           </div>
           

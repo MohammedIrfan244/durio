@@ -47,6 +47,12 @@ export function HeroSection() {
       >
         No worries.
       </motion.div>
+      <motion.div 
+        style={{ y: y1, rotate: rotate2 }} 
+        className="absolute top-[60%] right-[25%] text-white/5 font-[family-name:var(--font-heading)] text-2xl font-bold select-none pointer-events-none"
+      >
+        I'll remember so you don't have to.
+      </motion.div>
 
       <div className="z-10 w-full max-w-7xl px-0 sm:px-2 flex flex-col items-center sm:items-start relative pointer-events-none">
         <motion.div
@@ -93,7 +99,7 @@ export function HeroSection() {
             <Link href="/dashboard">
               <motion.div whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }}>
                 <Button size="lg" className="w-full sm:w-auto bg-white text-[#ff6a00] hover:bg-orange-50 font-[family-name:var(--font-heading)] font-bold text-xl sm:text-2xl rounded-[2rem] px-8 sm:px-12 py-8 sm:py-10 shadow-2xl transition-all border-b-8 border-orange-200">
-                  Open DURIO
+                  Let's start
                 </Button>
               </motion.div>
             </Link>
