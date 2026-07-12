@@ -14,20 +14,20 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
     <InfoModal
       open={open}
       onClose={onClose}
-      title="Contact Us"
+      title="Say Hello!"
       icon={<MessageSquare size={20} />}
-      description={`Contact information for ${APP_NAME}.`}
+      description={`How to reach out about ${APP_NAME}.`}
     >
       <div className="space-y-6">
         <p>
-          Have a question, feedback, or need support? We're here to help you get the most out of {APP_NAME}.
+          Got ideas, bugs, or just want to chat? We're all ears and always around to help out!
         </p>
 
         <div className="space-y-4">
           <a href="mailto:zemdevwork@gmail.com" className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer text-foreground">
             <Mail className="text-[#ff6a00]" size={20} />
             <div>
-              <div className="font-semibold">Email Us</div>
+              <div className="font-semibold">Shoot an email</div>
               <div className="text-xs text-muted-foreground">zemdevwork@gmail.com</div>
             </div>
           </a>
@@ -35,7 +35,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
           <a href="https://twitter.com" target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer text-foreground">
             <Twitter className="text-[#ff6a00]" size={20} />
             <div>
-              <div className="font-semibold">Twitter / X</div>
+              <div className="font-semibold">Tweet at us</div>
               <div className="text-xs text-muted-foreground">@durio_app</div>
             </div>
           </a>
@@ -43,8 +43,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
           <a href="https://github.com" target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer text-foreground">
             <Github className="text-[#ff6a00]" size={20} />
             <div>
-              <div className="font-semibold">GitHub</div>
-              <div className="text-xs text-muted-foreground">Report an issue</div>
+              <div className="font-semibold">GitHub Repo</div>
+              <div className="text-xs text-muted-foreground">Yell at us about bugs</div>
             </div>
           </a>
         </div>

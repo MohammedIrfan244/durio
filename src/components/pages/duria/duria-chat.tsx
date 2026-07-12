@@ -121,27 +121,27 @@ export default function DuriaChat() {
              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4">
                 <div className="flex flex-col items-center text-center mb-8">
                   <DuriaAvatar size={80} className="mb-4 shadow-sm ring-4 ring-primary/10" />
-                  <h3 className="text-xl font-bold">Welcome to DURIA</h3>
-                  <p className="text-muted-foreground mt-2 max-w-md">Your personal companion, embedded directly into your workspace.</p>
+                  <h3 className="text-xl font-bold">Say hi to DURIA!</h3>
+                  <p className="text-muted-foreground mt-2 max-w-md">Your quirky little companion, living right in your workspace.</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Paperclip size={16} className="text-primary"/> 1. Context is Key</h4>
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Paperclip size={16} className="text-primary"/> 1. Feed her brain</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Use the paperclip icon below to attach your exact Tasks, Notes, and Events to the conversation. DURIA uses this specific context to answer accurately without hallucinations.
+                      Hit the paperclip to attach your exact Tasks, Notes, and Events. She uses this context to give you spot-on answers without making stuff up.
                     </p>
                   </div>
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. Action Taker</h4>
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. She's got hands</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      DURIA has hands! Tell it to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Mark this task as done"</strong>.
+                      Tell her to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Check off that task"</strong>.
                     </p>
                   </div>
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center border-primary/20 bg-primary/5">
-                    <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Token Limits</h4>
+                    <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Keep it light</h4>
                     <p className="text-xs text-muted-foreground">
-                      To keep DURIA fast and free, you are limited to <strong>150 queries per day</strong>. Clear your context after a question to save tokens!
+                      To keep her fast and free, you get <strong>150 chats per day</strong>. Wipe her memory (Clear Data) after finishing a topic to save tokens!
                     </p>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function DuriaChat() {
               <span className="text-sm font-medium">
                 {error?.message?.includes("429") 
                   ? "You have reached your daily limit of 150 AI queries. Please try again tomorrow!" 
-                  : error.message || "An error occurred while contacting DURIA."}
+                  : error.message || "Oops, Duria had a brain freeze."}
               </span>
             </div>
           )}
@@ -244,13 +244,13 @@ export default function DuriaChat() {
           {!isLoading && messages.length > 0 && messages[messages.length - 1].role === 'assistant' && totalContextItems > 0 && !hasAskedToClear && (
             <div className="flex justify-center px-4 pt-4 pb-2">
               <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col items-center text-center gap-3 shadow-sm animate-in fade-in slide-in-from-bottom-2">
-                <p className="text-sm text-muted-foreground font-medium">Would you like to keep the attached context for your next question?</p>
+                <p className="text-sm text-muted-foreground font-medium">Wanna keep these attachments for the next question?</p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => setHasAskedToClear(true)}>
-                    Keep Data Attached
+                    Yeah, keep 'em
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => { clearContext(); setHasAskedToClear(true); }}>
-                    Clear Data (Saves Tokens)
+                    Nah, wipe it
                   </Button>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function DuriaChat() {
         <div className="px-4 py-2 bg-card border-t border-border/50 flex flex-col gap-2 max-h-40 overflow-y-auto">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold">
             <span>📎 Attached Context (Will be sent with next message)</span>
-            <button onClick={clearContext} className="hover:text-destructive">Clear All</button>
+            <button onClick={clearContext} className="hover:text-destructive">Dump all</button>
           </div>
           <div className="flex flex-wrap gap-2">
             {aiPayload.todos.map((t, i) => (
@@ -301,7 +301,7 @@ export default function DuriaChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               maxLength={MESSAGE_LIMIT}
-              placeholder="Ask DURIA anything..."
+              placeholder="Ask Duria anything..."
               className="rounded-xl bg-secondary/50 border-border/50 focus-visible:ring-primary/20"
             />
             <Button type="submit" disabled={isLoading || !trimmedInput || isMessageTooLong} size="icon" className="shrink-0 rounded-xl">

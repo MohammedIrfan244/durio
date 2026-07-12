@@ -80,12 +80,12 @@ export default function ResourceLinker({
         });
 
         if (result.success) {
-            toast.success("Linked successfully");
+            toast.success("Boom! Linked.");
             await fetchLinked();
             setSearchQuery("");
             setIsSearching(false);
         } else {
-            toast.error(result.error || "Failed to link");
+            toast.error(result.error || "Uh oh, couldn't link that.");
         }
         setLinking(false);
     };
@@ -93,10 +93,10 @@ export default function ResourceLinker({
     const handleUnlink = async (linkId: string) => {
         const result = await unlinkResources(linkId);
         if (result.success) {
-            toast.success("Unlinked");
+            toast.success("Link severed.");
             setLinked(prev => prev.filter(l => l.uniqueId !== linkId));
         } else {
-            toast.error(result.error || "Failed to unlink");
+            toast.error(result.error || "Stuck together! Couldn't unlink.");
         }
     };
 
