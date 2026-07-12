@@ -22,12 +22,12 @@ export function AndroidSection() {
   const floatY2 = useTransform(smoothScrollY, [0, 1], [-200, 400]);
 
   return (
-    <section id="android" ref={containerRef} className="py-24 sm:py-40 bg-black overflow-hidden relative">
+    <section id="android" ref={containerRef} className="py-24 sm:py-40 bg-black relative z-20 overflow-x-clip overflow-y-visible">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#ff6a00]/10 blur-[150px] rounded-full pointer-events-none" />
       
       {/* Decorative chaotic elements */}
       <motion.div style={{ y: floatY1 }} className="absolute top-[10%] right-[10%] text-[#ff6a00]/20 font-[family-name:var(--font-heading)] text-8xl font-black rotate-12 pointer-events-none blur-sm">
-        Soon.
+        Now.
       </motion.div>
       <motion.div style={{ y: floatY2 }} className="absolute bottom-[20%] left-[5%] text-white/5 font-[family-name:var(--font-heading)] text-6xl font-bold -rotate-12 pointer-events-none">
         Everywhere.
@@ -67,14 +67,14 @@ export function AndroidSection() {
           >
             {/* Readable Badge */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)]">
+              <div className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform cursor-pointer">
                 <Play className="w-6 h-6 fill-current" />
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-black/60">Coming Soon</div>
+                  <div className="text-xs uppercase tracking-widest text-black/60">Get it on</div>
                   <div>Google Play</div>
                 </div>
               </div>
-              <div className="text-sm text-white/50 italic ml-2">Almost ready to ride in your pocket.</div>
+              <div className="text-sm text-white/50 italic ml-2">Ready to ride in your pocket.</div>
             </div>
           </motion.div>
         </div>
