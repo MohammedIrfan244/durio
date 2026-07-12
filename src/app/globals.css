@@ -899,6 +899,10 @@ body {
   animation: emoji-wiggle 0.8s ease-in-out;
 }
 
+.nav-item-group:hover .animate-settings {
+  animation: gear-rotate 0.6s ease-in-out;
+}
+
 /* ---------------------------
    DASHBOARD CARD HOVER TRIGGERS
    Same animations fired when the custom `dashboard-card` ancestor (ModuleCard Link) is hovered.

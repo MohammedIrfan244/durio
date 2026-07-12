@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Link2, Search, X, StickyNote, CheckCircle, CalendarDays, Unlink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ResourceType } from "@/types/resource-link";
+import ResourceLinkerUI, { LinkableItem, LinkedItemDisplay } from "./resource-linker-ui";
 
 export interface IUnsavedLinkedResource {
     id: string;
@@ -20,27 +18,6 @@ interface UnsavedResourceLinkerProps {
     onChange: (value: IUnsavedLinkedResource[]) => void;
 }
 
-const TYPE_ICONS: Record<ResourceType, React.ReactNode> = {
-    NOTE: <StickyNote className="w-3.5 h-3.5" />,
-    TODO: <CheckCircle className="w-3.5 h-3.5" />,
-    EVENT: <CalendarDays className="w-3.5 h-3.5" />,
-    PROJECT: <CalendarDays className="w-3.5 h-3.5" />,
-};
-
-const TYPE_COLORS: Record<ResourceType, string> = {
-    NOTE: "text-pink-400",
-    TODO: "text-blue-400",
-    EVENT: "text-amber-400",
-    PROJECT: "text-orange-400",
-};
-
-const TYPE_LABELS: Record<ResourceType, string> = {
-    NOTE: "Note",
-    TODO: "Task",
-    EVENT: "Event",
-    PROJECT: "Project",
-};
-
 export default function UnsavedResourceLinker({
     allowedTargetTypes,
     searchAction,
@@ -49,7 +26,7 @@ export default function UnsavedResourceLinker({
 }: UnsavedResourceLinkerProps) {
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<IUnsavedLinkedResource[]>([]);
+    const [searchResults, setSearchResults] = useState<LinkableItem[]>([]);
 
     // Search handler
     useEffect(() => {
@@ -59,7 +36,7 @@ export default function UnsavedResourceLinker({
         }
 
         const timeout = setTimeout(async () => {
-            const allResults: IUnsavedLinkedResource[] = [];
+            const allResults: LinkableItem[] = [];
             for (const targetType of allowedTargetTypes) {
                 const items = await searchAction(searchQuery, targetType);
                 // Filter out already linked items
@@ -74,7 +51,7 @@ export default function UnsavedResourceLinker({
         return () => clearTimeout(timeout);
     }, [searchQuery, isSearching, allowedTargetTypes, searchAction, value]);
 
-    const handleLink = (item: IUnsavedLinkedResource) => {
+    const handleLink = (item: LinkableItem) => {
         onChange([...value, item]);
         setSearchQuery("");
         setIsSearching(false);
@@ -84,111 +61,28 @@ export default function UnsavedResourceLinker({
         onChange(value.filter(l => l.id !== id));
     };
 
+    // Map the external controlled value into the format expected by ResourceLinkerUI
+    const linkedItemsDisplay: LinkedItemDisplay[] = value.map(v => ({
+        uniqueId: v.id, // For unsaved resources, the linkId doesn't exist yet, so we use the resource id
+        resourceId: v.id,
+        type: v.type,
+        title: v.title,
+        subtitle: v.subtitle
+    }));
+
     return (
-        <div className="space-y-3 col-span-2">
-            <div className="flex items-center justify-between">
-                <label className="text-sm font-medium flex items-center gap-2">
-                    <Link2 className="h-4 w-4 text-muted-foreground" />
-                    Link Resources
-                </label>
-                {!isSearching && (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                        onClick={() => setIsSearching(true)}
-                    >
-                        <Link2 className="w-3 h-3 mr-1" />
-                        Link
-                    </Button>
-                )}
-            </div>
-
-            {/* Search Panel */}
-            {isSearching && (
-                <div className="bg-secondary/30 rounded-lg border border-border/40 p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                        <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <Input
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={`Search ${allowedTargetTypes.map(t => TYPE_LABELS[t] + "s").join(", ")}...`}
-                            className="h-8 text-sm border-none bg-transparent focus-visible:ring-0 shadow-none px-0"
-                            autoFocus
-                        />
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 shrink-0"
-                            onClick={() => { setIsSearching(false); setSearchQuery(""); setSearchResults([]); }}
-                        >
-                            <X className="w-3 h-3" />
-                        </Button>
-                    </div>
-
-                    {/* Results */}
-                    {searchResults.length > 0 && (
-                        <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
-                            {searchResults.map((item) => (
-                                <button
-                                    type="button"
-                                    key={`${item.type}-${item.id}`}
-                                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-background/60 text-left transition-colors text-sm w-full"
-                                    onClick={() => handleLink(item)}
-                                >
-                                    <span className={TYPE_COLORS[item.type]}>
-                                        {TYPE_ICONS[item.type]}
-                                    </span>
-                                    <span className="truncate flex-1 font-medium">{item.title}</span>
-                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                                        {TYPE_LABELS[item.type]}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {searchQuery && searchResults.length === 0 && (
-                        <p className="text-xs text-muted-foreground text-center py-2">No results found</p>
-                    )}
-                </div>
-            )}
-
-            {/* Linked Items Display */}
-            {value.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                    {value.map((item) => (
-                        <div
-                            key={`${item.type}-${item.id}`}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/20 border border-border/30 hover:bg-secondary/40 transition-colors group"
-                        >
-                            <span className={TYPE_COLORS[item.type]}>
-                                {TYPE_ICONS[item.type]}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{item.title}</p>
-                                {item.subtitle && (
-                                    <p className="text-[11px] text-muted-foreground truncate">{item.subtitle}</p>
-                                )}
-                            </div>
-                            <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">
-                                {TYPE_LABELS[item.type]}
-                            </span>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                                onClick={() => handleUnlink(item.id)}
-                            >
-                                <Unlink className="w-3 h-3 text-destructive" />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+        <ResourceLinkerUI
+            allowedTargetTypes={allowedTargetTypes}
+            isSearching={isSearching}
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            linkedItems={linkedItemsDisplay}
+            loading={false}
+            linking={false}
+            onSearchChange={setSearchQuery}
+            onSetSearching={setIsSearching}
+            onLink={handleLink}
+            onUnlink={handleUnlink}
+        />
     );
 }

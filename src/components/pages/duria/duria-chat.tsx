@@ -109,7 +109,7 @@ export default function DuriaChat() {
       <div className="h-14 border-b border-border/50 bg-card flex items-center px-4 justify-between shrink-0">
         <div className="flex items-center gap-2">
           <DuriaAvatar size={20} />
-          <h2 className="font-semibold">DURIA Assistant</h2>
+          <h2 className="font-semibold">DURIA</h2>
         </div>
         <AIUsageIndicator usage={usage} isLoading={isUsageLoading} />
       </div>
@@ -122,7 +122,7 @@ export default function DuriaChat() {
                 <div className="flex flex-col items-center text-center mb-8">
                   <DuriaAvatar size={80} className="mb-4 shadow-sm ring-4 ring-primary/10" />
                   <h3 className="text-xl font-bold">Welcome to DURIA</h3>
-                  <p className="text-muted-foreground mt-2 max-w-md">Your personal AI assistant, embedded directly into your workspace.</p>
+                  <p className="text-muted-foreground mt-2 max-w-md">Your personal companion, embedded directly into your workspace.</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">

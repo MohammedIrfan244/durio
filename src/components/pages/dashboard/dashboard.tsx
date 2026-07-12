@@ -51,15 +51,7 @@ const DEFAULT_STATS: DashboardStats = {
   },
 };
 
-const SETTINGS_NAV_ITEM: NavItem = {
-  label: "Settings",
-  url: "/settings",
-  description: "Tune DURIO to match how you work.",
-  icon: <Settings size={18} />,
-  color: "#94A3B8",
-  animationClass: "settings-icon",
-  disabled: !APP_REGISTRY.MODULES.SETTINGS.enabled || APP_REGISTRY.MODULES.SETTINGS.systemDisabled,
-};
+
 
 const MESSAGE_POOLS = {
   notesLight: [
@@ -586,7 +578,7 @@ function ComingSoonContent() {
 }
 
 function getNavItem(path: string) {
-  return navItems.find((item) => item.url === path) || SETTINGS_NAV_ITEM;
+  return navItems.find((item) => item.url === path)!;
 }
 
 function getNotesMessage(count: number) {

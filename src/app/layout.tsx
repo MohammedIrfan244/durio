@@ -45,12 +45,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://durio.vercel.app"),
   title: APP_NAME,
   description:
-    "DURIO — Your personal daily companion. Manage your tasks, notes, calendar, and AI assistant — all in one place.",
+    "DURIO — Your personal daily companion. Manage your tasks, notes, calendar, and companion — all in one place.",
   keywords: [
     "personal productivity",
     "task manager",
     "daily planner",
-    "AI assistant",
+    "companion",
     "notes",
     "calendar",
     "DURIO",

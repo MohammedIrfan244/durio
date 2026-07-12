@@ -1,5 +1,5 @@
-import Settings from '@/components/pages/settings/settings'
 import React from 'react'
+import Settings from '@/components/pages/settings/settings'
 import { APP_NAME } from '@/lib/brand'
 import { Metadata } from 'next'
 

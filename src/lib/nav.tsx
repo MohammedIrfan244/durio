@@ -1,11 +1,9 @@
 import { 
   Home, CheckCircle, StickyNote, CalendarDays, Dumbbell, 
   Calculator, Image as ImageIcon, Moon, Heart, 
-  PenLine, Rocket, BookOpen, Hourglass
+  PenLine, Rocket, BookOpen, Hourglass, Settings
 } from "lucide-react";
-import Image from "next/image";
 import { APP_REGISTRY } from "@/config/modules";
-import images from "@/asset/images.json";
 import { DuriaAvatar } from "@/components/shared/duria-avatar";
 
 export interface NavItem {
@@ -154,5 +152,14 @@ export const navItems: NavItem[] = [
     color: "#22D3EE",
     animationClass: "animate-smile",
     disabled: !APP_REGISTRY.MODULES.DURIA.enabled || APP_REGISTRY.MODULES.DURIA.systemDisabled
+  },
+  {
+    label: "Settings",
+    url: "/settings",
+    icon: <Settings size={18} />,
+    description: "Tweak and tune to your heart's content.",
+    color: "#14B8A6",
+    animationClass: "animate-settings",
+    disabled: !APP_REGISTRY.MODULES.SETTINGS.enabled || APP_REGISTRY.MODULES.SETTINGS.systemDisabled
   }
 ];
