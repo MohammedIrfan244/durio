@@ -4,13 +4,13 @@ const config: CapacitorConfig = {
   appId: 'dev.zemo.durio',
   appName: 'Durio',
   server: {
-    url: "https://durio.vercel.app",
-    cleartext: false,
+    url: "http://10.0.2.2:3000",
+    cleartext: true,
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
-      launchAutoHide: true,
+      launchShowDuration: 3000,
+      launchAutoHide: false,
       backgroundColor: "#000000",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
