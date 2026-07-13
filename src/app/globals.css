@@ -362,6 +362,21 @@ body {
   }
 }
 
+/* --- Mobile UX Tweaks --- */
+html.capacitor-app {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Disable tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+html.capacitor-app input, 
+html.capacitor-app textarea, 
+html.capacitor-app [contenteditable="true"] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
 /* Animations */
 
 /* Home - Welcoming bounce with scale */
