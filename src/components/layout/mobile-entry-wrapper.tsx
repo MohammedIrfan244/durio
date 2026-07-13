@@ -25,13 +25,14 @@ export default function MobileEntryWrapper({ children }: { children: React.React
   // While checking capacitor status or if it IS capacitor but we haven't redirected yet
   if (isCapacitor === null || isCapacitor === true) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-        <div className="relative w-32 h-32 animate-pulse">
+      <div className="relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">
+        <div className="dvd-bounce">
           <Image
             src={images.duria}
-            alt="Duria"
+            alt="Duria Loading"
             fill
             className="object-contain"
+            priority
           />
         </div>
       </div>

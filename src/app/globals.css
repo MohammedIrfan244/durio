@@ -1910,3 +1910,21 @@ html.capacitor-app [contenteditable="true"] {
 .animate-ken-burns {
   animation: ken-burns 20s ease-in-out infinite alternate;
 }
+
+/* --- Mobile Splash DVD Bounce --- */
+.dvd-bounce {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  animation: dvd-bounce-x 3s linear infinite alternate, dvd-bounce-y 2.3s linear infinite alternate;
+}
+
+@keyframes dvd-bounce-x {
+  0% { left: 0; }
+  100% { left: calc(100vw - 128px); }
+}
+
+@keyframes dvd-bounce-y {
+  0% { top: env(safe-area-inset-top, 0px); }
+  100% { top: calc(100dvh - 128px - env(safe-area-inset-bottom, 0px)); }
+}
