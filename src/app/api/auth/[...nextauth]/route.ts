@@ -9,6 +9,29 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
+  cookies: {
+    state: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.state" : "next-auth.state",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        maxAge: 900
+      }
+    },
+    pkceCodeVerifier: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.pkce.code_verifier" : "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        maxAge: 900
+      }
+    }
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       return true;
