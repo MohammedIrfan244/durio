@@ -31,7 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Sidebar />
         </ShadSidebar>
 
-        <div className="flex flex-col flex-1 p-2">
+        <div className="flex flex-col flex-1 p-2 min-w-0 min-h-0">
           {" "}
           <Header />
           <main

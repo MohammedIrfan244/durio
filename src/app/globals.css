@@ -363,16 +363,26 @@ body {
 }
 
 /* --- Mobile UX Tweaks --- */
-html.capacitor-app {
+html.is-capacitor {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
   /* Disable tap highlight on mobile */
   -webkit-tap-highlight-color: transparent;
+  /* Prevent pull-to-refresh and overscroll bounce */
+  overscroll-behavior-y: none;
 }
-html.capacitor-app input, 
-html.capacitor-app textarea, 
-html.capacitor-app [contenteditable="true"] {
+html.is-capacitor body {
+  overscroll-behavior-y: none;
+  /* Safe area padding for notch/status bar and navigation bar */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+html.is-capacitor input, 
+html.is-capacitor textarea, 
+html.is-capacitor [contenteditable="true"] {
   -webkit-user-select: auto;
   user-select: auto;
 }

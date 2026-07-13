@@ -44,14 +44,16 @@ export default function NotificationBell() {
   const handleOpenChange = async (open: boolean) => {
     setIsOpen(open);
     if (open && unreadCount > 0) {
-      // Mark all as read when opening the popover
+      // Mark all as read on backend but keep visual unread state while open
       const result = await markAllAsRead();
       if (result.success) {
         setUnreadCount(0);
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, read: true }))
-        );
       }
+    } else if (!open) {
+      // Clear visual unread state when popover closes
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read: true }))
+      );
     }
   };
 

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { PanelLeftIcon } from "lucide-react"
+import { PanelLeftIcon, MenuIcon } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -182,19 +182,17 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
+          className="bg-sidebar text-sidebar-foreground w-full p-0 [&>button]:hidden rounded-t-2xl max-h-[80vh] flex flex-col"
+          side="bottom"
         >
+          <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mt-3 mb-1 shrink-0" />
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div className="flex h-full w-full flex-col overflow-y-auto hide-scrollbar-on-main">
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     )
@@ -268,7 +266,8 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <PanelLeftIcon className="hidden md:block" />
+      <MenuIcon className="block md:hidden" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
