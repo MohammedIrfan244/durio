@@ -1,12 +1,47 @@
 import { prisma } from "@/lib/prisma";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-
+import CredentialsProvider from "next-auth/providers/credentials";
+import { OAuth2Client } from "google-auth-library";
 const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      id: "google-native",
+      name: "Google Native",
+      credentials: {
+        idToken: { label: "ID Token", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.idToken) {
+          return null;
+        }
+
+        try {
+          const client = new OAuth2Client();
+          // We verify the token using the Web Client ID (since the native plugin requests it as the serverClientId)
+          const ticket = await client.verifyIdToken({
+            idToken: credentials.idToken,
+            audience: [process.env.GOOGLE_CLIENT_ID!],
+          });
+          
+          const payload = ticket.getPayload();
+          if (!payload || !payload.email) return null;
+
+          return {
+            id: payload.sub,
+            name: payload.name,
+            email: payload.email,
+            image: payload.picture,
+          };
+        } catch (error) {
+          console.error("Error verifying native Google token:", error);
+          return null;
+        }
+      },
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,

@@ -4,4 +4,5 @@
     <string name="title_activity_main">Durio</string>
     <string name="package_name">dev.zemo.durio</string>
     <string name="custom_url_scheme">dev.zemo.durio</string>
+    <string name="server_client_id">402208491826-h4t6j69p0fg6ql93uc35al62gkrd5d4s.apps.googleusercontent.com</string>
 </resources>

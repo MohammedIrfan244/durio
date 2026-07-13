@@ -4,8 +4,8 @@ const config: CapacitorConfig = {
   appId: 'dev.zemo.durio',
   appName: 'Durio',
   server: {
-    url: "https://durio.vercel.app",
-    cleartext: false,
+    url: "http://10.0.2.2:3000",
+    cleartext: true,
   },
   plugins: {
     SplashScreen: {

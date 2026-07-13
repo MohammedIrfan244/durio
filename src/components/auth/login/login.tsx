@@ -2,6 +2,9 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { GoogleSignIn } from "@capawesome/capacitor-google-sign-in";
+import { useCapacitor } from "@/hooks/use-capacitor";
+import { toast } from "sonner";
 
 import {
   Card,
@@ -18,6 +21,30 @@ import GoogleButton from "@/components/decoration/google-button";
 
 export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const isCapacitor = useCapacitor();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleNativeSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const result = await GoogleSignIn.signIn();
+      
+      if (result.idToken) {
+        // Pass the native Android token to our Next.js backend for verification
+        await signIn("google-native", { 
+          idToken: result.idToken, 
+          callbackUrl: "/dashboard" 
+        });
+      } else {
+        toast.error("Login failed: Missing ID Token");
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Native Google Sign-In Error:", error);
+      toast.error("Google login failed or was cancelled.");
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background">
@@ -39,13 +66,24 @@ export default function Login() {
 
           {/* Google Sign-In Button */}
           <div className="flex flex-col gap-3 w-full">
-            <Button
-              variant="default"
-              onClick={() => signIn("google")}
-              className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
-            >
-              <GoogleButton/>
-            </Button>
+            {isCapacitor ? (
+              <Button
+                variant="default"
+                onClick={handleNativeSignIn}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
+              >
+                {isLoading ? "Signing in..." : <GoogleButton />}
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                onClick={() => signIn("google")}
+                className="w-full flex items-center justify-center cursor-pointer gap-2 py-2.5 shadow-sm hover:shadow transition-all"
+              >
+                <GoogleButton />
+              </Button>
+            )}
           </div>
 
           {/* Policy Text */}
