@@ -14,9 +14,14 @@ const FloatingCalculator = dynamic(
   { ssr: false }
 );
 
+import { usePushNotifications } from "@/hooks/use-push-notifications";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDuriaPage = pathname === "/duria";
+
+  // Initialize Android Push Notifications
+  usePushNotifications();
 
   if (pathname.startsWith("/auth")) return <>{children}</>;
 

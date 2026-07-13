@@ -22,6 +22,7 @@ model User {
   
   timezone      String? // e.g. "Asia/Kolkata"
   displayName   String?
+  fcmTokens     String[] @default([])
   
   fancyMode       Boolean  @default(true)
   disabledModules String[] @default([])

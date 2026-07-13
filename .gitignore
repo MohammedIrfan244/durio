@@ -47,3 +47,6 @@ next-env.d.ts
 
 # manual test checklists
 note_testing_checklist.txt
+
+# firebase
+firebase-admin.json

@@ -161,9 +161,66 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
             date: new Date(),
           }
         });
+
+        // Send Push Notification
+        const { adminMessaging } = await import("@/lib/server/firebase-admin");
+        if (adminMessaging) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id as string },
+            // Using type assertion to avoid TS errors if prisma client isn't fully generated yet
+          });
+          const tokens = (dbUser as any)?.fcmTokens as string[] | undefined;
+          
+          if (tokens && tokens.length > 0) {
+            try {
+              await adminMessaging.sendEachForMulticast({
+                tokens: tokens,
+                notification: {
+                  title: 'Durio Reminder',
+                  body: message,
+                },
+                data: {
+                  url: '/duria',
+                }
+              });
+            } catch (err) {
+              console.error("FCM Push Error:", err);
+            }
+          }
+        }
       }
     }
   } catch (error) {
     console.error("Failed to check due tasks:", error);
+  }
+}
+
+export async function registerFCMToken(token: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await getUser();
+    if (!user || "error" in user) throw new Error("Unauthorized");
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id as string }
+    });
+
+    const currentTokens = (dbUser as any)?.fcmTokens as string[] || [];
+    
+    if (!currentTokens.includes(token)) {
+      await prisma.user.update({
+        where: { id: user.id as string },
+        data: {
+          // @ts-ignore - Ignore TS error until prisma generate runs
+          fcmTokens: {
+            push: token
+          }
+        }
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to register FCM token:", error);
+    return { success: false, error: "Failed to register token" };
   }
 }

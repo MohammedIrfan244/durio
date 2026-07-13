@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357207161292",
+    "project_id": "durio-5d880",
+    "storage_bucket": "durio-5d880.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357207161292:android:1c29474cfa1d3a7bb70569",
+        "android_client_info": {
+          "package_name": "dev.zemo.durio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtpPohrRStInGpTrJXsfkrHbdp5o5un-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
