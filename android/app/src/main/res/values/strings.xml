@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Durio</string>
+    <string name="title_activity_main">Durio</string>
+    <string name="package_name">dev.zemo.durio</string>
+    <string name="custom_url_scheme">dev.zemo.durio</string>
+</resources>
