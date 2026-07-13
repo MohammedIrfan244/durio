@@ -153,7 +153,9 @@ export default function DuriaChat() {
               <span className="text-sm font-medium">
                 {error?.message?.includes("429") 
                   ? "You have reached your daily limit of 150 AI queries. Please try again tomorrow!" 
-                  : error.message || "Oops, Duria had a brain freeze."}
+                  : error?.message?.includes("503") || error?.message?.includes("high demand")
+                  ? "Duria's brain is overloaded right now due to high demand on the AI servers. Please give her a moment and try again!"
+                  : "Oops, Duria had a brain freeze. Please try again."}
               </span>
             </div>
           )}

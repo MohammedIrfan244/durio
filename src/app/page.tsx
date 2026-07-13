@@ -1,4 +1,6 @@
 import { Navigation } from "@/components/pages/landing/navigation";
+import Image from "next/image";
+import images from "@/assets/images.json";
 import { HeroSection } from "@/components/pages/landing/hero-section";
 import { WhyDurioSection } from "@/components/pages/landing/why-durio-section";
 import { ShowcaseSection } from "@/components/pages/landing/showcase-section";
@@ -10,15 +12,28 @@ import MobileEntryWrapper from "@/components/layout/mobile-entry-wrapper";
 export default function LandingPage() {
   return (
     <MobileEntryWrapper>
-      <main className="min-h-screen bg-[#0A0A0A] text-foreground selection:bg-[#ff6a00]/30 selection:text-white">
-      <Navigation />
-      <HeroSection />
-      <WhyDurioSection />
-      <ShowcaseSection />
-      <MeetDuriaSection />
-      <AndroidSection />
-      <CtaFooter />
-    </main>
+      <div className="show-on-web">
+        <main className="min-h-screen bg-[#0A0A0A] text-foreground selection:bg-[#ff6a00]/30 selection:text-white">
+          <Navigation />
+          <HeroSection />
+          <WhyDurioSection />
+          <ShowcaseSection />
+          <MeetDuriaSection />
+          <AndroidSection />
+          <CtaFooter />
+        </main>
+      </div>
+      <div className="show-on-capacitor relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">
+        <div className="dvd-bounce">
+          <Image
+            src={images.duria}
+            alt="Duria Loading"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+      </div>
     </MobileEntryWrapper>
   );
 }

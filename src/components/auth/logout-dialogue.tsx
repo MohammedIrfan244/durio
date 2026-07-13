@@ -1,6 +1,9 @@
 // components/ui/LogoutConfirmDialog.tsx
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCapacitor } from "@/hooks/use-capacitor";
+import { GoogleSignIn } from "@capawesome/capacitor-google-sign-in";
 
 import {
   AlertDialog,
@@ -22,9 +25,23 @@ export default function LogoutConfirmDialog({
   open,
   onOpenChange,
 }: LogoutConfirmDialogProps) {
-  const handleLogout = () => {
+  const router = useRouter();
+  const isCapacitor = useCapacitor();
+
+  const handleLogout = async () => {
     onOpenChange(false);
-    signOut({ callbackUrl: "/auth/login" });
+    
+    if (isCapacitor) {
+      // Clear native token cache
+      await GoogleSignIn.signOut().catch(console.error);
+      // Silent NextAuth logout
+      await signOut({ redirect: false });
+      // Manual internal route
+      router.replace("/auth/login");
+    } else {
+      // Standard web logout
+      signOut({ callbackUrl: "/auth/login" });
+    }
   };
 
   return (

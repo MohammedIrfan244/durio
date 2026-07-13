@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { GoogleSignIn } from "@capawesome/capacitor-google-sign-in";
 import { useCapacitor } from "@/hooks/use-capacitor";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import {
   Card,
@@ -23,6 +24,7 @@ export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const isCapacitor = useCapacitor();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (isCapacitor) {
@@ -39,10 +41,17 @@ export default function Login() {
       
       if (result.idToken) {
         // Pass the native Android token to our Next.js backend for verification
-        await signIn("google-native", { 
+        const res = await signIn("google-native", { 
           idToken: result.idToken, 
-          callbackUrl: "/dashboard" 
+          redirect: false,
         });
+
+        if (res?.ok) {
+          router.replace("/dashboard");
+        } else {
+          toast.error("Login verification failed");
+          setIsLoading(false);
+        }
       } else {
         toast.error("Login failed: Missing ID Token");
         setIsLoading(false);

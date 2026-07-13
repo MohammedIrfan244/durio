@@ -1928,3 +1928,11 @@ html.capacitor-app [contenteditable="true"] {
   0% { top: env(safe-area-inset-top, 0px); }
   100% { top: calc(100dvh - 128px - env(safe-area-inset-bottom, 0px)); }
 }
+
+html.is-capacitor .show-on-web {
+  display: none !important;
+}
+
+html.is-web .show-on-capacitor {
+  display: none !important;
+}

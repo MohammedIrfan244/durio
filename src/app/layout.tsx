@@ -110,6 +110,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           antialiased
         `}
       >
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if (window.Capacitor) {
+                  document.documentElement.classList.add('is-capacitor');
+                } else {
+                  document.documentElement.classList.add('is-web');
+                }
+              `,
+            }}
+          />
+        </head>
         <SessionProviderWrapper>
           {children}
         </SessionProviderWrapper>
