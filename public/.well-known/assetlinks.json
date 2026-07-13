@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dev.zemo.durio",
+      "sha256_cert_fingerprints": [
+        "39:3E:A2:D4:A1:50:F1:66:6E:01:A0:8F:DD:95:15:E0:9D:E9:3C:3A:ED:F5:A3:F4:87:AB:FD:E0:47:37:06:70"
+      ]
+    }
+  }
+]
