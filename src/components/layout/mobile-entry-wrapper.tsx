@@ -35,7 +35,7 @@ export default function MobileEntryWrapper({ children }: { children: React.React
   }, [isCapacitor, status, router]);
 
   // While checking capacitor status or waiting for session to load
-  if (isCapacitor === null || (isCapacitor === true && status === "loading")) {
+  if (isCapacitor === true && status === "loading") {
     return (
       <div className="relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">
         <div className="dvd-bounce">

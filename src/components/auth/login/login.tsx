@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoogleSignIn } from "@capawesome/capacitor-google-sign-in";
 import { useCapacitor } from "@/hooks/use-capacitor";
 import { toast } from "sonner";
@@ -23,6 +23,14 @@ export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const isCapacitor = useCapacitor();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isCapacitor) {
+      GoogleSignIn.initialize({
+        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      }).catch(console.error);
+    }
+  }, [isCapacitor]);
 
   const handleNativeSignIn = async () => {
     try {
