@@ -1,6 +1,6 @@
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import themeTopic from "@/asset/theme-topic.json";
+import themeTopic from "@/assets/theme-topic.json";
 import { useSettings } from "@/components/providers/settings-provider";
 
 type ThemeTopic = typeof themeTopic;

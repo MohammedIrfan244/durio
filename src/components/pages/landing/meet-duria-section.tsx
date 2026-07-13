@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import images from "@/asset/images.json";
+import images from "@/assets/images.json";
 import { RotateCcwSquareIcon } from "lucide-react";
 
 export function MeetDuriaSection() {

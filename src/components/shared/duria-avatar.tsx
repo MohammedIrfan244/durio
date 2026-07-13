@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import images from '@/asset/images.json';
+import images from '@/assets/images.json';
 import { cn } from '@/lib/utils';
 
 interface DuriaAvatarProps {

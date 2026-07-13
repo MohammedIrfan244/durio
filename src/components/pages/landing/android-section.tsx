@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Play } from "lucide-react";
 import { useRef } from "react";
-import images from "@/asset/images.json";
+import images from "@/assets/images.json";
 
 export function AndroidSection() {
   const containerRef = useRef(null);

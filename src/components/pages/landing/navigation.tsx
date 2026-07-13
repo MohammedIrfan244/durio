@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import images from "@/asset/images.json";
+import images from "@/assets/images.json";
 
 export function Navigation() {
   const { scrollY } = useScroll();
