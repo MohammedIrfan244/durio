@@ -11,6 +11,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 import SessionProviderWrapper from "@/components/layout/session-provider";
+import CapacitorAppListener from "@/components/layout/capacitor-app-listener";
 import { APP_NAME } from "@/lib/brand";
 
 const geistSans = Geist({
@@ -111,6 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}
       >
         <SessionProviderWrapper>
+          <CapacitorAppListener />
           {children}
         </SessionProviderWrapper>
         <Toaster position="bottom-right" richColors />

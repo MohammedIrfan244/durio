@@ -13,6 +13,7 @@
     "@ai-sdk/google": "^3.0.83",
     "@ai-sdk/react": "^3.0.210",
     "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.0",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/splash-screen": "^8.0.1",
