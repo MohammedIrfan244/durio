@@ -15,7 +15,7 @@
 
 Durio isn't just a to-do list; it's an ecosystem of modules that you can enable or disable to perfectly fit your lifestyle:
 
-- **📋 Advanced To-Do & Task Management:** Organize your life with drag-and-drop kanban boards, priority tagging, and seamless deadline tracking.
+- **📋 Advanced To-Do & Task Management:** Organize your life with priority tagging, tracking, and seamless deadline tracking.
 - **🤖 Duria AI Assistant:** Talk with "Duria," your personal built-in AI companion ready to assist with ideas, tasks, and scheduling.
 - **🧮 Comprehensive Calculator Suite:** Includes Essential, Scientific, Graphing, Statistics, Matrix, and Complex Math calculators.
 - **📅 Calendar & Scheduling:** Keep track of your adventures, meetings, and chilling time.
@@ -39,7 +39,6 @@ Durio is built on the absolute cutting edge of the React ecosystem:
 - **Mobile Packaging**: Capacitor JS
 - **Push Notifications**: Firebase Cloud Messaging (FCM)
 - **Forms & Validation**: React Hook Form + Zod
-- **Drag & Drop**: `@dnd-kit`
 
 ---
 
