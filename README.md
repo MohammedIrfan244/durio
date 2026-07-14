@@ -1,18 +1,59 @@
 <!-- markdownlint-disable -->
 
+# Durio - The Ultimate Life OS
 
+![Durio Banner](public/favicons/android-chrome-512x512.png)
 
-# To-Do App Project Documentation
+**Durio** is a comprehensive, cross-platform "Life OS" designed to unify your daily productivity, health tracking, and digital organization into one seamless, aesthetic experience. Built with a modern, feature-first architecture, Durio is available both as a highly responsive web application and a native Android app.
 
-This is a **Next.js 16** project built with **React 19**, **Prisma**, **Tailwind CSS**, and **Shadcn UI**. It features a modular, feature-first architecture designed for scalability and maintainability.
+**Live Web App:** [https://durio.vercel.app/](https://durio.vercel.app/)
+**GitHub Repository:** [https://github.com/MohammedIrfan244/to-do-app](https://github.com/MohammedIrfan244/to-do-app)
 
-## 🚀 Getting Started
+---
 
-First, install the dependencies:
+## ✨ Core Features
+
+Durio isn't just a to-do list; it's an ecosystem of modules that you can enable or disable to perfectly fit your lifestyle:
+
+- **📋 Advanced To-Do & Task Management:** Organize your life with drag-and-drop kanban boards, priority tagging, and seamless deadline tracking.
+- **🤖 Duria AI Assistant:** Talk with "Duria," your personal built-in AI companion ready to assist with ideas, tasks, and scheduling.
+- **🧮 Comprehensive Calculator Suite:** Includes Essential, Scientific, Graphing, Statistics, Matrix, and Complex Math calculators.
+- **📅 Calendar & Scheduling:** Keep track of your adventures, meetings, and chilling time.
+- **📓 Notes & Journaling:** A safe, private space for your brainstorms, reflections, and daily journaling.
+- **💪 Health & Wellness Tracking:** Dedicated modules for Workout tracking, Sleep optimization, and Menstruation/Cycle tracking.
+- **📚 Reading List & Photo Album:** Keep track of your favorite books and store your most cherished memories.
+- **📱 Native Android Experience:** Fully packaged Android app using Capacitor, complete with native Google Sign-In and Android Push Notifications via Firebase.
+- **🎨 Dynamic Themes:** Choose from stunning curated aesthetics like "Pookie Glow", "Midnight Goth", "Earthy Calm", or standard Light/Dark modes.
+
+---
+
+## 🛠️ Tech Stack & Key Libraries
+
+Durio is built on the absolute cutting edge of the React ecosystem:
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript (Strict)
+- **Styling**: Tailwind CSS + Shadcn UI + Framer Motion (for physics-based animations)
+- **Database**: MongoDB (via Prisma ORM)
+- **Authentication**: NextAuth.js (Web) + `@capawesome/capacitor-google-sign-in` (Native Android)
+- **Mobile Packaging**: Capacitor JS
+- **Push Notifications**: Firebase Cloud Messaging (FCM)
+- **Forms & Validation**: React Hook Form + Zod
+- **Drag & Drop**: `@dnd-kit`
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+First, clone the repository and install the dependencies:
 
 ```bash
+git clone https://github.com/MohammedIrfan244/to-do-app.git
+cd to-do-app
 npm install
 ```
+
+Set up your `.env` file (refer to `.env.example` if available) with your MongoDB URI, Google Client IDs, and Firebase credentials.
 
 Then, run the development server:
 
@@ -24,170 +65,60 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ---
 
-## 📂 Project Structure
+## 📱 Building for Android
 
-The project follows a **Feature-Based Architecture** within the Next.js App Router.
+Durio is fully configured to compile into a native Android application using Capacitor.
 
-```
+1. Build the Next.js production web assets:
+   ```bash
+   npm run build
+   ```
+2. Sync the web assets to the Android project:
+   ```bash
+   npx cap sync android
+   ```
+3. Open Android Studio to build and run the APK:
+   ```bash
+   npx cap open android
+   ```
+
+*Note: For Native Google Sign-In to work locally, ensure your computer's `debug.keystore` SHA-1 fingerprint is added to your Firebase project.*
+
+---
+
+## 📂 Architecture & Project Structure
+
+The project follows a **Feature-Based Architecture** within the Next.js App Router to maximize scalability.
+
+```text
 src/
-├── app/                  # App Router
-│   ├── (main)/           # Route Group for Authenticated App (Sidebar/Header)
-│   │   ├── todo/         # Feature routes inherit MainLayout
+├── app/                  # Next.js App Router
+│   ├── (main)/           # Authenticated App Route Group (Inherits Sidebar Layout)
+│   │   ├── todo/         # To-Do Module
+│   │   ├── calculator/   # Calculator Module
 │   │   └── ...
-│   ├── layout.tsx        # Root Layout (Providers only)
-│   └── not-found.tsx     # 404 Page (No Sidebar)
-├── components/           # React Components: UI, Shared, and Feature-specific
-├── hooks/                # Custom React Hooks
-├── lib/                  # Utilities, Helper Functions, and Configuration
-│   ├── server/           # Server-side specific utilities
-│   ├── utils/            # General client/server utilities
-│   └── ...               # Specific logic (brand, nav, prisma)
-├── schema/               # Zod Schemas for validation
-├── server/               # Server Actions and internal server logic
-├── types/                # TypeScript type definitions
-└── asset/                # Static assets (JSONs, etc.)
+│   ├── api/              # API Routes (NextAuth, Webhooks, AI)
+│   ├── layout.tsx        # Root Layout
+│   └── not-found.tsx     # Custom 404
+├── components/           # React Components
+│   ├── ui/               # Shadcn UI primitives
+│   ├── shared/           # Cross-feature components
+│   ├── pages/            # Feature-isolated components
+│   └── layout/           # App layouts (Sidebar, Headers, Radial Menus)
+├── hooks/                # Custom React Hooks (e.g., useMobile, useCapacitor)
+├── lib/                  # Utilities & Configurations
+│   ├── utils/            # Client-safe helpers (cn, date-formatting)
+│   └── server/           # Server-side ONLY logic (Firebase Admin, Prisma)
+├── server/               # Next.js Server Actions (Database mutations)
+└── schema/               # Zod validation schemas
 ```
 
----
-
-## 🏗️ Folder Breakdown & Usage Guide
-
-
-### 1. `src/app` (Routing)
-Routes are defined here. Each folder represents a route segment. We use a **Feature-First** approach:
-
-#### `(main)` Route Group
-We use a **Route Group** `(main)` to wrap the authenticated application.
--   **Purpose**: To apply the Sidebar/Header layout (`AppLayout`) *only* to main features (`todo`, `notes`, etc.).
--   **Benefit**: This allows pages like **404 (`not-found.tsx`)** or **Auth** pages to exist at the root level without inheriting the sidebar.
-
-#### Feature Folders
-Inside `src/app/(main)/`, you will find:
--   `books`
--   `notes`
--   `todo`
--   `calendar`
--   `workout`
--   ... containing their own `page.tsx`.
-
-
-
-**API Routes**: 
-`api/`
- handles backend API endpoints (likely for Auth or webhooks).
-
-
-
-### 2. `src/components` (UI & Logic)
-
-We strictly separate components by their scope:
-
--   **`ui/`**: **Shadcn UI** primitives (buttons, dialogs, inputs). These are reusable, dumb components.
--   
-
--   **`shared/`**: Components used across multiple features but not generic enough to be in `ui`.
--   
-
--   **`pages/`**: Feature-specific components.
--   
-
-    -   *Example*: `src/components/pages/todo` contains components *only* used in the To-Do feature.
-    -   *Example*: `src/components/pages/note` contains components *only* used in Notes.
--   
-
--   **`skeleton/`**: Loading state skeletons.
--   
-
--   **`layout/`**: Global layout components (Sidebars, Headers).
-
-
-
-### 3. `src/hooks` (Custom Hooks)
-
-
-
-Reusable logic hooks:
--   **`useMobile`**: Detects if the current viewport is mobile-sized.
--   **`useDebounce`**: Delays the execution of a function (useful for search/input).
--   **`useThemeImage`**: Dynamically returns a background image URL based on the current theme and active module (parsed from URL).
-
-
-
-
-### 4. `src/lib` (Utilities & Helpers)
-This folder contains the core logic that doesn't render UI.
-
-
-#### `lib/utils` (General Helpers)
-
--   **`index.ts` (`cn`)**: the standard ClassName merger (clsx + tailwind-merge). **Use this for conditional classes.**
--   **`date-formatter.ts`**: Helper to format dates consistently.
--   **`logger.ts`**: Internal logging utility.
--   **`mailer.ts`**: Nodemailer setup for sending emails.
--   **`otp-generator.ts`**: Generates One-Time Passwords.
--   **`today.ts`**: Utilities for getting the current date/time with timezone awareness.
--   **`with-client-action.ts`**: Higher-order function/helper for client-safe actions.
--   **`name-formatter.ts`**: Standardizes user name display.
-
-
-#### `lib/server` (Server-Side Only)
-
-These MUST only be imported in Server Components or Server Actions.
--   **`get-user.ts`**: Retrieves the currently authenticated user session serverside.
--   **`date-utils.ts`**: Complex date manipulation logic (backend context).
--   **`error-wrapper.ts`**: Wraps server actions to handle errors gracefully.
--   **`generate-insight.ts`**: Logic for generating user insights/stats.
-
-
-
-#### Other Lib Files
-
--   **`prisma.ts`**: The singleton instance of Prisma Client to prevent connection exhaustion during development.
--   **`nav.tsx`**: Navigation configuration (links, icons).
--   **`brand.ts`**: Branding constants (app name, colors).
-
-
-
-
-### 5. `src/server` (Server Actions)
-
-This project uses **Next.js Server Actions** for data mutations, located in `src/server/actions`.
-
--   **`to-do-action.ts`**: CRUD operations for To-Dos.
--   **`note-action.ts`**: CRUD for Notes.
--   **`user-action.ts`**: User profile updates.
--   **`auth-intent-action.ts`**: Handles authentication intents.
--   **`stats/`**: Logic for calculating dashboard statistics.
-
-
-
-
-### 6. `src/schema` (Validation)
-
-Zod schemas used for form validation and API request parsing. Always validate user input against these schemas before processing in Server Actions.
+### Server Actions
+We strictly rely on **Next.js Server Actions** (located in `src/server/`) for database mutations rather than building traditional API routes. This allows for end-to-end type safety and massively reduces boilerplate.
 
 ---
 
-## 🛠️ Tech Stack & Key Libraries
+## 🤝 Contributing
 
--   **Framework**: Next.js 16 (App Router)
--   **Language**: TypeScript
--   **Styling**: Tailwind CSS + Tailwind Merge
--   **UI Components**: Radix UI (via Shadcn)
--   **Database**: PostgreSQL (via Prisma ORM)
--   **State/Data**: Server Actions (Mutations) + React Server Components (Fetching)
--   **Icons**: Lucide React
--   **Forms**: React Hook Form + Zod
--   **Date Handling**: date-fns + moment
--   **Drag & Drop**: @dnd-kit
-
-
-
-## 📝 Developer Notes
-1.  **Adding a new feature**:
-    -   Create a route in `src/app/[feature-name]`.
-    -   Create a folder in `src/components/pages/[feature-name]` for its components.
-    -   Define database models in `prisma/schema.prisma`.
-    -   Create Server Actions in `src/server/actions`.
-2.  **Styling**: Always use the `cn()` utility from `src/lib/utils` when merging Tailwind classes.
-3.  **Database**: Access the database *only* via `src/lib/prisma.ts` singleton.
+This project is maintained by **Mohammed Irfan**. 
+If you find a bug or have a feature request, please open an issue!
