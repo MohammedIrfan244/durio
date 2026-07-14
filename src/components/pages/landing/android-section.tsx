@@ -67,13 +67,13 @@ export function AndroidSection() {
           >
             {/* Readable Badge */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform cursor-pointer">
-                <Play className="w-6 h-6 fill-current" />
+              <a href="/downloads/durio.apk" download className="flex items-center gap-3 bg-white text-black px-6 py-4 rounded-3xl font-bold font-[family-name:var(--font-body)] text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-black/60">Get it on</div>
-                  <div>Google Play</div>
+                  <div className="text-xs uppercase tracking-widest text-black/60">Go rogue</div>
+                  <div>Snag the APK!</div>
                 </div>
-              </div>
+              </a>
               <div className="text-sm text-white/50 italic ml-2">Ready to ride in your pocket.</div>
             </div>
           </motion.div>
