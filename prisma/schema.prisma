@@ -241,3 +241,17 @@ model AIUsage {
   requestsToday Int      @default(0)
   lastRequestAt DateTime @default(now())
 }
+
+// System Audit Logs
+model SystemLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  level     String   // "INFO" | "WARNING" | "ERROR"
+  message   String
+  userId    String?  @db.ObjectId
+  metadata  Json?
+  
+  createdAt DateTime @default(now())
+
+  @@index([level])
+  @@index([createdAt])
+}

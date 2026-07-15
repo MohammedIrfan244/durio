@@ -1,5 +1,6 @@
 "use server";
 import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
+import { auditLogger } from "@/lib/server/logger";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
 import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload , IGetArchivedTodoListPayload } from "@/types/todo";
@@ -307,6 +308,8 @@ export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input
   await prisma.todo.delete({
     where: { id: validatedInput.id },
   });
+  
+  auditLogger.info("Deleted todo permanently", userId, { todoId: validatedInput.id });
 });
 
 // Action to soft delete a to-do item (archive) , done
@@ -346,7 +349,9 @@ export const bulkDeleteTodos = withErrorWrapper<void, []>(async (): Promise<void
 
   await prisma.todo.deleteMany({
     where: { id: { in: todosToDelete.map(todo => todo.id) } , userId , status: "ARCHIVED" },
-  })
+  });
+  
+  auditLogger.warn("Bulk deleted archived todos permanently", userId, { count: todosToDelete.length });
 });
 
 // Action to bulk soft delete to-do items (archive) done

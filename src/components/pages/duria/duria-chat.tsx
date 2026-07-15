@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import ProposalCard from './proposal-card';
 import { getAIUsage } from '@/server/actions/ai-usage';
 
@@ -180,7 +181,7 @@ export default function DuriaChat() {
                   <div className="flex flex-col gap-2">
                     {textContent && (
                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-p:leading-relaxed prose-pre:bg-secondary prose-pre:border prose-pre:border-border/50">
-                        <ReactMarkdown>{textContent}</ReactMarkdown>
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{textContent}</ReactMarkdown>
                       </div>
                     )}
                     {proposalToolCalls.map((toolInvocation: any) => {
