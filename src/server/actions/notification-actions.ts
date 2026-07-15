@@ -124,12 +124,13 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
     const timezone = await getUserTimezone(user.id as string);
     const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
 
-    // Find todos due today or overdue
+    // Find todos due today (prevent daily spam for already overdue tasks)
     const dueTodos = await prisma.todo.findMany({
       where: {
         userId: user.id as string,
         status: { notIn: ["DONE", "CANCELLED", "ARCHIVED"] },
         dueDate: {
+          gte: startOfToday,
           lt: startOfTomorrow, 
         },
       },
