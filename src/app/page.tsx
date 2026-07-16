@@ -21,8 +21,8 @@ export default function LandingPage() {
           <ShowcaseSection />
           <MeetDuriaSection />
           <AndroidSection />
-          <CtaFooter />
           <StorySection />
+          <CtaFooter />
         </main>
       </div>
       <div className="show-on-capacitor relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">
