@@ -137,10 +137,6 @@ function hasPromptInjectionPattern(input: string) {
 export async function POST(req: NextRequest) {
   try {
     const clientIp = getClientIp(req);
-    const ipLimit = checkRateLimit(`ip:${clientIp}`, 10, RATE_LIMIT_WINDOW_MS);
-    if (!ipLimit.allowed) {
-      return rateLimitResponse(ipLimit.retryAfter);
-    }
 
     const rawBody = await req.text();
     if (Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BODY_BYTES) {
@@ -153,7 +149,7 @@ export async function POST(req: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const userLimit = checkRateLimit(`user:${userId}`, 20, RATE_LIMIT_WINDOW_MS);
+    const userLimit = await checkRateLimit(`user:${userId}`, 20, RATE_LIMIT_WINDOW_MS);
     if (!userLimit.allowed) {
       return rateLimitResponse(userLimit.retryAfter);
     }

@@ -255,3 +255,10 @@ model SystemLog {
   @@index([level])
   @@index([createdAt])
 }
+
+// System Configurations (Admin Settings)
+model SystemConfig {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique
+  value String
+}

@@ -8,6 +8,7 @@ import { MeetDuriaSection } from "@/components/pages/landing/meet-duria-section"
 import { AndroidSection } from "@/components/pages/landing/android-section";
 import { CtaFooter } from "@/components/pages/landing/cta-footer";
 import MobileEntryWrapper from "@/components/layout/mobile-entry-wrapper";
+import { StorySection } from "@/components/pages/landing/story-section";
 
 export default function LandingPage() {
   return (
@@ -21,6 +22,7 @@ export default function LandingPage() {
           <MeetDuriaSection />
           <AndroidSection />
           <CtaFooter />
+          <StorySection />
         </main>
       </div>
       <div className="show-on-capacitor relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">

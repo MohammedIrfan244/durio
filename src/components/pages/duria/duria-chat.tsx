@@ -142,7 +142,7 @@ export default function DuriaChat() {
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center border-primary/20 bg-primary/5">
                     <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Keep it light</h4>
                     <p className="text-xs text-muted-foreground">
-                      To keep her fast and free, you get <strong>150 chats per day</strong>. Wipe her memory (Clear Data) after finishing a topic to save tokens!
+                      To keep her fast and free, you get <strong>{usage?.limit || 50} chats per day</strong>. Wipe her memory (Clear Data) after finishing a topic to save tokens!
                     </p>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function DuriaChat() {
             <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl flex items-center gap-3">
               <span className="text-sm font-medium">
                 {error?.message?.includes("429") 
-                  ? "You have reached your daily limit of 150 AI queries. Please try again tomorrow!" 
+                  ? `You have reached your daily limit of ${usage?.limit || 50} AI queries. Please try again tomorrow!` 
                   : error?.message?.includes("503") || error?.message?.includes("high demand")
                   ? "Duria's brain is overloaded right now due to high demand on the AI servers. Please give her a moment and try again!"
                   : "Oops, Duria had a brain freeze. Please try again."}

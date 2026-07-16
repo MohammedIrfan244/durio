@@ -4,23 +4,24 @@ import { prisma } from "@/lib/prisma";
 import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { getUserId } from "@/lib/server/get-user";
 import { differenceInCalendarDays } from "date-fns";
-
-const DAILY_LIMIT = 150;
+import { getGlobalAiLimit } from "./config";
 
 export async function getEffectiveAIUsageForUser(userId: string): Promise<{ used: number; limit: number }> {
+  const limitRes = await getGlobalAiLimit();
+  const limit = limitRes.success && limitRes.data ? limitRes.data : 50;
   const usage = await prisma.aIUsage.findUnique({
     where: { userId },
   });
 
   if (!usage) {
-    return { used: 0, limit: DAILY_LIMIT };
+    return { used: 0, limit };
   }
 
   const used = differenceInCalendarDays(new Date(), usage.lastRequestAt) > 0
     ? 0
     : usage.requestsToday;
 
-  return { used, limit: DAILY_LIMIT };
+  return { used, limit };
 }
 
 export const getAIUsage = withErrorWrapper<{ used: number; limit: number }, []>(async () => {
@@ -41,6 +42,9 @@ export async function checkAndIncrementAIUsage(): Promise<{ success: boolean; er
       create: { userId },
     });
 
+    const limitRes = await getGlobalAiLimit();
+    const limit = limitRes.success && limitRes.data ? limitRes.data : 50;
+
     const now = new Date();
     let requestsToday = usage.requestsToday;
 
@@ -49,11 +53,11 @@ export async function checkAndIncrementAIUsage(): Promise<{ success: boolean; er
       requestsToday = 0;
     }
 
-    if (requestsToday >= DAILY_LIMIT) {
-      return { success: false, error: "Daily limit of 150 AI requests reached. Please try again tomorrow." };
+    if (requestsToday >= limit) {
+      return { success: false, error: `Daily limit of ${limit} AI requests reached. Please try again tomorrow.` };
     }
 
-    if (requestsToday + 1 === DAILY_LIMIT) {
+    if (requestsToday + 1 === limit) {
       await prisma.notification.create({
         data: {
           userId,

@@ -47,7 +47,7 @@ const DEFAULT_STATS: DashboardStats = {
   nextEvent: null,
   aiUsage: {
     used: 0,
-    limit: 150,
+    limit: 50,
   },
 };
 
