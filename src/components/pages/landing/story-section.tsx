@@ -104,6 +104,10 @@ export function StorySection() {
           <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 0.8, duration: 0.5 }}>
             I began adding modules, implementing proper security features, building out the mobile application, and expanding it into the complete productivity companion you see today. It was built for us, and now it's built for you.
           </motion.p>
+          <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 1.0, duration: 0.5 }}>
+            By the way, if you're curious about how this all comes together, the entire <a href="https://github.com/MohammedIrfan244/to-do-app" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">codebase is open source</a>. 
+            Feel free to poke around my <a href="https://github.com/MohammedIrfan244" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">GitHub profile</a> or check out my <a href="https://mohammed-irfan.vercel.app" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">portfolio</a>. I'm always down to chat about code, design, or whatever you're building. ✌️
+          </motion.p>
         </motion.div>
       </div>
     </section>
