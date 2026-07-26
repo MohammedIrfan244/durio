@@ -19,7 +19,7 @@ export const APP_REGISTRY = {
     SLEEP:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/sleep" },
     MENSTRUATION: { enabled: false, systemDisabled: true,  aiAccess: false, path: "/menstruation" },
     PROJECTS:     { enabled: false, systemDisabled: true,  aiAccess: false, path: "/projects" },
-    FOCUS:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/focus" },
+    FOCUS:        { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/focus" },
     CALCULATOR:   { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/calculator" },
     DURIA:        { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/duria" },
     SETTINGS:     { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/settings" },

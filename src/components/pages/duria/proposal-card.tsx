@@ -11,6 +11,7 @@ import { createTodo, updateTodo, deleteTodo, getTodoById } from '@/server/action
 import { createNote, updateNote, deleteNote, getNoteById } from '@/server/actions/note-action';
 import { createEvent, updateEvent, deleteEvent, getOrCreateDefaultCategories, getEventById } from '@/server/actions/calendar-actions';
 import { getTodosForAI, getNotesForAI, getEventsForAI } from '@/server/actions/duria-actions';
+import { createFocusBlock, updateFocusBlock, deleteFocusBlock, getFocusBlocksForAI, getFocusBlockById } from '@/server/actions/focus-actions';
 
 interface ProposalCardProps {
   toolName: string;
@@ -20,7 +21,7 @@ interface ProposalCardProps {
   status: 'pending' | 'confirmed' | 'cancelled' | 'error';
 }
 
-type TargetType = 'Task' | 'Note' | 'Event';
+type TargetType = 'Task' | 'Note' | 'Event' | 'FocusBlock';
 
 interface ActionTarget {
   id: string;
@@ -60,6 +61,7 @@ function normalizeProposalPayload(toolName: string, args: Record<string, any>) {
 function getInitialTargetType(toolName: string): TargetType {
   if (toolName.includes('Note')) return 'Note';
   if (toolName.includes('Event')) return 'Event';
+  if (toolName.includes('FocusBlock')) return 'FocusBlock';
   return 'Task';
 }
 
@@ -98,6 +100,7 @@ function getProposedDirtyFields(args: Record<string, any>) {
 function getAllowedUpdateFields(targetType: TargetType) {
   if (targetType === 'Task') return ['title', 'description', 'priority', 'dueDate', 'dueTime', 'tags', 'status'];
   if (targetType === 'Note') return ['heading', 'description', 'color', 'folderId'];
+  if (targetType === 'FocusBlock') return ['title', 'description', 'startTime', 'endTime', 'daysOfWeek', 'energyLevel', 'priority', 'transitionRitual', 'isActive'];
   return ['title', 'description', 'location', 'isAllDay', 'startDate', 'endDate', 'categoryName'];
 }
 
@@ -192,6 +195,17 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           }
         }
 
+        if (targetType === 'FocusBlock') {
+          const res = await getFocusBlocksForAI({ limit: 30 });
+          if (res.success && res.data) {
+            nextTargets = res.data.map((block: any) => ({
+              id: block.id,
+              title: block.title,
+              subtitle: `${block.startTime} - ${block.endTime} | ${block.energyLevel}`,
+            }));
+          }
+        }
+
         if (!cancelled) {
           setTargets(nextTargets);
           setSelectedTargetId((current: string) => {
@@ -266,6 +280,23 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
               startDate: formatDateTimeInput(res.event.startDate),
               endDate: formatDateTimeInput(res.event.endDate),
               categoryName: res.event.category?.name || undefined,
+            };
+          }
+        }
+
+        if (targetType === 'FocusBlock') {
+          const res = await getFocusBlockById({ id: selectedTargetId });
+          if (res.success && res.data) {
+            basePayload = {
+              title: res.data.title,
+              description: res.data.description || '',
+              startTime: res.data.startTime,
+              endTime: res.data.endTime,
+              daysOfWeek: res.data.daysOfWeek || [],
+              energyLevel: res.data.energyLevel || '',
+              priority: res.data.priority || undefined,
+              transitionRitual: res.data.transitionRitual || '',
+              isActive: res.data.isActive,
             };
           }
         }
@@ -380,6 +411,21 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (!res.success) throw new Error(res.error || "Failed to delete event");
         resultMessage = `Event "${selectedTarget?.title || 'selected event'}" deleted successfully.`;
       }
+      else if (toolName === 'proposeCreateFocusBlock') {
+        const res = await createFocusBlock(payload);
+        if (!res.success) throw new Error(res.error || "Failed to create focus block");
+        resultMessage = `Focus Block "${payload.title}" created successfully.`;
+      } 
+      else if (actionMode === 'Update' && targetType === 'FocusBlock') {
+        const res = await updateFocusBlock(finalPayload);
+        if (!res.success) throw new Error(res.error || "Failed to update focus block");
+        resultMessage = `Focus Block "${selectedTarget?.title || payload.title || 'selected block'}" updated successfully.`;
+      } 
+      else if (actionMode === 'Delete' && targetType === 'FocusBlock') {
+        const res = await deleteFocusBlock({ id: selectedTargetId });
+        if (!res.success) throw new Error(res.error || "Failed to delete focus block");
+        resultMessage = `Focus Block "${selectedTarget?.title || 'selected block'}" deleted successfully.`;
+      }
       
       onConfirm(finalPayload, resultMessage);
     } catch (e: any) {
@@ -403,6 +449,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
               <SelectItem value="Task">Todo</SelectItem>
               <SelectItem value="Note">Note</SelectItem>
               <SelectItem value="Event">Event</SelectItem>
+              <SelectItem value="FocusBlock">Focus Block</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -565,6 +612,57 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
               <Switch checked={!!payload.isAllDay} onCheckedChange={(val) => handleChange('isAllDay', val)} disabled={fieldsDisabled} />
             </div>
           )}
+        </div>
+      );
+    }
+
+    if ((needsTargetSelector ? targetType === 'FocusBlock' : toolName.includes('FocusBlock'))) {
+      return (
+        <div className="space-y-3">
+          {renderTargetSelector()}
+          <div className="space-y-1">
+            <Label>Title</Label>
+            <Input value={payload.title || ''} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Start Time</Label>
+              <Input type="time" value={payload.startTime || ''} onChange={(e) => handleChange('startTime', e.target.value)} disabled={fieldsDisabled} />
+            </div>
+            <div className="space-y-1">
+              <Label>End Time</Label>
+              <Input type="time" value={payload.endTime || ''} onChange={(e) => handleChange('endTime', e.target.value)} disabled={fieldsDisabled} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Energy Level</Label>
+              <Select disabled={fieldsDisabled} value={payload.energyLevel || 'MEDIUM'} onValueChange={(val) => handleChange('energyLevel', val)}>
+                <SelectTrigger><SelectValue placeholder="Energy Level" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HIGH">High Energy</SelectItem>
+                  <SelectItem value="MEDIUM">Medium Energy</SelectItem>
+                  <SelectItem value="LOW">Low Energy</SelectItem>
+                  <SelectItem value="RECOVERY">Recovery / Chill</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Priority</Label>
+              <Select disabled={fieldsDisabled} value={payload.priority || 'MEDIUM'} onValueChange={(val) => handleChange('priority', val)}>
+                <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HIGH">High</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="LOW">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label>Transition Ritual</Label>
+            <Input placeholder="e.g. Drink water and stretch" value={payload.transitionRitual || ''} onChange={(e) => handleChange('transitionRitual', e.target.value)} disabled={fieldsDisabled} />
+          </div>
         </div>
       );
     }

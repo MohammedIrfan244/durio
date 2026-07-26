@@ -77,6 +77,7 @@ function inferManageToolChoice(messages: any[]) {
   const mentionsTask = /\b(todo|task|to-do|grocery|groceries)\b/.test(textToClassify);
   const mentionsNote = /\b(note|notes)\b/.test(textToClassify);
   const mentionsEvent = /\b(event|calendar|schedule|meeting|appointment|birthday|anniversary)\b/.test(textToClassify);
+  const mentionsFocus = /\b(focus|routine|block|timetable)\b/.test(textToClassify);
 
   const wantsDelete = /\b(delete|remove|discard)\b/.test(latest);
   const wantsUpdate = /\b(update|edit|change|set|mark|rename|reschedule|move|completed|complete|done|cancelled|canceled|pending|plan)\b/.test(latest);
@@ -85,12 +86,14 @@ function inferManageToolChoice(messages: any[]) {
     if (mentionsNote) return { type: 'tool' as const, toolName: 'proposeDeleteNote' };
     if (mentionsEvent) return { type: 'tool' as const, toolName: 'proposeDeleteEvent' };
     if (mentionsTask) return { type: 'tool' as const, toolName: 'proposeDeleteTask' };
+    if (mentionsFocus) return { type: 'tool' as const, toolName: 'proposeDeleteFocusBlock' };
   }
 
   if (wantsUpdate) {
     if (mentionsNote) return { type: 'tool' as const, toolName: 'proposeUpdateNote' };
     if (mentionsEvent) return { type: 'tool' as const, toolName: 'proposeUpdateEvent' };
     if (mentionsTask) return { type: 'tool' as const, toolName: 'proposeUpdateTask' };
+    if (mentionsFocus) return { type: 'tool' as const, toolName: 'proposeUpdateFocusBlock' };
   }
 
   return undefined;
@@ -453,6 +456,39 @@ ${primaryGuide}
           description: "Propose deleting a calendar event. Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
+          }),
+        } as any),
+        // @ts-ignore
+        proposeCreateFocusBlock: tool({
+          description: "Propose a new focus time / routine block.",
+          inputSchema: z.object({
+            title: z.string().describe("Title of the focus block"),
+            description: z.string().optional().describe("Description"),
+            startTime: z.string().describe("Start time in HH:mm (24hr) format"),
+            endTime: z.string().describe("End time in HH:mm (24hr) format"),
+            daysOfWeek: z.array(z.number()).optional().describe("Array of integers for days (0=Sun, 6=Sat). E.g., [1,2,3,4,5] for weekdays."),
+            energyLevel: z.string().optional().describe("e.g. HIGH, LOW, RECOVERY"),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("Priority"),
+            transitionRitual: z.string().optional().describe("Ritual before block"),
+          }),
+        } as any),
+        // @ts-ignore
+        proposeUpdateFocusBlock: tool({
+          description: "Propose updates to a focus block.",
+          inputSchema: z.object({
+            title: z.string().optional(),
+            startTime: z.string().optional(),
+            endTime: z.string().optional(),
+            daysOfWeek: z.array(z.number()).optional(),
+            energyLevel: z.string().optional(),
+            priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+          }),
+        } as any),
+        // @ts-ignore
+        proposeDeleteFocusBlock: tool({
+          description: "Propose deleting a focus block.",
+          inputSchema: z.object({
+            reason: z.string().optional(),
           }),
         } as any)
       }

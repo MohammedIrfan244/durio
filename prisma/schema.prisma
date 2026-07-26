@@ -26,9 +26,11 @@ model User {
   
   fancyMode       Boolean  @default(true)
   disabledModules String[] @default([])
+  endOfDayReviewTime String @default("22:00")
   
   events        Event[]
   eventCategories EventCategory[]
+  routineBlocks RoutineBlock[]
   
   aiUsage       AIUsage?
 }
@@ -214,6 +216,49 @@ model Event {
 }
 
 // Cross-Module Relational Engine
+
+// Focus Section
+
+model RoutineBlock {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id])
+  
+  title             String
+  description       String?
+  color             String?
+  icon              String?
+  
+  startTime         String   // "HH:mm" (24hr)
+  endTime           String   // "HH:mm"
+  daysOfWeek        Int[]    // [0,1,2,3,4,5,6] (0=Sun, 6=Sat)
+  
+  priority          Priority @default(MEDIUM)
+  energyLevel       String   // "HIGH", "LOW", "RECOVERY"
+  
+  bufferMinutes     Int      @default(0)
+  transitionRitual  String?  
+  
+  linkedNoteId      String?  @db.ObjectId
+  
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  
+  logs              BlockLog[]
+}
+
+model BlockLog {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  routineBlockId    String   @db.ObjectId
+  routineBlock      RoutineBlock @relation(fields: [routineBlockId], references: [id])
+  
+  date              DateTime // Specific execution date
+  status            String   // "CRUSHED_IT", "SURVIVED", "TANGENT", "PENDING"
+  flowPoints        Int      @default(0) // Gamification
+  
+  createdAt         DateTime @default(now())
+}
+
 
 model ResourceLink {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
