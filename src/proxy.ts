@@ -18,7 +18,9 @@ export async function proxy(req: NextRequest) {
     publicPaths.includes(pathname) ||
     pathname.startsWith("/favicons/") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/api/admin")
+    pathname.startsWith("/api/admin")||
+    pathname.startsWith("/downloads")||
+    pathname.startsWith("/.well-known")
   ) {
     return NextResponse.next();
   }
