@@ -12,6 +12,7 @@ import { Flame, Zap, BatteryCharging, Coffee, AlertCircle, Clock } from 'lucide-
 import { createFocusBlock, updateFocusBlock, deleteFocusBlock } from '@/server/actions/focus-actions';
 import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
+import { DAYS } from '@/lib/focus-constants';
 
 interface BlockDialogProps {
   open: boolean;
@@ -19,16 +20,6 @@ interface BlockDialogProps {
   initialData?: any;
   availableNotes: any[];
 }
-
-const DAYS = [
-  { label: 'Su', value: 0 },
-  { label: 'M', value: 1 },
-  { label: 'T', value: 2 },
-  { label: 'W', value: 3 },
-  { label: 'Th', value: 4 },
-  { label: 'F', value: 5 },
-  { label: 'Sa', value: 6 },
-];
 
 export default function BlockDialog({ open, onOpenChange, initialData, availableNotes }: BlockDialogProps) {
   const [isSaving, setIsSaving] = useState(false);

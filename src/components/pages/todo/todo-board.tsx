@@ -17,8 +17,9 @@ import {
   statusToneBoard,
 } from "@/lib/brand";
 
-import { X } from "lucide-react";
+import { X, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { withClientAction } from "@/lib/utils/with-client-action";
 import { getTodoStat } from "@/server/stats/todo-stats";
 import { TodoColumnSkeleton } from "@/components/skeleton/todo/todo-card-skelton";
@@ -27,6 +28,7 @@ import { StatsColumn } from "./todo-streak";
 import { NoTodos } from "@/components/skeleton/todo/no-todo-skeoton";
 import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 import { getTodayTodos, getTodoList } from "@/server/actions/to-do-action";
+import { getTodaysFocusBlocks } from "@/server/actions/focus-actions";
 import { TodoFilterInput } from "@/schema/todo";
 
 interface TodoColumnProps {
@@ -54,8 +56,9 @@ function TodoColumn({
   setOpenEdit,
   selectedIds,
   onToggleSelect,
-  onRefreshBoard
-}: TodoColumnProps) {
+  onRefreshBoard,
+  activeFocusBlock
+}: TodoColumnProps & { activeFocusBlock?: any }) {
   const statusKey = title as keyof typeof statusToneBoard;
   const [todos, setTodos] = useState<IGetTodoList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -135,6 +138,30 @@ function TodoColumn({
       </h2>
 
       <div className="space-y-2 pb-4">
+        {title === "PENDING" && activeFocusBlock && (
+          <div className="relative rounded-xl border-2 border-primary/50 bg-primary/5 p-3 shadow-sm overflow-hidden mb-3 animate-in fade-in zoom-in duration-500">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex items-start gap-3">
+               <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                 <Target size={14} />
+               </div>
+               <div className="flex-1">
+                 <div className="flex items-center justify-between">
+                   <h3 className="font-bold text-sm text-foreground line-clamp-1 pr-2">
+                     {activeFocusBlock.title}
+                   </h3>
+                   <Badge variant="outline" className="text-[9px] px-1 border-primary/30 text-primary whitespace-nowrap bg-background/50">
+                     DEEP WORK
+                   </Badge>
+                 </div>
+                 <p className="text-xs text-muted-foreground font-medium mt-1">
+                   Locked in focus until {activeFocusBlock.endTime}
+                 </p>
+               </div>
+            </div>
+          </div>
+        )}
+
         {todos.map((t) => (
           <TodoCard
             key={t.id}
@@ -185,6 +212,24 @@ export default function TodoBoard({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stat, setStat] = useState<ITodoStatsResponsePayload | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [activeFocusBlock, setActiveFocusBlock] = useState<any>(null);
+
+  const fetchActiveFocus = async () => {
+    const res = await withClientAction(() => getTodaysFocusBlocks());
+    if (res && res.data) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const active = res.data.find((b: any) => {
+         if (b.energyLevel !== "HIGH") return false;
+         const [sh, sm] = b.startTime.split(':').map(Number);
+         const [eh, em] = b.endTime.split(':').map(Number);
+         const start = sh * 60 + sm;
+         const end = eh * 60 + em;
+         return currentMinutes >= start && currentMinutes < end;
+      });
+      setActiveFocusBlock(active || null);
+    }
+  };
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -199,10 +244,18 @@ export default function TodoBoard({
 
   const handleRefresh = () => {
     onRefresh();
+    fetchActiveFocus();
   };
 
   useEffect(() => {
     fetchStats();
+    fetchActiveFocus();
+    
+    // Check every minute if focus block status changed
+    const interval = setInterval(() => {
+       fetchActiveFocus();
+    }, 60000);
+    return () => clearInterval(interval);
   }, [refreshTrigger]); 
 
   const toggleSelect = (id: string) => {
@@ -263,6 +316,7 @@ export default function TodoBoard({
         setOpenEdit={setOpenEdit}
         selectedIds={selectedIds}
         onToggleSelect={toggleSelect}
+        activeFocusBlock={activeFocusBlock}
       />
 
       <TodoColumn

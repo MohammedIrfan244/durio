@@ -29,6 +29,14 @@ export interface DashboardStats {
     used: number;
     limit: number;
   };
+  todayFocusBlocks: {
+    id: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    energyLevel: string;
+    transitionRitual: string | null;
+  }[];
 }
 
 export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () => {
@@ -50,6 +58,7 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
     eventsToday,
     nextEvent,
     aiUsage,
+    todayFocusBlocks,
   ] = await Promise.all([
     prisma.todo.count({
       where: {
@@ -139,6 +148,26 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
       },
     }),
     getEffectiveAIUsageForUser(userId),
+    prisma.routineBlock.findMany({
+      where: {
+        userId,
+        isActive: true,
+        daysOfWeek: {
+          has: now.getDay(),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        energyLevel: true,
+        transitionRitual: true,
+      },
+      orderBy: {
+        startTime: "asc",
+      },
+    }),
   ]);
 
   return {
@@ -157,5 +186,6 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
     eventsToday,
     nextEvent,
     aiUsage,
+    todayFocusBlocks,
   };
 });

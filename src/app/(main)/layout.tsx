@@ -1,6 +1,7 @@
 import AppLayout from "@/components/layout/app-layout";
 import { SettingsProvider } from "@/components/providers/settings-provider";
 import { DuriaProvider } from "@/components/providers/duria-provider";
+import ReviewModal from "@/components/pages/focus/dialogs/review-modal";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <DuriaProvider>
         <AppLayout>
           {children}
+          <ReviewModal />
         </AppLayout>
       </DuriaProvider>
     </SettingsProvider>

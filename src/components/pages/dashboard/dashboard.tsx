@@ -465,6 +465,53 @@ function ModuleInsight({
     );
   }
 
+  if (moduleKey === "FOCUS") {
+    if (!stats.todayFocusBlocks || stats.todayFocusBlocks.length === 0) {
+      return (
+        <div className="space-y-3">
+          <p className="rounded-lg border border-border/40 bg-background/45 p-3 text-xs leading-relaxed text-muted-foreground">
+            No routines scheduled for today. Take a breather.
+          </p>
+        </div>
+      );
+    }
+
+    const { block, state } = getActiveOrNextBlock(stats.todayFocusBlocks);
+    
+    if (state === 'DONE' || !block) {
+       return (
+        <div className="space-y-3">
+          <p className="rounded-lg border border-border/40 bg-background/45 p-3 text-xs leading-relaxed text-muted-foreground">
+            You've completed all your scheduled focus blocks for today!
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between rounded-lg border border-border/40 bg-background/45 p-3">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {state === 'ACTIVE' ? '🟢 Active Now' : '⏳ Next Up'}
+          </span>
+          <span className={`text-sm font-bold ${state === 'ACTIVE' ? 'text-primary' : 'text-foreground'}`}>
+            {block.startTime} - {block.endTime}
+          </span>
+        </div>
+        <div className={`rounded-lg border p-3 ${state === 'ACTIVE' ? 'border-primary/30 bg-primary/10' : 'border-border/40 bg-background/45'}`}>
+          <p className="text-sm leading-relaxed text-foreground font-bold">
+            {block.title}
+          </p>
+          {block.transitionRitual && (
+            <p className="mt-1 text-xs text-muted-foreground font-medium">
+              Ritual: {block.transitionRitual}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (moduleKey === "SETTINGS") {
     return (
       <div className="space-y-3">
@@ -707,6 +754,27 @@ function evaluateBasicExpression(expression: string) {
 
   if (values.length !== 1) throw new Error("Invalid expression");
   return values[0];
+}
+
+function getActiveOrNextBlock(blocks: DashboardStats['todayFocusBlocks']) {
+  if (!blocks || blocks.length === 0) return { block: null, state: 'DONE' };
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  for (const block of blocks) {
+    const [startH, startM] = block.startTime.split(':').map(Number);
+    const [endH, endM] = block.endTime.split(':').map(Number);
+    const startMins = startH * 60 + startM;
+    const endMins = endH * 60 + endM;
+
+    if (currentMinutes >= startMins && currentMinutes < endMins) {
+      return { block, state: 'ACTIVE' };
+    }
+    if (currentMinutes < startMins) {
+      return { block, state: 'UPCOMING' };
+    }
+  }
+  return { block: null, state: 'DONE' };
 }
 
 export default Dashboard;
