@@ -32,20 +32,20 @@ export async function GET(
       notesByText,
       systemLogsByText,
     ] = await Promise.all([
-      prisma.todo.findMany({ where: { userId: id }, take: 50 }),
-      prisma.note.findMany({ where: { userId: id }, take: 50 }),
-      prisma.notification.findMany({ where: { userId: id }, take: 50 }),
-      prisma.event.findMany({ where: { userId: id }, take: 50 }),
-      prisma.resourceLink.findMany({ where: { userId: id }, take: 50 }),
-      prisma.routineBlock.findMany({ where: { userId: id }, take: 50 }),
-      prisma.blockLog.findMany({ where: { routineBlock: { is: { userId: id } } }, take: 50 }),
-      prisma.checklistItem.findMany({ where: { todo: { is: { userId: id } } }, take: 50 }),
-      prisma.systemLog.findMany({ where: { OR: [{ userId: id }, { message: { contains: email } }, { metadata: { equals: { userId: id } } }] }, orderBy: { createdAt: "desc" }, take: 100 }),
+      prisma.todo.findMany({ where: { userId: id } }),
+      prisma.note.findMany({ where: { userId: id } }),
+      prisma.notification.findMany({ where: { userId: id } }),
+      prisma.event.findMany({ where: { userId: id } }),
+      prisma.resourceLink.findMany({ where: { userId: id } }),
+      prisma.routineBlock.findMany({ where: { userId: id } }),
+      prisma.blockLog.findMany({ where: { routineBlock: { is: { userId: id } } } }),
+      prisma.checklistItem.findMany({ where: { todo: { is: { userId: id } } } }),
+      prisma.systemLog.findMany({ where: { OR: [{ userId: id }, { message: { contains: email } }, { metadata: { equals: { userId: id } } }] }, orderBy: { createdAt: "desc" } }),
 
       // text-based searches for email occurrences
-      prisma.todo.findMany({ where: { OR: [{ title: { contains: email, mode: "insensitive" } }, { description: { contains: email, mode: "insensitive" } }] }, take: 20 }),
-      prisma.note.findMany({ where: { OR: [{ heading: { contains: email, mode: "insensitive" } }, { description: { contains: email, mode: "insensitive" } }] }, take: 20 }),
-      prisma.systemLog.findMany({ where: { OR: [{ message: { contains: email, mode: "insensitive" } }, { metadata: { equals: { message: email } } }] }, take: 50 }),
+      prisma.todo.findMany({ where: { OR: [{ title: { contains: email, mode: "insensitive" } }, { description: { contains: email, mode: "insensitive" } }] } }),
+      prisma.note.findMany({ where: { OR: [{ heading: { contains: email, mode: "insensitive" } }, { description: { contains: email, mode: "insensitive" } }] } }),
+      prisma.systemLog.findMany({ where: { OR: [{ message: { contains: email, mode: "insensitive" } }, { metadata: { equals: { message: email } } }] } }),
     ]);
 
     const result = {

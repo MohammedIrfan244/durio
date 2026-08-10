@@ -26,19 +26,25 @@ export default function UserExplorer({ userId }: { userId: string }) {
   }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <button onClick={runExplore} disabled={loading} style={{ padding: "8px 12px" }}>
+    <div className="mt-4">
+      <button
+        onClick={runExplore}
+        disabled={loading}
+        className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
         {loading ? "Exploring..." : "Explore user data"}
       </button>
 
-      {error ? <p style={{ color: "red" }}>{error}</p> : null}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
 
-      {data ? (
-        <div style={{ marginTop: 12 }}>
-          <h3>Explore Results</h3>
-          <pre style={{ whiteSpace: "pre-wrap", maxHeight: 400, overflow: "auto" }}>{JSON.stringify(data, null, 2)}</pre>
+      {data && (
+        <div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+          <h3 className="text-sm font-bold text-white mb-2">Explore Results</h3>
+          <pre className="text-xs text-zinc-400 whitespace-pre-wrap overflow-auto max-h-96 bg-zinc-950 rounded p-3">
+            {JSON.stringify(data, null, 2)}
+          </pre>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

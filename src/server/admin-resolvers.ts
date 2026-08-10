@@ -45,7 +45,7 @@ export async function getUserSummary(userId: string) {
     prisma.todoStreak.count({ where: { userId } }),
   ]).catch(() => [0, 0, 0, 0, 0, 0, 0, null, 0]);
 
-  // Latest items per module (limited)
+  // All items per module
   const [
     latestTodos,
     latestNotes,
@@ -55,13 +55,13 @@ export async function getUserSummary(userId: string) {
     latestBlockLogs,
     latestResourceLinks,
   ] = await Promise.all([
-    prisma.todo.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, title: true, status: true, createdAt: true, updatedAt: true } }),
-    prisma.note.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, heading: true, status: true, createdAt: true, updatedAt: true } }),
-    prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, message: true, read: true, createdAt: true } }),
-    prisma.event.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, title: true, startDate: true, endDate: true, createdAt: true } }),
-    prisma.routineBlock.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, title: true, isActive: true, createdAt: true } }),
-    prisma.blockLog.findMany({ where: { routineBlock: { is: { userId } } }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, date: true, status: true, createdAt: true } }),
-    prisma.resourceLink.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 10 }),
+    prisma.todo.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, status: true, createdAt: true, updatedAt: true } }),
+    prisma.note.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, select: { id: true, heading: true, status: true, createdAt: true, updatedAt: true } }),
+    prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, select: { id: true, message: true, read: true, createdAt: true } }),
+    prisma.event.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, startDate: true, endDate: true, createdAt: true } }),
+    prisma.routineBlock.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, isActive: true, createdAt: true } }),
+    prisma.blockLog.findMany({ where: { routineBlock: { is: { userId } } }, orderBy: { createdAt: "desc" }, select: { id: true, date: true, status: true, createdAt: true } }),
+    prisma.resourceLink.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
   ]);
 
   const aiUsageSummary =
@@ -109,11 +109,10 @@ export async function getDashboardSummary() {
     prisma.todo.count(),
     prisma.note.count(),
     prisma.event.count(),
-    prisma.systemLog.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
+    prisma.systemLog.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.user.findMany({
       select: { id: true, name: true, email: true, createdAt: true, disabledModules: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
     }),
     prisma.todo.groupBy({ by: ["status"], _count: { id: true } }),
     prisma.aIUsage.aggregate({ _sum: { requestsToday: true } }),

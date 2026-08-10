@@ -15,13 +15,22 @@ async function fetchModels() {
 export default async function DBPage() {
   const data = await fetchModels();
   return (
-    <div style={{ padding: 24 }}>
-      <h1>DB Explorer</h1>
-      <ul>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">DB Explorer</h1>
+        <p className="text-zinc-500 text-sm mt-1">Browse database models and their records.</p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {data.models.map((m: string) => (
-          <li key={m}><Link href={`/admin/db/${m.toLowerCase()}`}>{m}</Link></li>
+          <Link
+            key={m}
+            href={`/admin/db/${m.toLowerCase()}`}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-white text-sm font-medium hover:bg-zinc-800 hover:border-zinc-700 transition-colors"
+          >
+            {m}
+          </Link>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

@@ -17,8 +17,7 @@ export default async function AdminDashboardLayout({
     <div className="min-h-screen bg-zinc-950 text-zinc-300 font-mono">
       <header className="border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-white">SYSTEM ADMIN</h1>
-          <p className="text-xs text-zinc-500">DURIO COMMAND CENTER</p>
+          <h1 className="text-xl font-bold text-white">admin</h1>
         </div>
         <nav className="flex gap-4">
           <Link href="/admin/dashboard" className="text-sm hover:text-white transition-colors">
