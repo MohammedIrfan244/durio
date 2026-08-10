@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Clock, MapPin, AlignLeft, Tag, Trash2, CheckCircle } from 'lucide-react';
+import { Clock, MapPin, AlignLeft, Tag, Trash2, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { deleteEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
@@ -23,7 +23,8 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
     if (!event) return null;
 
     const isTodo = event.type === "todo";
-    const raw = event.raw as IEvent;
+    const isFocus = event.type === "focus";
+    const raw = event.raw as any;
 
     const handleDelete = async () => {
         if (isTodo) {
@@ -64,27 +65,36 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                                 color: event.color 
                             }}
                         >
-                            {isTodo ? "Task" : (raw.category?.name || "Event")}
+                            {isTodo ? "Task" : isFocus ? "Focus Block" : (raw.category?.name || "Event")}
+                        </span>
+                        <span className="text-sm text-foreground">
+                            {format(new Date(event.start), "EEEE, MMMM d, yyyy")}
                         </span>
                     </div>
                     <DialogTitle className="text-xl leading-tight">{event.title}</DialogTitle>
                 </DialogHeader>
 
                 <div className="px-6 pb-5 flex flex-col gap-4">
-                    {/* Date & Time */}
-                    <div className="flex items-center gap-3">
-                        <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm text-foreground">
-                            {format(new Date(event.start), "EEEE, MMMM d, yyyy")}
-                        </span>
-                    </div>
-
                     {!event.isAllDay && (
                         <div className="flex items-center gap-3">
                             <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                             <span className="text-sm text-foreground">
                                 {format(new Date(event.start), "h:mm a")} — {format(new Date(event.end), "h:mm a")}
                             </span>
+                        </div>
+                    )}
+
+                    {!isTodo && isFocus && raw.energyLevel && (
+                        <div className="flex items-center gap-3">
+                            <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-foreground">Energy: {String(raw.energyLevel)}</span>
+                        </div>
+                    )}
+
+                    {!isTodo && isFocus && raw.priority && (
+                        <div className="flex items-center gap-3">
+                            <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-foreground">Priority: {String(raw.priority)}</span>
                         </div>
                     )}
 
@@ -118,6 +128,15 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                         </div>
                     )}
 
+                    {isFocus && raw.transitionRitual && (
+                        <div className="flex gap-3">
+                            <AlignLeft className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Transition ritual: {raw.transitionRitual}
+                            </p>
+                        </div>
+                    )}
+
                     {/* Todo status indicator */}
                     {isTodo && (
                         <div className="flex items-center gap-3">
@@ -129,7 +148,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                     )}
 
                     {/* Linked Resources */}
-                    {!isTodo && (
+                    {!isTodo && !isFocus && (
                         <div className="pt-2 -mx-2">
                             <ResourceLinker
                                 resourceId={event.id}
@@ -143,7 +162,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-border/40 mt-1">
                         <Button type="button" variant="ghost" onClick={onClose}>Close</Button>
-                        {!isTodo && (
+                        {!isTodo && !isFocus && (
                             <Button 
                                 type="button" 
                                 variant="destructive" 

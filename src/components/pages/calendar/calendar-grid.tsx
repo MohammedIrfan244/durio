@@ -16,6 +16,7 @@ export interface ICalendarGridProps {
     date: Date;
     onNavigate: (date: Date) => void;
 }
+
 import EventDetailsDialog from './dialogs/event-details-dialog';
 import { rescheduleCalendarItem } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
@@ -86,6 +87,7 @@ export default function CalendarGrid({
         // 1. Filter by category
         result = result.filter(e => {
             if (e.type === 'todo') return selectedCategories.includes('todos');
+            if (e.type === 'focus') return selectedCategories.includes('todos');
             if (e.type === 'event') {
                 const catId = (e.raw as IEvent).categoryId;
                 return !catId || selectedCategories.includes(catId);
@@ -120,6 +122,11 @@ export default function CalendarGrid({
 
     // Drag-to-reschedule handler
     const handleEventDrop = useCallback(async ({ event, start, end }: EventInteractionArgs<ICalendarEvent>) => {
+        if (event.type === 'focus') {
+            toast.error('Focus blocks cannot be rescheduled from the calendar');
+            return;
+        }
+
         const newStart = start instanceof Date ? start : new Date(start);
         const newEnd = end instanceof Date ? end : new Date(end);
         
@@ -185,6 +192,7 @@ export default function CalendarGrid({
     // Custom Event component to render Todos vs Events differently
     const CustomEvent = ({ event }: EventProps<ICalendarEvent>) => {
         const isTodo = event.type === 'todo';
+        const isFocus = event.type === 'focus';
         return (
             <div 
                 className="w-full h-full text-xs font-medium px-1.5 py-0.5 truncate rounded overflow-hidden"
@@ -194,7 +202,12 @@ export default function CalendarGrid({
                     borderLeft: `3px solid ${event.color}`
                 }}
             >
-                {isTodo ? (
+                {isFocus ? (
+                    <div className="flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 rounded-sm bg-current opacity-70"></div>
+                        <span className="truncate">{event.title} (Focus)</span>
+                    </div>
+                ) : isTodo ? (
                     <div className="flex items-center gap-1">
                         <div className="w-2.5 h-2.5 rounded-sm border-[1.5px] border-current opacity-70"></div>
                         <span className="truncate">{event.title}</span>
@@ -310,7 +323,8 @@ export default function CalendarGrid({
                 onEventDrop={handleEventDrop}
                 onEventResize={handleEventDrop}
                 resizable
-                draggableAccessor={() => true}
+                draggableAccessor={(event) => event.type !== 'focus'}
+                resizableAccessor={(event) => event.type !== 'focus'}
                 components={{
                     toolbar: CustomToolbar,
                     event: CustomEvent,

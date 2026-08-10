@@ -23,6 +23,7 @@ export async function createFocusBlock(data: any) {
         transitionRitual: data.transitionRitual,
         color: data.color,
         icon: data.icon,
+        linkedNoteId: data.linkedNoteId || null,
         isActive: data.isActive !== false,
       },
     });
@@ -51,7 +52,10 @@ export async function updateFocusBlock(data: any) {
 
     const block = await prisma.routineBlock.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...updateData,
+        linkedNoteId: updateData.linkedNoteId ?? null,
+      },
     });
 
     revalidatePath("/focus");
@@ -143,7 +147,26 @@ export async function getTodaysFocusBlocks() {
       },
       orderBy: { startTime: 'asc' }
     });
-    return { success: true, data: blocks };
+
+    const linkedNoteIds = blocks
+      .map((block) => block.linkedNoteId)
+      .filter((id): id is string => Boolean(id));
+
+    const notes = linkedNoteIds.length > 0
+      ? await prisma.note.findMany({
+          where: { id: { in: linkedNoteIds } },
+          select: { id: true, heading: true },
+        })
+      : [];
+
+    const noteMap = new Map(notes.map((note) => [note.id, note.heading]));
+
+    const blocksWithNotes = blocks.map((block) => ({
+      ...block,
+      linkedNoteTitle: block.linkedNoteId ? noteMap.get(block.linkedNoteId) ?? null : null,
+    }));
+
+    return { success: true, data: blocksWithNotes };
   } catch (error: any) {
     console.error("Error fetching today's focus blocks:", error);
     return { success: false, data: [] };

@@ -57,8 +57,8 @@ function TodoColumn({
   selectedIds,
   onToggleSelect,
   onRefreshBoard,
-  activeFocusBlock
-}: TodoColumnProps & { activeFocusBlock?: any }) {
+  activeFocusBlocks
+}: TodoColumnProps & { activeFocusBlocks?: any[] }) {
   const statusKey = title as keyof typeof statusToneBoard;
   const [todos, setTodos] = useState<IGetTodoList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,26 @@ function TodoColumn({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, todayMode, triggerRefresh]);
 
+  const createFocusTodoCards = (baseList: IGetTodoList[]) => {
+    if (title !== "PENDING" || !activeFocusBlocks || activeFocusBlocks.length === 0) {
+      return baseList;
+    }
+
+    const focusTodos = activeFocusBlocks.map((block) => ({
+      id: `focus-${block.id}`,
+      title: `Focus: ${block.title}`,
+      status: "PENDING" as const,
+      priority: "HIGH" as const,
+      dueDate: new Date(),
+      renewStart: null,
+      renewInterval: null,
+      renewEvery: null,
+      readOnly: true,
+    }));
+
+    return [...baseList, ...focusTodos];
+  };
+
   const fetchTodos = async (pageNum: number, reset: boolean) => {
     if (loading && !reset && pageNum > 1) return; // Prevent duplicate fetch
     
@@ -81,7 +101,7 @@ function TodoColumn({
         const res = await withClientAction<IGetTodoListPayload>(() => action());
         if (res) {
           const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
-          setTodos(list);
+          setTodos(createFocusTodoCards(list));
           setHasMore(false); 
         }
       } else {
@@ -94,9 +114,9 @@ function TodoColumn({
           const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
           
           if (reset) {
-            setTodos(list);
+            setTodos(createFocusTodoCards(list));
           } else {
-            setTodos(prev => [...prev, ...list]);
+            setTodos(prev => [...prev, ...createFocusTodoCards(list)]);
           }
           
           setHasMore(list.length === limit);
@@ -138,27 +158,35 @@ function TodoColumn({
       </h2>
 
       <div className="space-y-2 pb-4">
-        {title === "PENDING" && activeFocusBlock && (
-          <div className="relative rounded-xl border-2 border-primary/50 bg-primary/5 p-3 shadow-sm overflow-hidden mb-3 animate-in fade-in zoom-in duration-500">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none" />
-            <div className="relative z-10 flex items-start gap-3">
-               <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
-                 <Target size={14} />
-               </div>
-               <div className="flex-1">
-                 <div className="flex items-center justify-between">
-                   <h3 className="font-bold text-sm text-foreground line-clamp-1 pr-2">
-                     {activeFocusBlock.title}
-                   </h3>
-                   <Badge variant="outline" className="text-[9px] px-1 border-primary/30 text-primary whitespace-nowrap bg-background/50">
-                     DEEP WORK
-                   </Badge>
-                 </div>
-                 <p className="text-xs text-muted-foreground font-medium mt-1">
-                   Locked in focus until {activeFocusBlock.endTime}
-                 </p>
-               </div>
-            </div>
+        {title === "PENDING" && (activeFocusBlocks?.length ?? 0) > 0 && (
+          <div className="space-y-3 mb-3">
+            {activeFocusBlocks?.map((block) => (
+              <div
+                key={block.id}
+                className="rounded-xl border border-primary/40 bg-primary/5 p-3 shadow-sm overflow-hidden animate-in fade-in zoom-in duration-500"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                    <Target size={14} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="font-bold text-sm text-foreground line-clamp-1">
+                          {block.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {block.startTime} – {block.endTime} · High priority focus block
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] px-1 border-primary/30 text-primary whitespace-nowrap bg-background/50">
+                        FOCUS
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -212,22 +240,24 @@ export default function TodoBoard({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stat, setStat] = useState<ITodoStatsResponsePayload | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [activeFocusBlock, setActiveFocusBlock] = useState<any>(null);
+  const [activeFocusBlocks, setActiveFocusBlocks] = useState<any[]>([]);
 
   const fetchActiveFocus = async () => {
     const res = await withClientAction(() => getTodaysFocusBlocks());
-    if (res && res.data) {
+    if (res) {
       const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const active = res.data.find((b: any) => {
-         if (b.energyLevel !== "HIGH") return false;
+      const active = res.filter((b: any) => {
+         if (b.priority !== "HIGH") return false;
          const [sh, sm] = b.startTime.split(':').map(Number);
          const [eh, em] = b.endTime.split(':').map(Number);
-         const start = sh * 60 + sm;
-         const end = eh * 60 + em;
-         return currentMinutes >= start && currentMinutes < end;
+         let start = sh * 60 + sm;
+         let end = eh * 60 + em;
+         if (end <= start) end += 24 * 60;
+         const current = currentMinutes;
+         return current >= start && current < end;
       });
-      setActiveFocusBlock(active || null);
+      setActiveFocusBlocks(active);
     }
   };
 
@@ -316,7 +346,7 @@ export default function TodoBoard({
         setOpenEdit={setOpenEdit}
         selectedIds={selectedIds}
         onToggleSelect={toggleSelect}
-        activeFocusBlock={activeFocusBlock}
+        activeFocusBlocks={activeFocusBlocks}
       />
 
       <TodoColumn

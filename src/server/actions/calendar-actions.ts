@@ -9,7 +9,7 @@ import {
     ICalendarActionResponse, 
     IEvent 
 } from "@/types/calendar";
-import { Event, EventCategory } from "@prisma/client";
+import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { z } from "zod";
 import { MONGOID } from "@/schema/mongo";
 
@@ -317,6 +317,52 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             }
         });
 
+        const focusBlocks = await prisma.routineBlock.findMany({
+            where: {
+                userId: user.id as string,
+                isActive: true,
+            },
+        });
+
+        const focusEvents: ICalendarEvent[] = [];
+        const dateIterator = new Date(validatedRange.startDate);
+        dateIterator.setHours(0, 0, 0, 0);
+
+        while (dateIterator <= validatedRange.endDate) {
+            const dayOfWeek = dateIterator.getDay();
+            focusBlocks
+                .filter((block) => block.daysOfWeek.includes(dayOfWeek))
+                .forEach((block) => {
+                    if (!block.startTime || !block.endTime) return;
+
+                    const [startHour, startMinute] = block.startTime.split(":").map(Number);
+                    const [endHour, endMinute] = block.endTime.split(":").map(Number);
+
+                    const start = new Date(dateIterator);
+                    start.setHours(startHour, startMinute, 0, 0);
+
+                    const end = new Date(dateIterator);
+                    end.setHours(endHour, endMinute, 0, 0);
+
+                    if (end.getTime() <= start.getTime()) {
+                        end.setDate(end.getDate() + 1);
+                    }
+
+                    focusEvents.push({
+                        id: `${block.id}-${dateIterator.toISOString().slice(0, 10)}`,
+                        title: block.title,
+                        start,
+                        end,
+                        isAllDay: false,
+                        type: "focus",
+                        color: "#0ea5e9",
+                        raw: block as RoutineBlock,
+                    });
+                });
+
+            dateIterator.setDate(dateIterator.getDate() + 1);
+        }
+
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
             let dateObj = new Date(t.dueDate!);
             if (t.dueTime) {
@@ -336,7 +382,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             };
         });
 
-        return [...mappedEvents, ...mappedTodos];
+        return [...mappedEvents, ...mappedTodos, ...focusEvents];
     } catch (error) {
         console.error("Failed to get unified data:", error);
         return [];

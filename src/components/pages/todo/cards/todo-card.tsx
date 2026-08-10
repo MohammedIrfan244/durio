@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { formatName } from "@/lib/utils/name-formatter";
 
 interface TodoCardProps {
-  todo: IGetTodoList;
+  todo: IGetTodoList & { readOnly?: boolean };
   onOpenDetail: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -82,15 +82,10 @@ export default function TodoCard({
   return (
     <Card
       onClick={() => onOpenDetail(todo.id)}
-      className="
-        bg-background/60
-        group cursor-pointer
-        border-none shadow-none
-        transition-all duration-300
-        hover:shadow-lg hover:z-10
-        animate-tilt-once
-        pb-2
-      "
+      className={cn(
+        "bg-background/60 group border-none shadow-none transition-all duration-300 animate-tilt-once pb-2",
+        todo.readOnly ? "opacity-90 cursor-default hover:shadow-sm" : "cursor-pointer hover:shadow-lg hover:z-10"
+      )}
     >
       <CardContent className="px-3 pt-2 pb-0 space-y-2">
 
@@ -104,38 +99,44 @@ export default function TodoCard({
             className="flex items-center gap-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <Button
-              variant={selected ? "secondary" : "ghost"}
-              size="icon"
-              className={cn(
-                "h-6 w-6 hover:scale-110 transition border",
-                selected ? "border-primary bg-primary/10" : "border-transparent"
-              )}
-              onClick={() => onToggleSelect(todo.id)}
-              aria-label={selected ? "Deselect todo" : "Select todo"}
-            >
-              {selected ? (
-                <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-              ) : (
-                <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 hover:scale-110 transition"
-              onClick={() => onEdit(todo.id)}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 hover:scale-110 transition"
-              onClick={() => onDelete(todo.id)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {!todo.readOnly && (
+              <Button
+                variant={selected ? "secondary" : "ghost"}
+                size="icon"
+                className={cn(
+                  "h-6 w-6 hover:scale-110 transition border",
+                  selected ? "border-primary bg-primary/10" : "border-transparent"
+                )}
+                onClick={() => onToggleSelect(todo.id)}
+                aria-label={selected ? "Deselect todo" : "Select todo"}
+              >
+                {selected ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </Button>
+            )}
+            {!todo.readOnly && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:scale-110 transition"
+                  onClick={() => onEdit(todo.id)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:scale-110 transition"
+                  onClick={() => onDelete(todo.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -176,49 +177,53 @@ export default function TodoCard({
         <Separator />
 
         {/* ---------- STATUS ACTIONS ---------- */}
-        <div
-          className="flex flex-wrap gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {todo.status !== "DONE" && (
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => handleStatusChange("DONE")}
-              className="h-7 gap-1 text-xs hover:scale-105 transition"
-            >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Done
-            </Button>
-          )}
+        {!todo.readOnly ? (
+          <div
+            className="flex flex-wrap gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {todo.status !== "DONE" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={isPending}
+                onClick={() => handleStatusChange("DONE")}
+                className="h-7 gap-1 text-xs hover:scale-105 transition"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Done
+              </Button>
+            )}
 
-          {todo.status !== "PENDING" && (
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => handleStatusChange("PENDING")}
-              className="h-7 gap-1 text-xs hover:scale-105 transition"
-            >
-              <Clock className="h-3.5 w-3.5" />
-              Pending
-            </Button>
-          )}
+            {todo.status !== "PENDING" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={isPending}
+                onClick={() => handleStatusChange("PENDING")}
+                className="h-7 gap-1 text-xs hover:scale-105 transition"
+              >
+                <Clock className="h-3.5 w-3.5" />
+                Pending
+              </Button>
+            )}
 
-          {todo.status !== "CANCELLED" && (
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => handleStatusChange("CANCELLED")}
-              className="h-7 gap-1 text-xs hover:scale-105 transition"
-            >
-              <XCircle className="h-3.5 w-3.5" />
-              Cancel
-            </Button>
-          )}
-        </div>
+            {todo.status !== "CANCELLED" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={isPending}
+                onClick={() => handleStatusChange("CANCELLED")}
+                className="h-7 gap-1 text-xs hover:scale-105 transition"
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground">This focus block is shown here for reference only.</div>
+        )}
       </CardContent>
     </Card>
   );

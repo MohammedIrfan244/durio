@@ -1,4 +1,4 @@
-import { Event, EventCategory } from "@prisma/client";
+import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { ITodo } from "./todo";
 import { LucideIcon } from "lucide-react";
 
@@ -14,9 +14,9 @@ export interface ICalendarEvent {
     start: Date;
     end: Date;
     isAllDay: boolean;
-    type: "event" | "todo";
+    type: "event" | "todo" | "focus";
     color: string;
-    raw: IEvent | ITodo;
+    raw: IEvent | ITodo | RoutineBlock;
 }
 
 export interface IEventCreateInput {
