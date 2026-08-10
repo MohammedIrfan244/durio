@@ -3,6 +3,7 @@ import React from "react";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "../theme-provider";
 import TimezoneOnboarding from "../auth/timezone-onboarding";
+import AvatarOnboarding from "../auth/avatar-onboarding";
 
 function SessionProviderWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,7 @@ function SessionProviderWrapper({ children }: { children: React.ReactNode }) {
       >
         {children}
         <TimezoneOnboarding />
+        <AvatarOnboarding />
       </ThemeProvider>
     </SessionProvider>
   );

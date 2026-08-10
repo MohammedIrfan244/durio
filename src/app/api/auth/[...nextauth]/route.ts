@@ -83,10 +83,10 @@ const handler = NextAuth({
               email: session.user?.email || "",
             },
           });
-           return {...session, user: { ...session.user, id: newUser.id , token: token, timezone: newUser.timezone, displayName: newUser.displayName } };
+           return {...session, user: { ...session.user, id: newUser.id , token: token, timezone: newUser.timezone, displayName: newUser.displayName , avatar: newUser.avatar } };
         }
         
-        return { ...session, user: { ...session.user, id: authUser.id , token: token, timezone: authUser.timezone, displayName: authUser.displayName } };
+        return { ...session, user: { ...session.user, id: authUser.id , token: token, timezone: authUser.timezone, displayName: authUser.displayName , avatar: authUser.avatar } };
     },
   },
 });

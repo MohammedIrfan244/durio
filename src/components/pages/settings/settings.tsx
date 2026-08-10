@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSettings } from '@/components/providers/settings-provider';
 import { APP_REGISTRY } from '@/config/modules';
 import { updateUserSettings } from '@/server/actions/settings-actions';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Sparkles, ShieldOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper';
+import { AvatarSection } from './avatar-section';
 
 export default function Settings() {
   const { fancyMode, disabledModules, setFancyMode, setDisabledModules, isLoading } = useSettings();
@@ -28,7 +29,7 @@ export default function Settings() {
     // Optimistic update
     const previous = fancyMode;
     setFancyMode(checked);
-    
+
     const res = await updateUserSettings({ fancyMode: checked });
     if (!res.success) {
       toast.error("Failed to update Fancy Mode");
@@ -43,14 +44,14 @@ export default function Settings() {
     setIsSaving(true);
     // Optimistic update
     const previousDisabled = [...disabledModules];
-    
+
     let newDisabled = [...disabledModules];
     if (isEnabling) {
         newDisabled = newDisabled.filter(m => m !== moduleKey);
     } else {
         if (!newDisabled.includes(moduleKey)) newDisabled.push(moduleKey);
     }
-    
+
     setDisabledModules(newDisabled);
 
     const res = await updateUserSettings({ disabledModules: newDisabled });
@@ -92,9 +93,9 @@ export default function Settings() {
                 Enables heavy animations, background themes, and sidebar decorations. Turn off for maximum performance.
               </p>
             </div>
-            <Switch 
-              checked={fancyMode} 
-              onCheckedChange={handleFancyModeToggle} 
+            <Switch
+              checked={fancyMode}
+              onCheckedChange={handleFancyModeToggle}
               disabled={isSaving}
             />
           </div>
@@ -118,13 +119,13 @@ export default function Settings() {
 
               const isSystemDisabled = module.systemDisabled;
               const isUserEnabled = !disabledModules.includes(key);
-              
+
               // It's checked if it's NOT in disabledModules AND it's NOT systemDisabled
               const isChecked = isUserEnabled && !isSystemDisabled;
 
               return (
-                <div 
-                  key={key} 
+                <div
+                  key={key}
                   className={`flex items-center justify-between p-4 rounded-lg border border-border/50 ${isSystemDisabled ? 'bg-secondary/10 opacity-70' : 'bg-secondary/20'}`}
                 >
                   <div className="space-y-0.5">
@@ -137,8 +138,8 @@ export default function Settings() {
                       </p>
                     )}
                   </div>
-                  <Switch 
-                    checked={isChecked} 
+                  <Switch
+                    checked={isChecked}
                     disabled={isSystemDisabled || isSaving}
                     onCheckedChange={(checked) => handleModuleToggle(key, checked)}
                   />
@@ -148,6 +149,10 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Avatar Section */}
+      <AvatarSection />
+
       </div>
     </div>
   );

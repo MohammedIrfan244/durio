@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUserClient } from "@/lib/utils/get-user-client";
+import Image from "next/image";
 import {
   LogOut,
   Mail,
@@ -145,6 +146,7 @@ export default function Header() {
           <UserMenu
             username={username}
             userEmail={userEmail}
+            avatar={user.avatar}
             theme={theme}
             onLogout={() => setConfirmLogout(true)}
           />
@@ -310,11 +312,12 @@ const ActionButton = ({
 interface UserMenuProps {
   username: string;
   userEmail: string;
+  avatar: string | null;
   theme?: string;
   onLogout: () => void;
 }
 
-const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
+const UserMenu = ({ username, userEmail, avatar, theme, onLogout }: UserMenuProps) => {
 
   return (
     <DropdownMenu>
@@ -323,9 +326,19 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
           variant="outline"
           className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
         >
-          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-            <User size={14} />
-          </div>
+          {avatar ? (
+            <Image
+              src={avatar}
+              alt={username}
+              width={24}
+              height={24}
+              className="h-6 w-6 rounded-full object-cover ring-2 ring-primary/20"
+            />
+          ) : (
+            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+              <User size={14} />
+            </div>
+          )}
           <span className="text-sm font-medium hidden sm:block">{username}</span>
           <ChevronDown
             size={12}
@@ -346,7 +359,17 @@ const UserMenu = ({ username, userEmail, theme, onLogout }: UserMenuProps) => {
         <DropdownMenuLabel className="font-normal p-2 relative z-10">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-semibold leading-none flex items-center gap-2">
-              <User size={14} className="text-primary" />
+              {avatar ? (
+                <Image
+                  src={avatar}
+                  alt={username}
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <User size={14} className="text-primary" />
+              )}
               {username}
             </p>
             <p className="text-xs leading-none text-muted-foreground flex items-center gap-2">

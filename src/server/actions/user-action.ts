@@ -8,6 +8,7 @@ import { z } from "zod";
 const updateUserProfileSchema = z.object({
   timezone: z.string().optional(),
   displayName: z.string().trim().max(200).optional(),
+  avatar: z.string().url().optional().or(z.literal("")),
 });
 
 type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;

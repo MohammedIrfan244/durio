@@ -9,6 +9,7 @@ declare module "next-auth" {
       id: string;
       timezone?: string | null;
       displayName?: string | null;
+      avatar?: string | null;
     } & DefaultSession["user"];
   }
 
@@ -16,5 +17,6 @@ declare module "next-auth" {
       id: string;
       timezone?: string | null;
       displayName?: string | null;
+      avatar?: string | null;
   }
 }

@@ -82,7 +82,7 @@ export default function Sidebar() {
             >
               <h2
                 style={{ fontFamily: "var(--font-bubbly)" }}
-                className={`text-2xl md:text-3xl lg:text-4xl cursor-pointer font-bold md:font-extrabold text-accent-foreground tracking-tight bubbly-text cursor-default`}
+                className={`text-2xl md:text-3xl lg:text-4xl cursor-pointer font-bold md:font-extrabold text-accent-foreground tracking-tight bubbly-text`}
               >
                 {APP_NAME.split("").map((char, index) => (
                   <span

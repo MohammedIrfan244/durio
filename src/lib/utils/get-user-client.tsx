@@ -7,5 +7,6 @@ export function useUserClient() {
     displayName: session?.user?.displayName || undefined,
     name: session?.user?.name || "User",
     email: session?.user?.email || "system",
+    avatar: session?.user?.avatar || null,
   };
 }
