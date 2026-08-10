@@ -25,8 +25,8 @@ export default function ReviewModal() {
     // Check for pending reviews after a short delay so it doesn't block initial render
     const checkReviews = async () => {
       const res = await withClientAction(() => getPendingReviews());
-      if (res && res.data && res.data.length > 0) {
-        setPendingBlocks(res.data);
+      if (res && res.length > 0) {
+        setPendingBlocks(res);
         setOpen(true);
       }
     };
@@ -58,7 +58,7 @@ export default function ReviewModal() {
     const res = await withClientAction(() => saveBlockLogs(logsToSave));
     setIsSubmitting(false);
 
-    if (res && res.success) {
+    if (res) {
       setOpen(false);
     }
   };

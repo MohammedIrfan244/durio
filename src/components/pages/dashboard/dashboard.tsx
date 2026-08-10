@@ -49,6 +49,7 @@ const DEFAULT_STATS: DashboardStats = {
     used: 0,
     limit: 50,
   },
+  todayFocusBlocks: [],
 };
 
 
