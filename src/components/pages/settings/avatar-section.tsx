@@ -60,8 +60,8 @@ export function AvatarSection() {
       return;
     }
 
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be less than 10MB");
       return;
     }
 
@@ -95,18 +95,24 @@ export function AvatarSection() {
     }
 
     setAvatarLoading(true);
-    try {
-      const avatarUrl = await uploadAvatar({ file });
-      await update({ avatar: avatarUrl });
-      toast.success("Avatar updated successfully!");
-      setAvatarDialogOpen(false);
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to update avatar");
-      console.error(error);
-    } finally {
-      setAvatarLoading(false);
-    }
+try {
+  const result = await uploadAvatar({ file });
+
+  if (!result.success) {
+    toast.error(result.error?.message || "Failed to update avatar");
+    return;
+  }
+
+  await update({ avatar: result.data });
+  toast.success("Avatar updated successfully!");
+  setAvatarDialogOpen(false);
+  router.refresh();
+} catch (error) {
+  console.error(error);
+  toast.error("Failed to update avatar" + (error instanceof Error ? `: ${error.message}` : ""));
+} finally {
+  setAvatarLoading(false);
+}
   };
 
   const handleDeleteAvatar = async () => {

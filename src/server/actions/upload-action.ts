@@ -60,11 +60,27 @@ export const uploadAvatar = withErrorWrapper<string, [UploadAvatarInput]>(
       }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Cloudinary upload error:", error);
-      throw new Error("Failed to upload avatar to Cloudinary");
-    }
+if (!response.ok) {
+  let errorMessage = "Profile image upload failed";
+  let errorDetails: unknown = undefined;
+
+  try {
+    const error = await response.json();
+    errorDetails = error;
+    errorMessage = error?.error?.message || errorMessage;
+  } catch {
+    // Response wasn't JSON (e.g. HTML error page from a gateway/timeout)
+    errorMessage = await response.text().catch(() => response.statusText);
+  }
+
+  console.error("Cloudinary upload error:", {
+    status: response.status,
+    statusText: response.statusText,
+    details: errorDetails,
+  });
+
+  throw new Error(`Failed to upload avatar to Cloudinary: ${errorMessage}`);
+}
 
     const result: CloudinaryUploadResult = await response.json();
 

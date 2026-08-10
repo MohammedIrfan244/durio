@@ -30,7 +30,6 @@ export default function AvatarOnboarding() {
     if (session?.user && !session.user.avatar && session.user.timezone) {
       setOpen(true);
     }
-    console.log('avtr',session?.user);
   }, [session]);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -65,9 +64,9 @@ export default function AvatarOnboarding() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    // Validate file size (max 10MB)
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be less than 10MB");
       return;
     }
 
@@ -102,24 +101,30 @@ export default function AvatarOnboarding() {
     }
 
     setLoading(true);
-    try {
-      const avatarUrl = await uploadAvatar({ file });
-      await update({ avatar: avatarUrl });
-      toast.success("Avatar uploaded successfully!");
-      setOpen(false);
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to upload avatar");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+try {
+  const result = await uploadAvatar({ file });
+
+  if (!result.success) {
+    toast.error(result.error?.message || "Ooops.. Failed to upload avatar");
+    return;
+  }
+
+  await update({ avatar: result.data });
+  toast.success("Avatar uploaded successfully!");
+  setOpen(false);
+  router.refresh();
+} catch (error) {
+  console.error(error);
+  toast.error("Oops.."+ (error instanceof Error ? `: ${error.message}` : ""));
+} finally {
+  setLoading(false);
+}
   };
 
-  const handleSkip = async () => {
-    setOpen(false);
-    router.refresh();
-  };
+  // const handleSkip = async () => {
+  //   setOpen(false);
+  //   router.refresh();
+  // };
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>

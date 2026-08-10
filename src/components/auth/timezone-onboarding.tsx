@@ -59,22 +59,28 @@ export default function TimezoneOnboarding() {
     }
   }, [session]);
 
-  const handleSave = async () => {
-    if (!timezone) return;
-    setLoading(true);
-    try {
-      await updateUserProfile({ timezone });
-      await update({ timezone }); // update session client-side
-      toast.success("Timezone set successfully");
-      setOpen(false);
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to update timezone");
-      console.error(error);
-    } finally {
-      setLoading(false);
+const handleSave = async () => {
+  if (!timezone) return;
+  setLoading(true);
+  try {
+    const result = await updateUserProfile({ timezone });
+
+    if (!result.success) {
+      toast.error(result.error?.message || "Failed to update timezone");
+      return;
     }
-  };
+
+    await update({ timezone });
+    toast.success("Timezone set successfully");
+    setOpen(false);
+    router.refresh();
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to update timezone");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Ensure options include the detected/selected timezone if it's not in the common list
   const allTimezones = Array.from(new Set([...COMMON_TIMEZONES, timezone])).filter(Boolean).sort();
