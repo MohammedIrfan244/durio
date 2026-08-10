@@ -17,7 +17,8 @@ export async function proxy(req: NextRequest) {
   if (
     publicPaths.includes(pathname) ||
     pathname.startsWith("/favicons/") ||
-    pathname.startsWith("/admin")
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin")
   ) {
     return NextResponse.next();
   }

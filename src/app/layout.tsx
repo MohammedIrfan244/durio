@@ -41,6 +41,10 @@ const dynaPuff = DynaPuff({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: "#ff6a00",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://durio.vercel.app"),
   title: APP_NAME,
@@ -63,7 +67,6 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   category: "productivity",
-  themeColor: "#ff6a00",
   manifest: "/favicons/site.webmanifest",
   icons: {
     icon: [
@@ -100,6 +103,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (window.Capacitor) {
+                document.documentElement.classList.add('is-capacitor');
+              } else {
+                document.documentElement.classList.add('is-web');
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`
           ${geistSans.variable}
@@ -110,19 +126,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           antialiased
         `}
       >
-        <head>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if (window.Capacitor) {
-                  document.documentElement.classList.add('is-capacitor');
-                } else {
-                  document.documentElement.classList.add('is-web');
-                }
-              `,
-            }}
-          />
-        </head>
         <SessionProviderWrapper>
           {children}
         </SessionProviderWrapper>

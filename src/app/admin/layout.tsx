@@ -10,7 +10,6 @@ export default async function AdminDashboardLayout({
   const isAuth = await checkAdminAuth();
   
   if (!isAuth) {
-    // Return 404 to hide the existence of the dashboard from unauthorized users
     notFound();
   }
 
@@ -24,6 +23,12 @@ export default async function AdminDashboardLayout({
         <nav className="flex gap-4">
           <Link href="/admin/dashboard" className="text-sm hover:text-white transition-colors">
             Overview
+          </Link>
+          <Link href="/admin/users" className="text-sm hover:text-white transition-colors">
+            Users
+          </Link>
+          <Link href="/admin/db" className="text-sm hover:text-white transition-colors">
+            DB Explorer
           </Link>
           <Link href="/" className="text-sm text-zinc-500 hover:text-white transition-colors">
             Exit to App

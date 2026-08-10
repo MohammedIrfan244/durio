@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { notFound } from "next/navigation";
 import { verifyAdminStep1, verifyAdminStep2 } from "@/server/actions/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +47,6 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm space-y-8 rounded-lg border border-zinc-800 bg-zinc-900 p-8 shadow-2xl">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold tracking-tighter text-white">SYSTEM TERMINAL</h1>
-          <p className="text-xs text-zinc-500">UNAUTHORIZED ACCESS STRICTLY PROHIBITED</p>
         </div>
 
         {step === 1 ? (
@@ -78,7 +76,7 @@ export default function AdminLoginPage() {
               className="w-full bg-white text-black hover:bg-zinc-200"
               disabled={loading}
             >
-              {loading ? "VERIFYING..." : "INITIATE SEQUENCE"}
+              {loading ? "VERIFYING..." : "VERIFY IDENTITY"}
             </Button>
           </form>
         ) : (
@@ -99,7 +97,7 @@ export default function AdminLoginPage() {
               className="w-full bg-red-600 text-white hover:bg-red-700"
               disabled={loading}
             >
-              {loading ? "DECRYPTING..." : "AUTHORIZE ACCESS"}
+              {loading ? "AUTHORIZING..." : "AUTHORIZE ACCESS"}
             </Button>
           </form>
         )}
