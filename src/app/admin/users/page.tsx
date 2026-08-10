@@ -9,7 +9,7 @@ async function fetchUsers(page: number, limit: number, q: string) {
     cache: "no-store",
     headers: { cookie: requestHeaders.get("cookie") || "" },
   });
-  if (!res.ok) throw new Error("Failed to load users");
+  if (!res.ok) console.log(res)
   return res.json();
 }
 

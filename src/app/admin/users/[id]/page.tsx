@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import UserExplorer from "@/components/admin/user-explorer-loader";
+import RevealFcmTokens from "@/components/admin/reveal-fcm-tokens";
 
 async function fetchSummary(id: string) {
-  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const url = `${base}/api/admin/users/${id}/summary`;
+  const url = `/api/admin/users/${id}/summary`;
   const requestHeaders = await headers();
   const res = await fetch(url, {
     cache: "no-store",
@@ -55,9 +55,23 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
             <Field label="Timezone" value={user.timezone} />
             <Field label="Fancy Mode" value={user.fancyMode ? "Enabled" : "Disabled"} />
             <Field label="Created" value={new Date(user.createdAt).toLocaleString()} />
-            <Field label="Avatar" value={user.avatar ? user.avatar : null} />
             <Field label="Disabled Modules" value={user.disabledModules?.length > 0 ? user.disabledModules.join(", ") : "None"} />
-            <Field label="FCM Tokens" value={maskArray(user.fcmTokens)} />
+            <div className="col-span-full">
+              <p className="text-zinc-500 text-xs uppercase tracking-wider">Avatar</p>
+              {user.avatar ? (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={user.avatar} alt="Current avatar" className="h-20 w-20 rounded-full object-cover border border-zinc-800" />
+                  <div className="text-zinc-300 break-all">{user.avatar}</div>
+                </div>
+              ) : (
+                <p className="text-zinc-500 mt-2">No avatar set.</p>
+              )}
+            </div>
+            <div className="col-span-full">
+              <p className="text-zinc-500 text-xs uppercase tracking-wider">FCM Tokens</p>
+              <p className="text-white mt-0.5 break-all">{maskArray(user.fcmTokens)}</p>
+              <RevealFcmTokens userId={user.id} />
+            </div>
           </div>
         </div>
       </section>
@@ -134,6 +148,28 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
         columns={["From Type", "From ID", "To Type", "To ID", "Created"]}
         rows={latest.resourceLinks.map((r: any) => [r.fromType, r.fromId, r.toType, r.toId, new Date(r.createdAt).toLocaleDateString()])}
       />
+
+      {/* User Avatar History */}
+      {summary.avatars?.length ? (
+        <section>
+          <h2 className="text-sm font-bold text-zinc-400 mb-3 uppercase tracking-wider">Avatar History</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {summary.avatars.map((avatar: any) => (
+              <div
+                key={avatar.publicId}
+                className={`rounded-lg border p-4 bg-zinc-900 ${avatar.isCurrent ? "border-emerald-500" : "border-zinc-800"}`}
+              >
+                <img src={avatar.secureUrl} alt={avatar.publicId} className="h-36 w-full rounded object-cover" />
+                <div className="mt-3 text-sm text-zinc-300">
+                  <p className="break-all">{avatar.publicId}</p>
+                  <p className="text-zinc-500 text-xs mt-1">Uploaded {new Date(avatar.createdAt).toLocaleString()}</p>
+                  {avatar.isCurrent && <p className="mt-2 text-emerald-400 text-xs font-semibold">Current avatar</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* User Explorer (client component) */}
       <section>

@@ -11,13 +11,14 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
   const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "20")));
 
-  const where: any = {};
+const where: any = {};
   if (q) {
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(q);
     where.OR = [
       { email: { contains: q, mode: "insensitive" } },
       { name: { contains: q, mode: "insensitive" } },
       { displayName: { contains: q, mode: "insensitive" } },
-      { id: q },
+      ...(isValidObjectId ? [{ id: q }] : []),
     ];
   }
 

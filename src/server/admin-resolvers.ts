@@ -2,6 +2,70 @@
 
 import { prisma } from "@/lib/prisma";
 
+interface AvatarHistoryItem {
+  publicId: string;
+  secureUrl: string;
+  createdAt: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  isCurrent: boolean;
+}
+
+async function getAvatarHistory(userId: string, currentAvatarUrl: string | null): Promise<AvatarHistoryItem[]> {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const folderName = process.env.CLOUDINARY_FOLDER_NAME;
+
+  if (!cloudName || !apiKey || !apiSecret || !folderName) {
+    return [];
+  }
+
+  const prefix = `${folderName}/avatars/${userId}`;
+  const authHeader = `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`;
+  const url = new URL(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`);
+  url.searchParams.set("prefix", prefix);
+  url.searchParams.set("max_results", "100");
+  url.searchParams.set("direction", "desc");
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: authHeader },
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error("Cloudinary avatar history load failed", res.status, res.statusText, body);
+      return [];
+    }
+
+    const result = await res.json();
+    if (!result.resources || !Array.isArray(result.resources)) {
+      return [];
+    }
+
+    return result.resources.map((resource: any) => {
+      const secureUrl = resource.secure_url as string;
+      const normalizedCurrent = currentAvatarUrl?.replace(/^https?:/, "") ?? null;
+      return {
+        publicId: resource.public_id,
+        secureUrl,
+        createdAt: resource.created_at,
+        width: resource.width,
+        height: resource.height,
+        format: resource.format,
+        isCurrent:
+          normalizedCurrent !== null &&
+          secureUrl.replace(/^https?:/, "") === normalizedCurrent,
+      };
+    });
+  } catch (error) {
+    console.error("Cloudinary avatar history error", error);
+    return [];
+  }
+}
+
 export async function getUserSummary(userId: string) {
   // Basic user record (non-sensitive by default)
   const user = await prisma.user.findUnique({
@@ -69,8 +133,11 @@ export async function getUserSummary(userId: string) {
       ? { requestsToday: aiUsage.requestsToday, lastRequestAt: aiUsage.lastRequestAt }
       : null;
 
+  const avatars = await getAvatarHistory(userId, user.avatar);
+
   return {
     user,
+    avatars,
     counts: {
       todos: todoCount,
       notes: noteCount,
