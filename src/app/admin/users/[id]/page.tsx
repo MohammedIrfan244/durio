@@ -5,7 +5,8 @@ import UserExplorer from "@/components/admin/user-explorer-loader";
 import RevealFcmTokens from "@/components/admin/reveal-fcm-tokens";
 
 async function fetchSummary(id: string) {
-  const url = `/api/admin/users/${id}/summary`;
+  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const url = `${base}/api/admin/users/${id}/summary`;
   const requestHeaders = await headers();
   const res = await fetch(url, {
     cache: "no-store",
