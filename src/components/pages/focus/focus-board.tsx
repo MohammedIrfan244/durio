@@ -42,7 +42,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
   };
 
   return (
-    <div className="section-wrapper">
+    <div className="section-wrapper overflow-y-auto hide-scrollbar-on-main">
       <SectionHeaderWrapper>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
           
@@ -97,10 +97,10 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
       </SectionHeaderWrapper>
 
       {/* Main Timeline Area */}
-      <div className="flex-1 w-full mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 h-full overflow-hidden">
+      <div className="flex-1 w-full mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         
         {/* Timeline Column */}
-        <div className="lg:col-span-8 h-full overflow-y-auto scrollbar-hide pb-20 px-2">
+        <div className="lg:col-span-8 pb-20 px-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedDay}
@@ -127,7 +127,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
         </div>
 
         {/* Daily Insights Panel */}
-        <div className="lg:col-span-4 space-y-6 h-full overflow-y-auto scrollbar-hide pb-20 px-2">
+        <div className="lg:col-span-4 space-y-6 pb-20 px-2">
           <div className="p-6 rounded-3xl border bg-card shadow-sm">
               <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-foreground">
                 <span className="bg-primary/10 text-primary p-2 rounded-xl"><Filter size={18} /></span>

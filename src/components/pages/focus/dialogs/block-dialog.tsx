@@ -128,7 +128,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto hide-scrollbar-on-main">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Focus Block' : 'Design New Flow Block'}</DialogTitle>
         </DialogHeader>

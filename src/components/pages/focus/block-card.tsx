@@ -71,7 +71,7 @@ export default function BlockCard({ block, onEdit }: BlockCardProps) {
             variant="ghost" 
             size="icon" 
             onClick={onEdit}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 hover:bg-background/50 rounded-full"
+            className="opacity-100 transition-opacity h-8 w-8 hover:bg-background/50 rounded-full"
           >
             <Edit3 size={16} className="text-muted-foreground" />
           </Button>
