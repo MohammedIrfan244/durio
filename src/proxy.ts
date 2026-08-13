@@ -20,7 +20,8 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/admin")||
     pathname.startsWith("/downloads")||
-    pathname.startsWith("/.well-known")
+    pathname.startsWith("/.well-known") ||
+    pathname.startsWith("/privacy-policy")
   ) {
     return NextResponse.next();
   }

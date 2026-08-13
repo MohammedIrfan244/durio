@@ -10,17 +10,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 interface DeleteAccountDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-type DeleteStep = "initial" | "soft-confirm" | "hard-confirm";
+type DeleteStep = "initial" | "soft-confirm" | "hard-confirm" | "deleting";
 
 export default function DeleteAccountDialog({
   open,
@@ -35,8 +35,10 @@ export default function DeleteAccountDialog({
     onClose();
   };
 
-  const handleSoftDelete = async () => {
+  const handleSoftDelete = async (e: React.MouseEvent) => {
+    e.preventDefault()
     setIsLoading(true);
+    setStep("deleting");
     try {
       const response = await fetch("/api/user/delete-account", {
         method: "POST",
@@ -51,7 +53,7 @@ export default function DeleteAccountDialog({
 
       // Wait 3 seconds minimum, then redirect
       setTimeout(() => {
-        window.location.href = "/auth/login";
+        signOut({ callbackUrl: "/auth/login" });
       }, 3000);
     } catch (error) {
       console.error(error);
@@ -61,8 +63,10 @@ export default function DeleteAccountDialog({
     }
   };
 
-  const handleHardDelete = async () => {
+  const handleHardDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+    setStep("deleting");
     try {
       const response = await fetch("/api/user/delete-account-permanent", {
         method: "POST",
@@ -79,7 +83,7 @@ export default function DeleteAccountDialog({
 
       // Wait 3 seconds minimum, then redirect
       setTimeout(() => {
-        window.location.href = "/auth/login";
+        signOut({ callbackUrl: "/auth/login" });
       }, 3000);
     } catch (error) {
       console.error(error);
@@ -256,6 +260,20 @@ export default function DeleteAccountDialog({
               )}
             </AlertDialogAction>
           </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
+
+  if (step === "deleting") {
+    return (
+      <AlertDialog open={true}>
+        <AlertDialogContent className="max-w-sm flex flex-col items-center justify-center p-8">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Processing...</h2>
+          <p className="text-sm text-muted-foreground text-center">
+            Please wait while we process your request. Do not close this window.
+          </p>
         </AlertDialogContent>
       </AlertDialog>
     );

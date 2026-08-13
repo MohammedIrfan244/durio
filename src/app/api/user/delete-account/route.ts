@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
-import { signOut } from "next-auth/react";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

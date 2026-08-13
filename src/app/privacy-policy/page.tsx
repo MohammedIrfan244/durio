@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-semibold">4. Your Right to Access Your Data</h2>
             <p className="text-muted-foreground">
               You can access all your stored data by logging in with your credentials. Your email and name are
-              visible in your account settings. You can update your display name and avatar at any time.
+              visible in your account settings. You can update your avatar at any time.
             </p>
           </section>
 
