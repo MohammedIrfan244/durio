@@ -58,28 +58,63 @@ export default async function UsersPage({
             <tr>
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Email</th>
+              <th className="px-4 py-2 font-medium">Status</th>
               <th className="px-4 py-2 font-medium">Display Name</th>
-              <th className="px-4 py-2 font-medium">Timezone</th>
               <th className="px-4 py-2 font-medium">Created</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {users.map((user: { id: string; name: string | null; email: string; displayName: string | null; avatar: string | null; timezone: string | null; createdAt: string | Date }) => (
-              <tr key={user.id} className="hover:bg-zinc-900/50">
-                <td className="px-4 py-2">
-                  <Link href={`/admin/users/${user.id}`} className="text-white hover:underline flex items-center gap-2">
-                    {user.avatar && (
-                      <img src={user.avatar} alt="" className="w-5 h-5 rounded-full" />
-                    )}
-                    {user.name || "—"}
-                  </Link>
-                </td>
-                <td className="px-4 py-2 text-zinc-400">{user.email}</td>
-                <td className="px-4 py-2 text-zinc-400">{user.displayName || "—"}</td>
-                <td className="px-4 py-2 text-zinc-500">{user.timezone || "—"}</td>
-                <td className="px-4 py-2 text-zinc-500 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString()}</td>
+            {users.map((user: any) => {
+              const isActive = user.isActive ?? true;
+              const isDeleted = user.isDeleted ?? false;
+              const deactivatedAt = user.deactivatedAt;
+              const deletedAt = user.deletedAt;
+
+              let statusBadge = null;
+              let statusText = "Active";
+              let statusColor = "bg-green-900/30 text-green-400";
+
+              if (isDeleted) {
+                statusText = "Permanently Deleted";
+                statusColor = "bg-red-900/30 text-red-400";
+              } else if (!isActive) {
+                statusText = "Deactivated";
+                statusColor = "bg-orange-900/30 text-orange-400";
+              }
+
+              return (
+                <tr key={user.id} className="hover:bg-zinc-900/50">
+                  <td className="px-4 py-2">
+                    <Link href={`/admin/users/${user.id}`} className="text-white hover:underline flex items-center gap-2">
+                      {user.avatar && (
+                        <img src={user.avatar} alt="" className="w-5 h-5 rounded-full" />
+                      )}
+                      {user.name || "—"}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 text-zinc-400">{user.email}</td>
+                  <td className="px-4 py-2">
+                    <div className="space-y-1">
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColor}`}>
+                        {statusText}
+                      </span>
+                      {isDeleted && deletedAt && (
+                        <div className="text-xs text-zinc-500">
+                          Deleted: {new Date(deletedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                      {!isActive && !isDeleted && deactivatedAt && (
+                        <div className="text-xs text-zinc-500">
+                          Deactivated: {new Date(deactivatedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 text-zinc-400">{user.displayName || "—"}</td>
+                  <td className="px-4 py-2 text-zinc-500 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString()}</td>
               </tr>
-            ))}
+               );
+            })}
             {users.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-zinc-500">No users found.</td>

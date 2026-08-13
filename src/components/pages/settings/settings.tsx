@@ -7,14 +7,17 @@ import { updateUserSettings } from '@/server/actions/settings-actions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Sparkles, ShieldOff, Loader2 } from 'lucide-react';
+import { Sparkles, ShieldOff, Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper';
 import { AvatarSection } from './avatar-section';
+import DeleteAccountDialog from './delete-account-dialog';
 
 export default function Settings() {
   const { fancyMode, disabledModules, setFancyMode, setDisabledModules, isLoading } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -153,7 +156,37 @@ export default function Settings() {
       {/* Avatar Section */}
       <AvatarSection />
 
+      {/* Delete Account Section */}
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <Trash2 className="w-5 h-5" />
+            Danger Zone
+          </CardTitle>
+          <CardDescription>
+            Manage your account deletion. You can temporarily deactivate or permanently delete your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteDialogOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Account
+          </Button>
+          <p className="text-xs text-muted-foreground mt-4">
+            See our <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">privacy policy</a> for details on account deletion options.
+          </p>
+        </CardContent>
+      </Card>
+
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} />
+
     </div>
   );
 }

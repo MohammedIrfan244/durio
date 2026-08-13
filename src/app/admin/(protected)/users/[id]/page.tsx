@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import UserExplorer from "@/components/admin/user-explorer-loader";
 import RevealFcmTokens from "@/components/admin/reveal-fcm-tokens";
+import AdminUserDeletionSection from "@/components/admin/admin-user-deletion-section";
 
 async function fetchSummary(id: string) {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -76,6 +77,11 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </section>
+
+      {/* Account Deletion Status */}
+      {(!summary.user.isActive || summary.user.isDeleted) && (
+        <AdminUserDeletionSection user={summary.user} />
+      )}
 
       {/* Counts */}
       <section>

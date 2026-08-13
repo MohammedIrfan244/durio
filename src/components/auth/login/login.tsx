@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import PrivacyModal from "./privacy-policy";
 import { APP_NAME } from "@/lib/brand";
 import GoogleButton from "@/components/decoration/google-button";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 export default function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -114,6 +116,19 @@ export default function Login() {
             </button>
             .
           </p>
+
+          {/* Full Privacy Policy Link */}
+          <div className="mt-4 pt-4 border-t border-border/30">
+            <Link
+              href="/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors mx-auto"
+            >
+              <span>View full privacy policy</span>
+              <ExternalLink size={12} />
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

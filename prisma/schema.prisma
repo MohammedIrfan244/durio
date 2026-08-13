@@ -34,6 +34,12 @@ model User {
   routineBlocks RoutineBlock[]
   
   aiUsage       AIUsage?
+
+  // Account deletion fields
+  isActive      Boolean        @default(true) // false = deactivated (soft delete)
+  isDeleted     Boolean        @default(false) // true = permanently deleted (hard delete)
+  deactivatedAt DateTime?      // timestamp of soft delete
+  deletedAt     DateTime?      // timestamp of hard delete
 }
 
 // Todo Section 

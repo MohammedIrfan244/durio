@@ -81,6 +81,10 @@ export async function getUserSummary(userId: string) {
       disabledModules: true,
       createdAt: true,
       fcmTokens: true,
+      isActive: true,
+      isDeleted: true,
+      deactivatedAt: true,
+      deletedAt: true,
     },
   });
 

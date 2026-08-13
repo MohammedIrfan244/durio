@@ -69,24 +69,71 @@ const handler = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (!user.email) {
+        return false;
+      }
+
+      // Check if user exists and if they're deleted or deactivated
+      const existingUser = await prisma.user.findFirst({
+        where: { email: user.email },
+        select: { id: true, isActive: true, isDeleted: true },
+      });
+
+      if (existingUser) {
+        // Block login if user is deactivated or deleted
+        if (!existingUser.isActive || existingUser.isDeleted) {
+          // Return false to deny sign-in
+          // Generic error message to avoid account enumeration
+          return false;
+        }
+      }
+
       return true;
     },
     async session({ session, token }) {
-        const authUser = await prisma.user.findFirst({
-          where: { email: session.user?.email || "" },
-        });
+      const authUser = await prisma.user.findFirst({
+        where: { email: session.user?.email || "" },
+      });
 
-        if (!authUser) {
-          const newUser = await prisma.user.create({
-            data: {
-              name: session.user?.name || "No Name",
-              email: session.user?.email || "",
-            },
-          });
-           return {...session, user: { ...session.user, id: newUser.id , token: token, timezone: newUser.timezone, displayName: newUser.displayName , avatar: newUser.avatar } };
-        }
-        
-        return { ...session, user: { ...session.user, id: authUser.id , token: token, timezone: authUser.timezone, displayName: authUser.displayName , avatar: authUser.avatar } };
+      if (!authUser) {
+        const newUser = await prisma.user.create({
+          data: {
+            name: session.user?.name || "No Name",
+            email: session.user?.email || "",
+            isActive: true,
+            isDeleted: false,
+          },
+        });
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: newUser.id,
+            token: token,
+            timezone: newUser.timezone,
+            displayName: newUser.displayName,
+            avatar: newUser.avatar,
+          },
+        };
+      }
+
+      // Double-check that user is still active and not deleted
+      if (!authUser.isActive || authUser.isDeleted) {
+        // This shouldn't happen if signIn callback worked, but as a safety net
+        return { ...session, user: { ...session.user, id: "" } }; // Invalid session
+      }
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: authUser.id,
+          token: token,
+          timezone: authUser.timezone,
+          displayName: authUser.displayName,
+          avatar: authUser.avatar,
+        },
+      };
     },
   },
 });
