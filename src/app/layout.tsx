@@ -47,27 +47,14 @@ export const viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://durio.vercel.app"),
-  title: APP_NAME,
+  title: "DURIO — Your Personal Productivity Companion",
   description:
-    "DURIO — Your personal daily companion. Manage your tasks, notes, calendar, and companion — all in one place.",
-  keywords: [
-    "personal productivity",
-    "task manager",
-    "daily planner",
-    "companion",
-    "notes",
-    "calendar",
-    "DURIO",
-  ],
-  authors: [{ name: "DURIO" }],
+    "DURIO is your personal productivity companion for managing tasks, notes, and your calendar — all in one place.",
   verification: {
     google: "fv4gvgKrQ3owE9Zc-uAINkHPfHLgZwJm9NCXBMMFKs0"
   },
-  alternates: {
-    canonical: "/",
-  },
   category: "productivity",
-  manifest: "/favicons/site.webmanifest",
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
       { url: "/favicons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -78,8 +65,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "DURIO",
-    description: "Your personal daily companion",
+    title: "DURIO — Your Personal Productivity Companion",
+    description: "DURIO is your personal productivity companion for managing tasks, notes, and your calendar — all in one place.",
     type: "website",
     locale: "en_US",
     siteName: "DURIO",
@@ -93,9 +80,9 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: "summary",
-    title: "DURIO",
-    description: "Your personal daily companion",
+    card: "summary_large_image",
+    title: "DURIO — Your Personal Productivity Companion",
+    description: "DURIO is your personal productivity companion for managing tasks, notes, and your calendar — all in one place.",
     images: ["https://res.cloudinary.com/doseusf1y/image/upload/v1783781053/opengraph_sthvcq.png"],
   },
 };
