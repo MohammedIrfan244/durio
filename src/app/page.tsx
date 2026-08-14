@@ -10,11 +10,41 @@ import { CtaFooter } from "@/components/pages/landing/cta-footer";
 import MobileEntryWrapper from "@/components/layout/mobile-entry-wrapper";
 import { StorySection } from "@/components/pages/landing/story-section";
 
+export const metadata = {
+  title: "DURIO — Your Personal Productivity Companion",
+  description:
+    "DURIO is your personal productivity companion for managing tasks, notes, and your calendar — all in one place.",
+  alternates: {
+    canonical: "/",
+  },
+};
+
 export default function LandingPage() {
   return (
     <MobileEntryWrapper>
       <div className="show-on-web">
         <main className="min-h-screen bg-[#0A0A0A] text-foreground selection:bg-[#ff6a00]/30 selection:text-white">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: "DURIO",
+                description:
+                  "DURIO is your personal productivity companion for managing tasks, notes, and your calendar — all in one place.",
+                url: "https://durio.vercel.app",
+                applicationCategory: "ProductivityApplication",
+                operatingSystem: "Web, Android",
+                offers: {
+                  "@type": "Offer",
+                  price: "0",
+                  priceCurrency: "USD",
+                },
+              }),
+            }}
+          />
+
           <Navigation />
           <HeroSection />
           <WhyDurioSection />
@@ -25,6 +55,7 @@ export default function LandingPage() {
           <CtaFooter />
         </main>
       </div>
+
       <div className="show-on-capacitor relative min-h-[100dvh] w-full overflow-hidden bg-black text-white">
         <div className="dvd-bounce">
           <Image
