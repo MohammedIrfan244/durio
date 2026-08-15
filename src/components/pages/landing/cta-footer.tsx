@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import PrivacyModal from "@/components/auth/login/privacy-policy";
 import ContactModal from "./contact-modal";
 
 export function CtaFooter() {
@@ -97,9 +96,9 @@ export function CtaFooter() {
               Web App
             </Link>
             <span className="opacity-30">|</span>
-            <button onClick={() => setPrivacyOpen(true)} className="hover:text-white transition-colors text-muted-foreground">
+            <Link href="/privacy-policy" className="hover:text-white transition-colors text-muted-foreground">
               Privacy
-            </button>
+            </Link>
             <span className="opacity-30">|</span>
             <button onClick={() => setContactOpen(true)} className="hover:text-white transition-colors text-muted-foreground">
               Contact
@@ -109,7 +108,6 @@ export function CtaFooter() {
       </footer>
 
       {/* Modals */}
-      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </>
   );
