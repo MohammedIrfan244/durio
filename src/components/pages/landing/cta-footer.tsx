@@ -7,7 +7,6 @@ import { useState } from "react";
 import ContactModal from "./contact-modal";
 
 export function CtaFooter() {
-  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
   return (
