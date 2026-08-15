@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { calculate } from "@/lib/logic/calculator/basic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,14 +46,50 @@ export default function Basic() {
         throw new Error("Invalid calculation");
       }
       setResult(res);
-    } catch (e) {
+    } catch (error) {
+      console.log(error)
       setResult(null);
       setError("Error");
     }
   };
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if our card or any of its children is the active element
+      if (!cardRef.current?.contains(document.activeElement)) return;
+
+      const key = e.key;
+
+      if (/^[0-9]$/.test(key)) {
+        handleKeyClick(key);
+      } else if (["+", "-", "*", "/", "%", "^", "(", ")"].includes(key)) {
+        handleKeyClick(key);
+      } else if (key === "Enter" || key === "=") {
+        e.preventDefault();
+        handleKeyClick("=");
+      } else if (key === "Backspace") {
+        handleKeyClick("C");
+      } else if (key === "Escape") {
+        handleKeyClick("AC");
+      } else if (key === ".") {
+        handleKeyClick(".");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, result, error]); // Need dependencies since handleKeyClick uses state
+
+
   return (
-    <Card className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300">
+    <Card 
+      ref={cardRef}
+      tabIndex={0}
+      className="bg-background/60 backdrop-blur-md border border-border/30 hover:shadow-lg transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+    >
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-bold flex items-center gap-2 group cursor-pointer">
           <Calculator className="h-5 w-5 text-primary transition-transform group-hover:rotate-12 group-hover:scale-110" />
