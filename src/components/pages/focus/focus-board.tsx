@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Filter, Target } from 'lucide-react';
+import { Plus, Filter, Target, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import TimelineGrid from './timeline-grid';
@@ -85,8 +85,15 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
               })}
             </div>
 
+            <Button variant="outline" onClick={() => window.dispatchEvent(new Event('open-review-modal'))} className="rounded-full shadow-sm transition-all hidden sm:flex border-orange-500/50 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30">
+              <Flame size={16} className="mr-2" /> Score
+            </Button>
             <Button onClick={handleCreate} className="rounded-full shadow-lg transition-all hidden sm:flex">
               <Plus size={16} className="mr-2" /> New Block
+            </Button>
+            
+            <Button variant="outline" onClick={() => window.dispatchEvent(new Event('open-review-modal'))} size="icon" className="rounded-full shadow-sm transition-all sm:hidden border-orange-500/50 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30">
+              <Flame size={16} />
             </Button>
             <Button onClick={handleCreate} size="icon" className="rounded-full shadow-lg transition-all sm:hidden">
               <Plus size={16} />
@@ -116,7 +123,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
                   </div>
                   <h3 className="text-lg font-medium">No routines scheduled</h3>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                    You don't have any focus blocks for this day. Click "New Block" to start designing your day.
+                    You don't have any focus blocks for this day. Click &quot;New Block&quot; to start designing your day.
                   </p>
                 </div>
               ) : (
@@ -148,7 +155,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
                 <div className="pt-4 mt-2">
                   <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5">
                     <p className="text-sm font-medium text-foreground leading-relaxed italic">
-                      "{insightMessage}"
+                      &quot;{insightMessage}&quot;
                     </p>
                   </div>
                 </div>
