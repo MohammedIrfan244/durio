@@ -9,8 +9,8 @@ import {
   Sidebar as ShadSidebar,
 } from "@/components/ui/sidebar";
 
-const FloatingCalculator = dynamic(
-  () => import("@/components/shared/floating-calculator"),
+const GreetingWidget = dynamic(
+  () => import("@/components/pages/dashboard/greeting-widget"),
   { ssr: false }
 );
 
@@ -50,7 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-        {!isDuriaPage && <FloatingCalculator />}
+        {!isDuriaPage && <GreetingWidget />}
       </div>
     </SidebarProvider>
   );

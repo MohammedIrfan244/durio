@@ -26,6 +26,9 @@ export default async function AdminDashboardLayout({
           <Link href="/admin/users" className="text-sm hover:text-white transition-colors">
             Users
           </Link>
+          <Link href="/admin/greetings" className="text-sm hover:text-white transition-colors">
+            Greetings
+          </Link>
           <Link href="/admin/db" className="text-sm hover:text-white transition-colors">
             DB Explorer
           </Link>

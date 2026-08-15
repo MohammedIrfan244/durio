@@ -314,3 +314,17 @@ model SystemConfig {
   key   String @unique
   value String
 }
+
+model GreetingCard {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  imageUrl     String
+  titleColor   String?
+  descColor    String?
+  bgColor      String?
+  giftBoxColor String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
