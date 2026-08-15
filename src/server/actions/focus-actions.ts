@@ -246,3 +246,30 @@ export async function saveBlockLogs(logsData: { routineBlockId: string, status: 
     return { success: false, error: error.message };
   }
 }
+
+export async function getReviewTimeConfig() {
+  try {
+    const userId = await getUserId();
+    if (!userId) return { success: false, data: "21:00" };
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { endOfDayReviewTime: true } });
+    return { success: true, data: user?.endOfDayReviewTime || "21:00" };
+  } catch (error: any) {
+    console.error("Error fetching review time:", error);
+    return { success: false, data: "21:00" };
+  }
+}
+
+export async function updateReviewTimeConfig(time: string) {
+  try {
+    const userId = await getUserId();
+    if (!userId) return { success: false, error: "Unauthorized" };
+    await prisma.user.update({
+      where: { id: userId },
+      data: { endOfDayReviewTime: time }
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating review time:", error);
+    return { success: false, error: error.message };
+  }
+}

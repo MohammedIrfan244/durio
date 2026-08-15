@@ -14,7 +14,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [fancyMode, setFancyModeState] = useState(true);
+  const [fancyMode, setFancyModeState] = useState(false);
   const [disabledModules, setDisabledModulesState] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

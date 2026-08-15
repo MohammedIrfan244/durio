@@ -10,8 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { getPendingReviews, saveBlockLogs } from "@/server/actions/focus-actions";
+import { getPendingReviews, saveBlockLogs, getReviewTimeConfig, updateReviewTimeConfig } from "@/server/actions/focus-actions";
 import { withClientAction } from "@/lib/utils/with-client-action";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Zap, ShieldCheck, Flame, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,16 +22,50 @@ export default function ReviewModal() {
   const [ratings, setRatings] = useState<Record<string, { status: string, points: number }>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [reviewTime, setReviewTime] = useState("21:00");
+  const [isUpdatingTime, setIsUpdatingTime] = useState(false);
+
   useEffect(() => {
-    // Check for pending reviews after a short delay so it doesn't block initial render
-    const checkReviews = async () => {
+    const handleOpenModal = async () => {
       const res = await withClientAction(() => getPendingReviews());
       if (res && res.length > 0) {
         setPendingBlocks(res);
         setOpen(true);
       }
     };
+
+    window.addEventListener("open-review-modal", handleOpenModal);
+
+    const checkReviews = async () => {
+      const timeRes = await withClientAction(() => getReviewTimeConfig());
+      const configTime = timeRes || "21:00";
+      setReviewTime(configTime);
+
+      const now = new Date();
+      const [configHour, configMinute] = configTime.split(":").map(Number);
+      
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      const isPastTime = currentHour > configHour || (currentHour === configHour && currentMinute >= configMinute);
+      const todayStr = now.toDateString();
+      const lastPopped = localStorage.getItem("lastReviewPopupDate");
+
+      if (isPastTime && lastPopped !== todayStr) {
+        const res = await withClientAction(() => getPendingReviews());
+        if (res && res.length > 0) {
+          setPendingBlocks(res);
+          setOpen(true);
+          localStorage.setItem("lastReviewPopupDate", todayStr);
+        }
+      }
+    };
+
     setTimeout(checkReviews, 1500);
+
+    return () => {
+      window.removeEventListener("open-review-modal", handleOpenModal);
+    };
   }, []);
 
   const handleRate = (blockId: string, status: string, energy: string) => {
@@ -69,11 +104,27 @@ export default function ReviewModal() {
   return (
     <Dialog open={open} onOpenChange={(val) => !val && setOpen(false)}>
       <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Flame className="text-orange-500" />
-            End of Day Review
-          </DialogTitle>
+        <DialogHeader className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Flame className="text-orange-500" />
+              End of Day Review
+            </DialogTitle>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Auto-popup at:</span>
+              <div className="scale-75 origin-right pointer-events-auto">
+                <TimePicker 
+                  value={reviewTime}
+                  onChange={async (newTime) => {
+                    setReviewTime(newTime);
+                    setIsUpdatingTime(true);
+                    await withClientAction(() => updateReviewTimeConfig(newTime));
+                    setIsUpdatingTime(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
           <DialogDescription>
             Let's review your focus blocks from yesterday. How did you do? Be honest!
           </DialogDescription>

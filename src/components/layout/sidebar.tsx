@@ -6,7 +6,7 @@ import { navItems } from "@/lib/nav";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, MessageSquare } from "lucide-react";
 import clsx from "clsx";
 import LogoutConfirmDialog from "../auth/logout-dialogue";
 import { useSettings } from "@/components/providers/settings-provider";
@@ -216,6 +216,16 @@ export default function Sidebar() {
 
         <SidebarFooter>
           <SidebarSeparator className="mt-2" />
+
+          <SidebarMenuItem className="list-none">
+            <SidebarMenuButton
+              className="text-foreground cursor-pointer flex items-center gap-3 text-sm"
+              onClick={() => router.push("/feedback")}
+            >
+              <MessageSquare size={18} />
+              {isOpen && <span>Feedback</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
           <SidebarMenuItem className="list-none ">
             <SidebarMenuButton

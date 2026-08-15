@@ -12,6 +12,7 @@ const STATIC_PUBLIC_PATHS = [
   "/sitemap.xml",
   "/site.webmanifest",
   "/privacy-policy",
+  "/feedback",
 ];
 
 // Static public prefixes for static assets and resources
