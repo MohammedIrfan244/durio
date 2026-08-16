@@ -17,7 +17,7 @@ export const StatusFilter: React.FC<FilterComponentProps> = ({
   <div className="flex flex-col gap-2 nav-item-group w-full">
     <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 group-hover:text-primary transition-colors duration-300">
       <CheckCircle2 className="h-3 w-3 animate-check" />
-      How's it going?
+      How&apos;s it going?
     </Label>
     <Select 
       value={filters.status ?? "ALL"}
@@ -42,7 +42,7 @@ export const StatusFilter: React.FC<FilterComponentProps> = ({
         <SelectItem value="PLAN" className="whitespace-nowrap px-2">
           <span className="flex items-center gap-2">
             <Clock className={`h-4 w-4 ${statusColor.PLAN}`} />
-            What's coming
+            What&apos;s coming
           </span>
         </SelectItem>
         <SelectItem value="PENDING" className="whitespace-nowrap px-2">

@@ -29,7 +29,7 @@ export default function Converter() {
         const units = await converter.getCurrencyUnits();
         if (units && units.length > 0) setCurrencyUnits(units);
       } catch (e) {
-        // fallback
+        console.error("Failed to fetch currency units:", e);
       }
       setLoading(false);
     } else {
@@ -61,6 +61,7 @@ export default function Converter() {
         }
       }
     } catch (e) {
+      console.error(e);
       setResult(null);
     } finally {
       setLoading(false);

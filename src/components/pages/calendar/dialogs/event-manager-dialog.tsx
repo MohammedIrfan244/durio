@@ -14,6 +14,7 @@ import UnsavedResourceLinker from '@/components/shared/unsaved-resource-linker';
 import { searchLinkableResources } from '@/server/actions/resource-link-actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 
 export default function EventManagerDialog({ categories = [] }: { categories?: EventCategory[] }) {
@@ -30,6 +31,7 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
     const [isAllDay, setIsAllDay] = useState(false);
     const [categoryId, setCategoryId] = useState<string>("");
     const [linkedResources, setLinkedResources] = useState<Array<any>>([]);
+    const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,6 +68,7 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                 toast.error(result.error || "Failed to create event");
             }
         } catch (error) {
+            console.error(error);
             toast.error("An unexpected error occurred");
         } finally {
             setIsLoading(false);
@@ -139,10 +142,41 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
+                                    <div className="p-4 border-b border-border/40">
+                                        <div className="flex gap-2">
+                                            <Select value={calendarMonth.getMonth().toString()} onValueChange={(month) => {
+                                                const newDate = new Date(calendarMonth);
+                                                newDate.setMonth(parseInt(month));
+                                                setCalendarMonth(newDate);
+                                            }}>
+                                                <SelectTrigger className="h-8 text-sm">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, i) => (
+                                                        <SelectItem key={i} value={i.toString()}>{month}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Input
+                                                type="number"
+                                                value={calendarMonth.getFullYear()}
+                                                onChange={(e) => {
+                                                    const newDate = new Date(calendarMonth);
+                                                    newDate.setFullYear(parseInt(e.target.value) || new Date().getFullYear());
+                                                    setCalendarMonth(newDate);
+                                                }}
+                                                className="h-8 w-20 text-sm"
+                                                placeholder="Year"
+                                            />
+                                        </div>
+                                    </div>
                                     <Calendar
                                         mode="single"
                                         selected={date}
                                         onSelect={(d) => d && setDate(d)}
+                                        month={calendarMonth}
+                                        onMonthChange={setCalendarMonth}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -153,6 +187,14 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
                                 Please select the <strong>original year</strong> (e.g. year of birth) so the age/count calculates correctly.
                             </p>
                         )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Switch
+                            checked={isAllDay}
+                            onCheckedChange={setIsAllDay}
+                        />
+                        <span className="text-sm">All-day event</span>
                     </div>
 
                     {!isAllDay && (

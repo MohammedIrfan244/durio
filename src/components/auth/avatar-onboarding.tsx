@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Upload, X, Camera } from "lucide-react";
 import { uploadAvatar } from "@/server/actions/upload-action";
+import Image from "next/image";
 
 export default function AvatarOnboarding() {
   const { data: session, update } = useSession();
@@ -152,9 +153,10 @@ try {
             >
               {preview ? (
                 <>
-                  <img
+                  <Image
                     src={preview}
                     alt="Avatar preview"
+                    fill
                     className="w-full h-full object-cover"
                   />
                   <button

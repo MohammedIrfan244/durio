@@ -137,7 +137,7 @@ export default function ResourceLinkerUI({
                     )}
 
                     {searchQuery && searchResults.length === 0 && (
-                        <p className="text-xs text-muted-foreground text-center py-2">Couldn't find anything matching that!</p>
+                        <p className="text-xs text-muted-foreground text-center py-2">Couldn&apos;t find anything matching that!</p>
                     )}
                 </div>
             )}
@@ -180,7 +180,7 @@ export default function ResourceLinkerUI({
                 </div>
             ) : (
                 <p className="text-xs text-muted-foreground text-center py-2 italic">
-                    It's a bit lonely here. No links yet.
+                    It&apos;s a bit lonely here. No links yet.
                 </p>
             )}
         </div>

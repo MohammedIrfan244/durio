@@ -278,6 +278,7 @@ export default function TodoBoard({
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStats();
     fetchActiveFocus();
     
@@ -291,6 +292,7 @@ export default function TodoBoard({
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });

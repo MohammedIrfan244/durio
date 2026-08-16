@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useSettings } from '@/components/providers/settings-provider';
 import { APP_REGISTRY } from '@/config/modules';
 import { updateUserSettings } from '@/server/actions/settings-actions';

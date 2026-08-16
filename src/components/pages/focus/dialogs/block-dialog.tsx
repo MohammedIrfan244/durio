@@ -104,7 +104,8 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
       } else {
         toast.error(res.error || "Failed to save block");
       }
-    } catch (e: any) {
+    } catch (e) {
+      console.error(e);
       toast.error(e.message || "An error occurred");
     } finally {
       setIsSaving(false);
@@ -251,7 +252,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
           <div className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-secondary/20">
              <div className="space-y-0.5">
                <Label>Active Status</Label>
-               <p className="text-xs text-muted-foreground">If disabled, this block won't appear on your timeline.</p>
+               <p className="text-xs text-muted-foreground">If disabled, this block won&apos;t appear on your timeline.</p>
              </div>
              <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>

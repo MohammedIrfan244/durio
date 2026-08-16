@@ -20,7 +20,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
     >
       <p>
         When you log in with Google, we only peek at your{" "}
-        <strong>username and email</strong>. We don't want or need anything else.
+        <strong>username and email</strong>. We don&apos;t want or need anything else.
       </p>
 
       <p>

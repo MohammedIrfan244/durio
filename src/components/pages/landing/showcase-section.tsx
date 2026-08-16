@@ -107,7 +107,7 @@ export function ShowcaseSection() {
                  Math? Handled.
                </div>
                <div className="text-white/50 font-[family-name:var(--font-body)]">
-                 I'll crunch the numbers. You relax.
+                 I&apos;ll crunch the numbers. You relax.
                </div>
             </div>
           </motion.div>

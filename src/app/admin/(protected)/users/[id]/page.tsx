@@ -4,6 +4,7 @@ import Link from "next/link";
 import UserExplorer from "@/components/admin/user-explorer-loader";
 import RevealFcmTokens from "@/components/admin/reveal-fcm-tokens";
 import AdminUserDeletionSection from "@/components/admin/admin-user-deletion-section";
+import Image from "next/image";
 
 async function fetchSummary(id: string) {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -30,6 +31,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
   try {
     summary = await fetchSummary(id);
   } catch (e) {
+    console.log(e);
     return notFound();
   }
 
@@ -62,7 +64,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
               <p className="text-zinc-500 text-xs uppercase tracking-wider">Avatar</p>
               {user.avatar ? (
                 <div className="mt-2 flex items-center gap-3">
-                  <img src={user.avatar} alt="Current avatar" className="h-20 w-20 rounded-full object-cover border border-zinc-800" />
+                  <Image src={user.avatar} alt="Current avatar" width={96} height={96} className="rounded-full object-cover border border-zinc-800" />
                   <div className="text-zinc-300 break-all">{user.avatar}</div>
                 </div>
               ) : (
@@ -166,7 +168,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
                 key={avatar.publicId}
                 className={`rounded-lg border p-4 bg-zinc-900 ${avatar.isCurrent ? "border-emerald-500" : "border-zinc-800"}`}
               >
-                <img src={avatar.secureUrl} alt={avatar.publicId} className="h-36 w-full rounded object-cover" />
+                <Image src={avatar.secureUrl} alt={avatar.publicId} width={144} height={144} className="h-36 w-full rounded object-cover" />
                 <div className="mt-3 text-sm text-zinc-300">
                   <p className="break-all">{avatar.publicId}</p>
                   <p className="text-zinc-500 text-xs mt-1">Uploaded {new Date(avatar.createdAt).toLocaleString()}</p>

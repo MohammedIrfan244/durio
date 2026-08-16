@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Complex Mathematics - ${APP_NAME}`,
     description: "Advanced polynomial operations and symbolic equation solving.",
   },

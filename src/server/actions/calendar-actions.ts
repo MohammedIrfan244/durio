@@ -208,7 +208,7 @@ function getOrdinalIndicator(n: number) {
     return s[(v - 20) % 10] || s[v] || s[0];
 }
 
-async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
+export async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
     try {
         const res = await fetch(`https://history.muffinlabs.com/date/${month}/${day}`);
         const json = await res.json();
@@ -273,7 +273,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         
         events.forEach(e => {
             const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
-            const isBirthday = e.category?.name === "Birthdays";
+            // const isBirthday = e.category?.name === "Birthdays";
             
             if (isAnnualRecurrent) {
                 const startYear = validatedRange.startDate.getFullYear();
@@ -364,7 +364,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         }
 
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
-            let dateObj = new Date(t.dueDate!);
+            const dateObj = new Date(t.dueDate!);
             if (t.dueTime) {
                 const [hours, minutes] = t.dueTime.split(":");
                 dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
@@ -412,7 +412,7 @@ export async function getUpcomingMilestones(): Promise<IEvent[]> {
         const currentYear = now.getFullYear();
 
         for (const e of recurrentEvents) {
-            let nextDate = new Date(e.startDate);
+            const nextDate = new Date(e.startDate);
             nextDate.setFullYear(currentYear);
             
             const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -7,7 +7,7 @@ import { Clock, MapPin, AlignLeft, Tag, Trash2, CheckCircle } from 'lucide-react
 import { format } from 'date-fns';
 import { deleteEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
-import { ICalendarEvent, IEvent } from '@/types/calendar';
+import { ICalendarEvent } from '@/types/calendar';
 import ResourceLinker from '@/components/shared/resource-linker';
 import { searchLinkableResources } from '@/server/actions/resource-link-actions';
 

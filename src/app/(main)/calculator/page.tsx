@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Calculator - ${APP_NAME}`,
     description: "A full suite of calculator tools: essential, scientific, graphing, matrix, and more.",
   },
@@ -21,4 +21,4 @@ export const metadata: Metadata = {
 
 export default function CalculatorRedirect() {
   redirect('/calculator/essential');
-}
+}

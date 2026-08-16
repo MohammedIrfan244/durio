@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `My Notes - ${APP_NAME}`,
     description: "Capture and organize your thoughts and ideas with ease.",
   },

@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CreateFolderSchema } from "@/schema/note";
 import type { CreateFolderInput } from "@/schema/note";
-import { createNoteFolder, updateNoteFolder, getFolders, getFolderById } from "@/server/actions/note-action";
+import { createNoteFolder, updateNoteFolder, getFolderById } from "@/server/actions/note-action";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -79,7 +79,7 @@ const NameAndColorSection: React.FC<{ form: FolderFormContext }> = ({ form }) =>
   );
 };
 
-export default function FolderDialog({ folderId, trigger, onSaved, open: externalOpen, onOpenChange }: FolderDialogProps) {
+export default function FolderDialog({ folderId, onSaved, open: externalOpen, onOpenChange }: FolderDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
@@ -117,6 +117,7 @@ export default function FolderDialog({ folderId, trigger, onSaved, open: externa
           icon: folder.icon || undefined,
         });
       } catch (error) {
+        console.error("Failed to load folder", error);
         toast.error("Failed to load folder");
         setOpen(false);
       } finally {

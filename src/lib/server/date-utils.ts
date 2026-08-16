@@ -14,6 +14,7 @@ export async function getUserTimezone(userId?: string): Promise<string> {
     }
     return "UTC";
   } catch (e) {
+    console.error(e);
     return "UTC";
   }
 }
@@ -36,8 +37,6 @@ export function getUserDateRanges(timezone: string) {
 
   const zonedStartOfWeek = startOfWeek(zonedNow, { weekStartsOn: 1 }); // Monday start?
   const startOfWeekUtc = fromZonedTime(zonedStartOfWeek, timezone);
-
-  const zonedLast30 = subDays(startOfToday, 29); // or 30?
   // Actually, we want (StartOfToday - 30 days)
   const startOfLast30DaysUtc = fromZonedTime(subDays(toZonedTime(startOfToday, timezone), 30), timezone);
 

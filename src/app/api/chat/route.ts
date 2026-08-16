@@ -209,6 +209,7 @@ export async function POST(req: NextRequest) {
       const guidePath = path.join(process.cwd(), "feature_guide.md");
       primaryGuide = await fs.readFile(guidePath, "utf-8");
     } catch (e) {
+      console.error("Failed to load feature_guide.md for AI context", e);
       console.warn("Could not load feature_guide.md for AI context");
     }
 
@@ -368,7 +369,6 @@ ${primaryGuide}
         }
       },
       tools: {
-        // @ts-ignore
         proposeCreateTask: tool({
           description: "Propose a new task for the user's to-do list. You have full capability to set the title, description, priority, dueDate, and dueTime if mentioned.",
           inputSchema: z.object({
@@ -380,7 +380,6 @@ ${primaryGuide}
             tags: z.array(z.string()).optional().describe("Array of tags for the task"),
           }),
         } as any),
-        // @ts-ignore
         proposeUpdateTask: tool({
           description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
@@ -393,14 +392,12 @@ ${primaryGuide}
             status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]).optional().describe("The new status for the task"),
           }),
         } as any),
-        // @ts-ignore
         proposeDeleteTask: tool({
           description: "Propose deleting a task. Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any),
-        // @ts-ignore
         proposeCreateNote: tool({
           description: "Propose a new note for the user. Use whenever the user asks to save or write a note.",
           inputSchema: z.object({
@@ -409,7 +406,6 @@ ${primaryGuide}
             color: z.string().optional().describe("Optional hex color string for the note card"),
           }),
         } as any),
-        // @ts-ignore
         proposeUpdateNote: tool({
           description: "Propose updates to an existing note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
@@ -418,14 +414,12 @@ ${primaryGuide}
             color: z.string().optional().describe("New optional hex color string"),
           }),
         } as any),
-        // @ts-ignore
         proposeDeleteNote: tool({
           description: "Propose deleting a note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any),
-        // @ts-ignore
         proposeCreateEvent: tool({
           description: "Propose a new calendar event. Always try to infer the correct categoryName from context: use 'Birthdays', 'Anniversaries', 'Meetings', 'Reminders', 'Work', or 'Personal'.",
           inputSchema: z.object({
@@ -438,7 +432,6 @@ ${primaryGuide}
             categoryName: z.string().optional().describe("The category for the event. Must be one of: Personal, Work, Birthdays, Anniversaries, Meetings, Reminders"),
           }),
         } as any),
-        // @ts-ignore
         proposeUpdateEvent: tool({
           description: "Propose updates to an existing calendar event (e.g., reschedule). Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
@@ -451,14 +444,12 @@ ${primaryGuide}
             categoryName: z.string().optional().describe("The category for the event"),
           }),
         } as any),
-        // @ts-ignore
         proposeDeleteEvent: tool({
           description: "Propose deleting a calendar event. Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
         } as any),
-        // @ts-ignore
         proposeCreateFocusBlock: tool({
           description: "Propose a new focus time / routine block.",
           inputSchema: z.object({
@@ -472,7 +463,6 @@ ${primaryGuide}
             transitionRitual: z.string().optional().describe("Ritual before block"),
           }),
         } as any),
-        // @ts-ignore
         proposeUpdateFocusBlock: tool({
           description: "Propose updates to a focus block.",
           inputSchema: z.object({
@@ -484,7 +474,6 @@ ${primaryGuide}
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
           }),
         } as any),
-        // @ts-ignore
         proposeDeleteFocusBlock: tool({
           description: "Propose deleting a focus block.",
           inputSchema: z.object({

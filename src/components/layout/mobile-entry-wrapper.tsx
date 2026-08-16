@@ -3,14 +3,14 @@
 import { useCapacitor } from "@/hooks/use-capacitor";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import images from "@/assets/images.json";
 import { SplashScreen } from '@capacitor/splash-screen';
 
 export default function MobileEntryWrapper({ children }: { children: React.ReactNode }) {
   const isCapacitor = useCapacitor();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   // 1. Hide native splash on mount

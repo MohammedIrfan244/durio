@@ -31,7 +31,7 @@ export async function createFocusBlock(data: any) {
     revalidatePath("/focus");
     revalidatePath("/dashboard");
     return { success: true, data: block };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating focus block:", error);
     return { success: false, error: error.message };
   }

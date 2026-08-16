@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import Image from "next/image";
 
 async function fetchUsers(page: number, limit: number, q: string) {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -69,8 +70,6 @@ export default async function UsersPage({
               const isDeleted = user.isDeleted ?? false;
               const deactivatedAt = user.deactivatedAt;
               const deletedAt = user.deletedAt;
-
-              let statusBadge = null;
               let statusText = "Active";
               let statusColor = "bg-green-900/30 text-green-400";
 
@@ -87,7 +86,7 @@ export default async function UsersPage({
                   <td className="px-4 py-2">
                     <Link href={`/admin/users/${user.id}`} className="text-white hover:underline flex items-center gap-2">
                       {user.avatar && (
-                        <img src={user.avatar} alt="" className="w-5 h-5 rounded-full" />
+                        <Image src={user.avatar} alt="user avatar" width={24} height={24} className="rounded-full" />
                       )}
                       {user.name || "—"}
                     </Link>

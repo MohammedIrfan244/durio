@@ -112,9 +112,10 @@ export default function ReviewModal() {
             </DialogTitle>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>Auto-popup at:</span>
-              <div className="scale-75 origin-right pointer-events-auto">
+              <div className={cn("scale-75 origin-right pointer-events-auto", isUpdatingTime && "opacity-50 pointer-events-none")}>
                 <TimePicker 
                   value={reviewTime}
+                  disabled={isUpdatingTime}
                   onChange={async (newTime) => {
                     setReviewTime(newTime);
                     setIsUpdatingTime(true);
@@ -126,7 +127,7 @@ export default function ReviewModal() {
             </div>
           </div>
           <DialogDescription>
-            Let's review your focus blocks from yesterday. How did you do? Be honest!
+            Let&apos;s review your focus blocks from yesterday. How did you do? Be honest!
           </DialogDescription>
         </DialogHeader>
 

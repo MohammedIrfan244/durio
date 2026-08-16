@@ -46,7 +46,7 @@ export function FolderRestoreDialog({
           </div>
         </AlertDialogHeader>
         <div className="py-2 text-sm text-muted-foreground">
-          Are you sure you want to restore <span className="font-medium text-foreground">"{folderName}"</span>? 
+          Are you sure you want to restore <span className="font-medium text-foreground">&quot;{folderName}&quot;</span>? 
           It will be moved back to your active folders list.
         </div>
         <AlertDialogFooter>

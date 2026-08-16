@@ -112,6 +112,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
             folderId: note.folderId || undefined,
           });
         } catch (error) {
+          console.error("Failed to load note", error);
           toast.error("Failed to load note");
           setOpen(false);
         } finally {

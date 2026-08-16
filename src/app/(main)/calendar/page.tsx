@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "DURIO",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `My Calendar - ${APP_NAME}`,
     description: "Manage your schedule, events, and milestones with ease.",
   },

@@ -2,20 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { checkAdminAuth } from "@/server/actions/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * ADMIN HARD DELETE ENDPOINT
- * 
- * This endpoint allows admins to permanently delete a user's account and all associated data.
- * This is used to wipe data for users who have requested permanent deletion.
- * 
- * Process:
- * 1. Verify admin authentication
- * 2. Verify user is marked for deletion (isDeleted = true)
- * 3. Cascade delete all user data
- * 4. Optionally delete the user record itself
- * 5. Log the action
- */
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

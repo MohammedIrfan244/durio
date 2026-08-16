@@ -29,7 +29,7 @@ import NaturalDecor from "@/components/decoration/natural-decor";
 import GothicDecor from "@/components/decoration/gothic-decor";
 import DarkDecor from "@/components/decoration/dark-decor";
 import LightDecor from "@/components/decoration/light-decor";
-import { APP_NAME, jakarta } from "@/lib/brand";
+import { APP_NAME } from "@/lib/brand";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -56,6 +56,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     // Auto-collapse any manually opened groups when navigating out of their scope
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenGroups((prev) => 
       prev.filter((url) => pathname === url || (url !== "/" && pathname.startsWith(url + "/")))
     );
@@ -159,6 +160,7 @@ export default function Sidebar() {
                         <button
                           className="w-full text-left"
                           onClick={(e) => {
+                            console.log(e)
                             if (!isOpen) { /* Do nothing or expand sidebar */ }
                             toggleGroup(item.url);
                           }}

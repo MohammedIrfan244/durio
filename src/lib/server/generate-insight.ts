@@ -1,7 +1,6 @@
 // lib/server/generate-insight.ts
 import { 
   PersonalInsight, 
-  prioritySortValues, 
   InterestingFact, 
   OverviewStats, 
   StreakStats, 

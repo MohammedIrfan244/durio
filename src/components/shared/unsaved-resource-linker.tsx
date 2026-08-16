@@ -31,6 +31,7 @@ export default function UnsavedResourceLinker({
     // Search handler
     useEffect(() => {
         if (!searchQuery.trim() || !isSearching) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSearchResults([]);
             return;
         }

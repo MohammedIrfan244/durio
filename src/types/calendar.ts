@@ -2,7 +2,7 @@ import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { ITodo } from "./todo";
 import { LucideIcon } from "lucide-react";
 
-export interface IEventCategory extends EventCategory {}
+export type IEventCategory = EventCategory
 
 export interface IEvent extends Event {
     category?: IEventCategory | null;

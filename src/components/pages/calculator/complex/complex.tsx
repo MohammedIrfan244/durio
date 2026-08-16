@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { BrainCircuit, Info, Calculator, FunctionSquare, Sigma, ArrowRight, AlertTriangle } from "lucide-react";
+import { Info, Calculator, FunctionSquare, Sigma, ArrowRight, AlertTriangle } from "lucide-react";
 import { symbolicLogic } from "@/lib/logic/calculator/symbolic";
 import { tokenize } from "@/lib/logic/calculator/core/engine/tokenizer";
 import { parse } from "@/lib/logic/calculator/core/engine/parser";
@@ -200,8 +200,8 @@ export default function ComplexMath() {
         return typeof val === "number" && !isNaN(val) ? val : 0;
       });
       setSysResult(solution);
-    } catch (e: any) {
-      setSysResult(`Error: ${e.message}`);
+    } catch (e:unknown) {
+      setSysResult(`Error: ${ (e as Error).message || "Invalid system" }`);
     }
   };
 
@@ -340,11 +340,11 @@ export default function ComplexMath() {
                 {diff1Result && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="bg-secondary/30 p-3 rounded-xl border border-border/50 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">f'(x) — First Derivative</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">f&apos;(x) — First Derivative</span>
                       <p className="font-mono text-base font-bold text-primary break-all">{diff1Result}</p>
                     </div>
                     <div className="bg-secondary/20 p-3 rounded-xl border border-border/50 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">f''(x) — Second Derivative</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">f&apos;&apos;(x) — Second Derivative</span>
                       <p className="font-mono text-base font-bold text-violet-400 break-all">{diff2Result || "0"}</p>
                     </div>
                   </div>

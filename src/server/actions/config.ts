@@ -21,6 +21,7 @@ export const getGlobalAiLimit = withErrorWrapper<number, []>(async () => {
       }
     });
   } catch (e) {
+    console.error(e);
     // Ignore race conditions if another request creates it at the same time
   }
 

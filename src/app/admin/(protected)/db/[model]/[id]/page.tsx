@@ -20,6 +20,7 @@ export default async function RecordPage({ params }: { params: Promise<{ model: 
   try {
     data = await fetchRecord(model, id);
   } catch (e) {
+    console.log(e)
     return notFound();
   }
 

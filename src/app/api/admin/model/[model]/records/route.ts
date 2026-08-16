@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ mode
 
   try {
     // Dynamic access to prisma model
-    // @ts-ignore
+    // @ts-expect-error the reason is I have configured these models in the prisma schema
     const client = prisma[key];
     if (!client) return NextResponse.json({ error: "Model client not found" }, { status: 404 });
 

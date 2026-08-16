@@ -11,6 +11,7 @@ export async function GET() {
   try {
     return NextResponse.json(await getDashboardSummary());
   } catch (err) {
+    console.error("Failed to get dashboard summary:", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

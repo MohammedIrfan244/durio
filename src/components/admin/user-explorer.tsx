@@ -18,8 +18,9 @@ export default function UserExplorer({ userId }: { userId: string }) {
       }
       const json = await res.json();
       setData(json);
-    } catch (err: any) {
-      setError(err.message || "Failed to explore user");
+    } catch (er) {
+      console.error(er);
+      setError( "Failed to explore user");
     } finally {
       setLoading(false);
     }

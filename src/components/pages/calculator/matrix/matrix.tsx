@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Grid3x3, Plus, Minus, ArrowRight, RotateCw, Trash2, Equal } from "lucide-react";
+import { Grid3x3, Plus, Minus, ArrowRight } from "lucide-react";
 import { matrixLogic, Matrix as MatrixType } from "@/lib/logic/calculator/matrix";
 
 export default function MatrixCalculator() {
@@ -95,8 +94,8 @@ export default function MatrixCalculator() {
     try {
       setResult(op());
       setError(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError((e as Error).message || "Invalid operation");
       setResult(null);
     }
   };

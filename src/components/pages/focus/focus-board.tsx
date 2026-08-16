@@ -28,6 +28,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
 
   const [insightMessage, setInsightMessage] = useState("");
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInsightMessage(getInsightForDay(activeBlocks.length, highEnergyCount, recoveryCount));
   }, [activeBlocks.length, highEnergyCount, recoveryCount]);
 
@@ -123,7 +124,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
                   </div>
                   <h3 className="text-lg font-medium">No routines scheduled</h3>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                    You don't have any focus blocks for this day. Click &quot;New Block&quot; to start designing your day.
+                    You don&apos;t have any focus blocks for this day. Click &quot;New Block&quot; to start designing your day.
                   </p>
                 </div>
               ) : (

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `DURIA - ${APP_NAME}`,
     description: "Chat with DURIA, your intelligent companion for daily planning and productivity.",
   },

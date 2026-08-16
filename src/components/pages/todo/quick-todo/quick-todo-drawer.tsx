@@ -15,20 +15,21 @@ import { Zap, X } from "lucide-react";
 import { QuickTodoInput } from "./quick-todo-input";
 import { QuickTodoList } from "./quick-todo-list";
 import { QuickTodo } from "./quick-todo-item";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 export function QuickTodoDrawer() {
   const [todos, setTodos] = useState<QuickTodo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
 
   // Initialize from local storage on mount
   useEffect(() => {
-    setMounted(true);
     const saved = localStorage.getItem("quick-todos");
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTodos(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse quick todos", e);

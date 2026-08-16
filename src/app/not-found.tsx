@@ -27,7 +27,7 @@ export default function NotFoundPage() {
             Page not found
           </h2>
           <p className="text-muted-foreground text-lg max-w-[500px] font-[family-name:var(--font-body)]">
-            Oops! The page you are looking for has vanished into thin air. It might have been moved or doesn't exist.
+            Oops! The page you are looking for has vanished into thin air. It might have been moved or doesn&apos;t exist.
           </p>
         </div>
 

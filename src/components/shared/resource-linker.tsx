@@ -43,12 +43,14 @@ export default function ResourceLinker({
     }, [resourceId, resourceType]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchLinked();
     }, [fetchLinked]);
 
     // Search handler
     useEffect(() => {
         if (!searchQuery.trim() || !isSearching) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSearchResults([]);
             return;
         }

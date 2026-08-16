@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { 
-  getGreetings, 
-  createGreeting, 
-  toggleGreeting, 
-  deleteGreeting 
+import {
+  getGreetings,
+  createGreeting,
+  toggleGreeting,
+  deleteGreeting,
 } from "@/server/actions/greeting-actions";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -13,7 +13,7 @@ import Image from "next/image";
 export default function AdminGreetingsPage() {
   const [greetings, setGreetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -22,10 +22,6 @@ export default function AdminGreetingsPage() {
   const [bgColor, setBgColor] = useState("");
   const [giftBoxColor, setGiftBoxColor] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchGreetings();
-  }, []);
 
   const fetchGreetings = async () => {
     setLoading(true);
@@ -36,15 +32,20 @@ export default function AdminGreetingsPage() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchGreetings();
+  }, []);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || !file) {
       toast.error("Please fill all required fields and select an image.");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -68,7 +69,9 @@ export default function AdminGreetingsPage() {
       setGiftBoxColor("");
       fetchGreetings();
     } else {
-      toast.error(typeof res.error === 'string' ? res.error : "Failed to create greeting");
+      toast.error(
+        typeof res.error === "string" ? res.error : "Failed to create greeting",
+      );
     }
   };
 
@@ -98,7 +101,9 @@ export default function AdminGreetingsPage() {
     <div className="space-y-8 pb-12">
       <div>
         <h2 className="text-2xl font-bold mb-2">Greeting Cards</h2>
-        <p className="text-zinc-400">Manage the greeting card section that users see on their dashboard.</p>
+        <p className="text-zinc-400">
+          Manage the greeting card section that users see on their dashboard.
+        </p>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
@@ -107,18 +112,20 @@ export default function AdminGreetingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-zinc-300">Title</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white"
                 required
               />
             </div>
-            
+
             <div className="space-y-1">
-              <label className="text-sm font-medium text-zinc-300">Image File</label>
-              <input 
+              <label className="text-sm font-medium text-zinc-300">
+                Image File
+              </label>
+              <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
@@ -129,8 +136,10 @@ export default function AdminGreetingsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-300">Description</label>
-            <textarea 
+            <label className="text-sm font-medium text-zinc-300">
+              Description
+            </label>
+            <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white min-h-[80px]"
@@ -140,61 +149,95 @@ export default function AdminGreetingsPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1 flex flex-col">
-              <label className="text-sm font-medium text-zinc-300">Title Color</label>
+              <label className="text-sm font-medium text-zinc-300">
+                Title Color
+              </label>
               <div className="flex gap-2">
-                <input 
-                  type="color" 
+                <input
+                  type="color"
                   value={titleColor || "#ffffff"}
                   onChange={(e) => setTitleColor(e.target.value)}
                   className="bg-zinc-950 border border-zinc-800 rounded p-0.5 h-9 w-12"
                 />
-                <button type="button" onClick={() => setTitleColor("")} className="text-xs text-zinc-500 hover:text-white">Clear</button>
+                <button
+                  type="button"
+                  onClick={() => setTitleColor("")}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  Clear
+                </button>
               </div>
             </div>
-            
+
             <div className="space-y-1 flex flex-col">
-              <label className="text-sm font-medium text-zinc-300">Desc Color</label>
+              <label className="text-sm font-medium text-zinc-300">
+                Desc Color
+              </label>
               <div className="flex gap-2">
-                <input 
-                  type="color" 
+                <input
+                  type="color"
                   value={descColor || "#a1a1aa"}
                   onChange={(e) => setDescColor(e.target.value)}
                   className="bg-zinc-950 border border-zinc-800 rounded p-0.5 h-9 w-12"
                 />
-                <button type="button" onClick={() => setDescColor("")} className="text-xs text-zinc-500 hover:text-white">Clear</button>
+                <button
+                  type="button"
+                  onClick={() => setDescColor("")}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  Clear
+                </button>
               </div>
             </div>
 
             <div className="space-y-1 flex flex-col">
-              <label className="text-sm font-medium text-zinc-300">Background</label>
+              <label className="text-sm font-medium text-zinc-300">
+                Background
+              </label>
               <div className="flex gap-2">
-                <input 
-                  type="color" 
+                <input
+                  type="color"
                   value={bgColor || "#18181b"}
                   onChange={(e) => setBgColor(e.target.value)}
                   className="bg-zinc-950 border border-zinc-800 rounded p-0.5 h-9 w-12"
                 />
-                <button type="button" onClick={() => setBgColor("")} className="text-xs text-zinc-500 hover:text-white">Clear</button>
+                <button
+                  type="button"
+                  onClick={() => setBgColor("")}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  Clear
+                </button>
               </div>
             </div>
 
             <div className="space-y-1 flex flex-col">
-              <label className="text-sm font-medium text-zinc-300">Gift Box Color</label>
+              <label className="text-sm font-medium text-zinc-300">
+                Gift Box Color
+              </label>
               <div className="flex gap-2">
-                <input 
-                  type="color" 
+                <input
+                  type="color"
                   value={giftBoxColor || "#f43f5e"}
                   onChange={(e) => setGiftBoxColor(e.target.value)}
                   className="bg-zinc-950 border border-zinc-800 rounded p-0.5 h-9 w-12"
                 />
-                <button type="button" onClick={() => setGiftBoxColor("")} className="text-xs text-zinc-500 hover:text-white">Clear</button>
+                <button
+                  type="button"
+                  onClick={() => setGiftBoxColor("")}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  Clear
+                </button>
               </div>
             </div>
           </div>
-          <p className="text-xs text-zinc-500">Leaving colors cleared will use the user's active theme colors.</p>
+          <p className="text-xs text-zinc-500">
+            Leaving colors cleared will use the user&apos;s active theme colors.
+          </p>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isSubmitting}
             className="px-4 py-2 bg-white text-black text-sm font-bold rounded hover:bg-zinc-200 transition-colors disabled:opacity-50"
           >
@@ -205,7 +248,7 @@ export default function AdminGreetingsPage() {
 
       <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
         <h3 className="text-lg font-semibold mb-4">Existing Greetings</h3>
-        
+
         {loading ? (
           <div className="text-zinc-500 text-sm">Loading...</div>
         ) : greetings.length === 0 ? (
@@ -213,25 +256,47 @@ export default function AdminGreetingsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {greetings.map((g) => (
-              <div key={g.id} className={`border rounded-lg overflow-hidden flex flex-col ${g.isActive ? 'border-green-500/50' : 'border-zinc-800'}`}>
+              <div
+                key={g.id}
+                className={`border rounded-lg overflow-hidden flex flex-col ${
+                  g.isActive ? "border-green-500/50" : "border-zinc-800"
+                }`}
+              >
                 <div className="relative h-40 w-full bg-zinc-950">
-                  <Image src={g.imageUrl} alt={g.title} fill className="object-cover" />
+                  <Image
+                    src={g.imageUrl}
+                    alt={g.title}
+                    width={400}
+                    height={400}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-white truncate">{g.title}</h4>
-                    {g.isActive && <span className="bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded uppercase font-bold">Active</span>}
+                    {g.isActive && (
+                      <span className="bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded uppercase font-bold">
+                        Active
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-zinc-400 line-clamp-2 mb-4 flex-1">{g.description}</p>
-                  
+                  <p className="text-xs text-zinc-400 line-clamp-2 mb-4 flex-1">
+                    {g.description}
+                  </p>
+
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => handleToggle(g.id, g.isActive)}
-                      className={`text-xs px-3 py-1.5 rounded font-medium flex-1 ${g.isActive ? 'bg-zinc-800 hover:bg-zinc-700 text-white' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                      className={`text-xs px-3 py-1.5 rounded font-medium flex-1 ${
+                        g.isActive
+                          ? "bg-zinc-800 hover:bg-zinc-700 text-white"
+                          : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                      }`}
                     >
                       {g.isActive ? "Deactivate" : "Activate"}
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(g.id)}
                       className="text-xs px-3 py-1.5 rounded font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30"
                     >

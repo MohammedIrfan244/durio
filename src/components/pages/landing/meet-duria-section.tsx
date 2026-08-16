@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import images from "@/assets/images.json";
-import { RotateCcwSquareIcon } from "lucide-react";
+import Image from "next/image";
 
 export function MeetDuriaSection() {
   const containerRef = useRef(null);
@@ -84,7 +84,7 @@ export function MeetDuriaSection() {
             transition={{ delay: 0.1 }}
             className="text-2xl sm:text-3xl md:text-5xl font-[family-name:var(--font-body)] text-[#ff6a00] mt-4 -rotate-2"
           >
-            This is Duria. She's been listening.
+            This is Duria. She&apos;s been listening.
           </motion.h3>
         </div>
 
@@ -98,9 +98,10 @@ export function MeetDuriaSection() {
   style={{ y: y1, rotate: rotate1 }}
   className="absolute z-10 w-[240px] sm:w-[320px] md:w-[400px] aspect-square rounded-[32px] sm:rounded-[40px] overflow-hidden border-[6px] sm:border-[8px] border-white/10 shadow-[0_0_80px_rgba(255,106,0,0.4)]"
 >
-   <img 
+   <Image 
       src={images.duria} 
       alt="Duria Character" 
+      fill
       className="w-full h-full object-cover"
    />
 </motion.div>
@@ -130,11 +131,11 @@ export function MeetDuriaSection() {
             className="absolute z-30 bottom-4 sm:bottom-10 left-2 right-2 sm:right-4 sm:w-[90%] md:-right-10 md:w-[450px] bg-[#ff6a00]/90 backdrop-blur-xl border border-[#ff6a00] rounded-3xl rounded-tl-sm p-4 sm:p-6 shadow-2xl -rotate-2 cursor-pointer"
           >
              <div className="flex gap-4 items-start">
-               <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg">
-                 <img src={images.duria} alt="Duria Avatar" className="w-full h-full object-cover" />
+               <div className="w-10 h-10 relative rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg">
+                 <Image src={images.duria} fill alt="Duria Avatar" className="w-full h-full object-cover" />
                </div>
                <div className="text-white font-[family-name:var(--font-body)] text-lg leading-relaxed">
-                 Got you. No worries, let's figure it out together. I've rearranged your calendar so you can focus on just the top 2 things today. Need a hand with the first one?
+                 Got you. No worries, let&apos;s figure it out together. I&apos;ve rearranged your calendar so you can focus on just the top 2 things today. Need a hand with the first one?
                </div>
              </div>
           </motion.div>
@@ -148,7 +149,7 @@ export function MeetDuriaSection() {
           transition={{ delay: 1 }}
           className="text-center mt-12 text-white/50 font-[family-name:var(--font-body)] text-xl italic"
         >
-          She's not just smart. She's on your side.
+          She&apos;s not just smart. She&apos;s on your side.
         </motion.div>
       </div>
     </section>

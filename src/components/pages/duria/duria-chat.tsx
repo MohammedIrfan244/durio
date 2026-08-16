@@ -70,7 +70,7 @@ export default function DuriaChat() {
   }, []);
 
   const { messages, status, sendMessage, error } = useChat({
-    // @ts-ignore - Ignore type error for useChat options
+    // @ts-expect-error - Ignore type error for useChat options
     api: '/api/chat',
     body: {
       contextPayload: aiPayload
@@ -88,7 +88,6 @@ export default function DuriaChat() {
     e.preventDefault();
     if (!trimmedInput || isLoading || isMessageTooLong) return;
     setHasAskedToClear(false);
-    // @ts-ignore
     sendMessage({ role: 'user', content: trimmedInput });
     setInput('');
   };
@@ -101,6 +100,7 @@ export default function DuriaChat() {
   }, [messages]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUsage();
   }, [refreshUsage]);
 
@@ -134,12 +134,12 @@ export default function DuriaChat() {
                     </p>
                   </div>
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. She's got hands</h4>
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. She&apos;s got hands</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Tell her to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Check off that task"</strong>.
+                      Tell her to <strong>&quot;Create a Note&quot;</strong>, <strong>&quot;Schedule a lunch event&quot;</strong>, or <strong>&quot;Check off that task&quot;</strong>.
                     </p>
                   </div>
-                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center border-primary/20 bg-primary/5">
+                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center">
                     <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Keep it light</h4>
                     <p className="text-xs text-muted-foreground">
                       To keep her fast and free, you get <strong>{usage?.limit || 50} chats per day</strong>. Wipe her memory (Clear Data) after finishing a topic to save tokens!
@@ -198,7 +198,6 @@ export default function DuriaChat() {
                               status={status}
                               onConfirm={(payload, resultMsg) => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'confirmed' }));
-                                // @ts-ignore
                                 sendMessage({ role: 'user', content: `[SYSTEM] Result: ${resultMsg}` });
                               }}
                               onCancel={() => {
@@ -250,7 +249,7 @@ export default function DuriaChat() {
                 <p className="text-sm text-muted-foreground font-medium">Wanna keep these attachments for the next question?</p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => setHasAskedToClear(true)}>
-                    Yeah, keep 'em
+                    Yeah, keep &apos;em
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => { clearContext(); setHasAskedToClear(true); }}>
                     Nah, wipe it

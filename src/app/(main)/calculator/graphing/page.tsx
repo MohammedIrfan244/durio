@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Graphing Calculator - ${APP_NAME}`,
     description: "Plot and visualize mathematical equations on an interactive graphing canvas.",
   },

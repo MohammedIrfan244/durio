@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Essential Calculator - ${APP_NAME}`,
     description: "Everyday arithmetic, conversions, and quick math essentials.",
   },
