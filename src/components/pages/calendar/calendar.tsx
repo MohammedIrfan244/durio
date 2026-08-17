@@ -21,7 +21,6 @@ export default function CalendarDashboard({
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState<string[]>([
-        "todos",
         ...categories.map(c => c.id)
     ]);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -29,6 +28,23 @@ export default function CalendarDashboard({
     const [fetchedMonth, setFetchedMonth] = useState<string>(
         `${new Date().getFullYear()}-${new Date().getMonth()}`
     );
+
+    const handleEventCreated = (createdEvent: any) => {
+        const eventColor = categories.find((category) => category.id === createdEvent.categoryId)?.color ?? "#3182ce";
+
+        const newCalendarEvent: ICalendarEvent = {
+            id: createdEvent.id,
+            title: createdEvent.title,
+            start: new Date(createdEvent.startDate),
+            end: new Date(createdEvent.endDate ?? createdEvent.startDate),
+            isAllDay: createdEvent.isAllDay ?? false,
+            type: "event",
+            color: eventColor,
+            raw: createdEvent as IEvent,
+        };
+
+        setEvents((prev) => [...prev, newCalendarEvent]);
+    };
 
     useEffect(() => {
         const currentMonthKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
@@ -57,7 +73,7 @@ export default function CalendarDashboard({
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <EventManagerDialog categories={categories} />
+                            <EventManagerDialog categories={categories} onEventCreated={handleEventCreated} />
                         </div>
                     </div>
                     
@@ -97,4 +113,4 @@ export default function CalendarDashboard({
             </div>
         </div>
     );
-}
+}

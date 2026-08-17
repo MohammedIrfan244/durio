@@ -17,7 +17,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 
-export default function EventManagerDialog({ categories = [] }: { categories?: EventCategory[] }) {
+export default function EventManagerDialog({
+    categories = [],
+    onEventCreated,
+}: {
+    categories?: EventCategory[];
+    onEventCreated?: (event: any) => void;
+}) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     
@@ -57,6 +63,7 @@ export default function EventManagerDialog({ categories = [] }: { categories?: E
 
             if (result.success) {
                 toast.success("Event created successfully");
+                onEventCreated?.(result.event);
                 setOpen(false);
                 // Reset form
                 setTitle("");
