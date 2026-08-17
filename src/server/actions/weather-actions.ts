@@ -11,8 +11,8 @@ export async function getWeatherForecast(lat: number, lon: number) {
         
         const data = await res.json();
         return { success: true, data };
-    } catch (error: any) {
+    } catch (error ) {
         console.error("Failed to fetch weather from server:", error);
-        return { success: false, error: error.message };
+        return { success: false, error: "Failed to fetch weather" };
     }
 }

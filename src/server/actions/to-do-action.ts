@@ -3,7 +3,7 @@ import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
 import { auditLogger } from "@/lib/server/logger";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload , IGetArchivedTodoListPayload } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, IGetArchivedTodoListPayload } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -30,7 +30,7 @@ import {
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
-import { isRenewalDay, generateInsights } from "@/lib/logic/todo/todo-insights";
+import { isRenewalDay } from "@/lib/logic/todo/todo-insights";
 
 
 
@@ -488,7 +488,7 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
   const userId = await getUserId();
   const timezone = await getUserTimezone(userId);
   
-  const { startOfToday, startOfTomorrow, now } = getUserDateRanges(timezone);
+  const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
 
   const todos = await prisma.todo.findMany({
     where: {

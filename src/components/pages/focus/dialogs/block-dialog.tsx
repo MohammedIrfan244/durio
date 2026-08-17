@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Flame, Zap, BatteryCharging, Coffee, AlertCircle, Clock } from 'lucide-react';
+import { Flame, Zap, BatteryCharging, Coffee, AlertCircle } from 'lucide-react';
 import { createFocusBlock, updateFocusBlock, deleteFocusBlock } from '@/server/actions/focus-actions';
 import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
@@ -106,7 +106,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
       }
     } catch (e) {
       console.error(e);
-      toast.error(e.message || "An error occurred");
+      toast.error("An error occurred");
     } finally {
       setIsSaving(false);
     }

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { CreateNoteSchema, UpdateNoteSchema, DeleteNoteSchema, CreateFolderSchema, UpdateFolderSchema, DeleteFolderSchema, CreateNoteInput } from "@/schema/note";
 import { MONGOID } from "@/schema/mongo";
-import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload, IGetNoteListPayload } from "@/types/note";
+import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload } from "@/types/note";
 import { withErrorWrapper } from "@/lib/server/error-wrapper"; 
 import { getUserId } from "@/lib/server/get-user"; 
 

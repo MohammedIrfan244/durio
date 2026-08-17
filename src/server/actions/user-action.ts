@@ -1,6 +1,6 @@
 "use server";
 
-import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
+import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
 import { z } from "zod";

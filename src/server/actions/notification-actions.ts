@@ -211,7 +211,6 @@ export async function registerFCMToken(token: string): Promise<{ success: boolea
       await prisma.user.update({
         where: { id: user.id as string },
         data: {
-          // @ts-ignore - Ignore TS error until prisma generate runs
           fcmTokens: {
             push: token
           }
