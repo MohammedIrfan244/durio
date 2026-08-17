@@ -177,7 +177,7 @@ export default function Settings() {
             Delete Account
           </Button>
           <p className="text-xs text-muted-foreground mt-4">
-            See our <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">privacy policy</a> for details on account deletion options.
+            See our <a href="/privacy-policy" target="_self" rel="noopener noreferrer" className="text-primary hover:underline">privacy policy</a> for details on account deletion options.
           </p>
         </CardContent>
       </Card>

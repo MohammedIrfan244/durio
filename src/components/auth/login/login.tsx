@@ -121,7 +121,7 @@ export default function Login() {
           <div className="mt-4 pt-4 border-t border-border/30">
             <Link
               href="/privacy-policy"
-              target="_blank"
+              target="_self"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors mx-auto"
             >
