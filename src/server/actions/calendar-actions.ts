@@ -39,6 +39,82 @@ const DEFAULT_CATEGORIES = [
     { name: "Reminders", color: "#EAB308", isSystem: true },
 ];
 
+const CALENDAR_NOTIFICATION_CATEGORY_NAMES = new Set([
+    "Personal",
+    "Work",
+    "Birthdays",
+    "Anniversaries",
+    "Meetings",
+    "Reminders",
+]);
+
+function formatCalendarEventNotificationDate(date: Date) {
+    const eventDate = new Date(date);
+    const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(eventDate);
+
+    return formatted.replace(" at ", " ");
+}
+
+async function sendCalendarEventNotification(userId: string, event: Event) {
+    const categoryName = event.categoryId
+        ? (await prisma.eventCategory.findUnique({
+              where: { id: event.categoryId },
+              select: { name: true },
+          }))?.name
+        : null;
+
+    const categoryKey = categoryName ? categoryName.trim() : "";
+    if (!categoryKey || !CALENDAR_NOTIFICATION_CATEGORY_NAMES.has(categoryKey)) {
+        return;
+    }
+
+    const dateLabel = formatCalendarEventNotificationDate(event.startDate);
+    const message = `${categoryKey}: ${event.title} is scheduled for ${dateLabel}.`;
+
+    await prisma.notification.create({
+        data: {
+            userId,
+            message,
+            date: event.startDate,
+        },
+    });
+
+    const { adminMessaging } = await import("@/lib/server/firebase-admin");
+    if (!adminMessaging) return;
+
+    const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { fcmTokens: true },
+    });
+
+    const tokens = (dbUser as any)?.fcmTokens as string[] | undefined;
+    if (!tokens || tokens.length === 0) return;
+
+    try {
+        await adminMessaging.sendEachForMulticast({
+            tokens,
+            notification: {
+                title: "Durio Calendar",
+                body: message,
+            },
+            data: {
+                url: "/calendar",
+                eventId: event.id,
+                eventDate: event.startDate.toISOString(),
+                eventTime: event.startDate.toISOString(),
+            },
+        });
+    } catch (error) {
+        console.error("FCM Calendar Event Push Error:", error);
+    }
+}
+
 /**
  * Get or create the default event categories for a user.
  * Called on first visit to the calendar.
@@ -87,7 +163,10 @@ export async function createEvent(data: IEventCreateInput): Promise<ICalendarAct
                 userId: user.id as string,
                 ...eventData,
             },
+            include: { category: true },
         });
+
+        await sendCalendarEventNotification(user.id as string, event);
 
         if (linkedResources && linkedResources.length > 0) {
             await Promise.all(
