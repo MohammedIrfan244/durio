@@ -15,11 +15,13 @@ import { withClientAction } from "@/lib/utils/with-client-action";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Zap, ShieldCheck, Flame, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { FocusReviewStatus } from "@/types/focus";
+import type { RoutineBlock } from "@prisma/client";
 
 export default function ReviewModal() {
   const [open, setOpen] = useState(false);
-  const [pendingBlocks, setPendingBlocks] = useState<any[]>([]);
-  const [ratings, setRatings] = useState<Record<string, { status: string, points: number }>>({});
+  const [pendingBlocks, setPendingBlocks] = useState<RoutineBlock[]>([]);
+  const [ratings, setRatings] = useState<Record<string, { status: FocusReviewStatus, points: number }>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [reviewTime, setReviewTime] = useState("21:00");
@@ -68,7 +70,7 @@ export default function ReviewModal() {
     };
   }, []);
 
-  const handleRate = (blockId: string, status: string, energy: string) => {
+  const handleRate = (blockId: string, status: FocusReviewStatus, energy: string) => {
     let points = 0;
     if (status === "CRUSHED_IT") {
       points = energy === "HIGH" ? 50 : energy === "MEDIUM" ? 30 : 10;

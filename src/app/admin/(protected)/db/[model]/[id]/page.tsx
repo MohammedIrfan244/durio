@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
+import type { AdminRecordsResponse } from "@/types/admin";
 
-async function fetchRecord(model: string, id: string) {
+async function fetchRecord(model: string, id: string): Promise<AdminRecordsResponse> {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const url = `${base}/api/admin/model/${model}/records?id=${encodeURIComponent(id)}`;
   const requestHeaders = await headers();
@@ -11,12 +12,12 @@ async function fetchRecord(model: string, id: string) {
     headers: { cookie: requestHeaders.get("cookie") || "" },
   });
   if (!res.ok) throw new Error("Failed to load record");
-  return res.json();
+  return res.json() as Promise<AdminRecordsResponse>;
 }
 
 export default async function RecordPage({ params }: { params: Promise<{ model: string; id: string }> }) {
   const { model, id } = await params;
-  let data: any;
+  let data: AdminRecordsResponse;
   try {
     data = await fetchRecord(model, id);
   } catch (e) {

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Edit3, Flame, Coffee, Zap, BatteryCharging, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { RoutineBlock } from '@prisma/client';
 
 interface BlockCardProps {
-  block: any; // Replace 'any' with the actual type of your block object
+  block: RoutineBlock;
   onEdit: () => void;
 }
 

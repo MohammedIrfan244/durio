@@ -1,5 +1,5 @@
 "use server";
-import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
+import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { auditLogger } from "@/lib/server/logger";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
@@ -31,6 +31,7 @@ import {
 import type { Prisma } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
 import { isRenewalDay } from "@/lib/logic/todo/todo-insights";
+import { AppError } from "@/types/api";
 
 
 

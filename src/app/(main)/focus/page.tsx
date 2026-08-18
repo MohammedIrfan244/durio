@@ -4,6 +4,7 @@ import FocusBoard from "@/components/pages/focus/focus-board";
 import { prisma } from "@/lib/prisma";
 import { APP_NAME } from "@/lib/brand";
 import { Metadata } from "next";
+import type { FocusNotePickerOption } from "@/types/focus";
 
 export const metadata: Metadata = {
   title: `Focus Now - ${APP_NAME}`,
@@ -45,13 +46,13 @@ export default async function FocusPage() {
     where: { userId, status: 'ACTIVE', folderId: null }
   });
 
-  const notesList = [
-    ...rootNotes.map(n => ({ id: n.id, title: n.heading, isFolder: false })),
+  const notesList: FocusNotePickerOption[] = [
+    ...rootNotes.map(n => ({ id: n.id, title: n.heading, isFolder: false as const })),
     ...noteFolders.map(f => ({
       id: f.id, 
       title: f.name, 
-      isFolder: true, 
-      children: f.notes.map(n => ({ id: n.id, title: n.heading, isFolder: false }))
+      isFolder: true as const, 
+      children: f.notes.map(n => ({ id: n.id, title: n.heading, isFolder: false as const }))
     }))
   ];
 

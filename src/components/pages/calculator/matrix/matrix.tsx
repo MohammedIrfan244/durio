@@ -100,21 +100,21 @@ export default function MatrixCalculator() {
     }
   };
 
-  const renderMatrixInput = (m: MatrixType, setM: (m: MatrixType) => void, label: string) => (
+  const renderMatrixInput = (m: MatrixType, setM: (m: MatrixType) => void, label: 'A' | 'B') => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
         <div className="flex items-center gap-2 bg-secondary/30 p-1 rounded-lg border border-border/50">
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'row', -1)}><Minus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'row', -1)}><Minus className="h-3 w-3"/></Button>
             <span className="text-xs font-mono w-4 text-center">{m.length}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'row', 1)}><Plus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'row', 1)}><Plus className="h-3 w-3"/></Button>
           </div>
           <span className="text-muted-foreground text-[10px]">×</span>
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'col', -1)}><Minus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'col', -1)}><Minus className="h-3 w-3"/></Button>
             <span className="text-xs font-mono w-4 text-center">{m[0].length}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'col', 1)}><Plus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'col', 1)}><Plus className="h-3 w-3"/></Button>
           </div>
         </div>
       </div>

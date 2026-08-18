@@ -7,7 +7,7 @@ import ResourceLinkerUI, { LinkableItem, LinkedItemDisplay } from "./resource-li
 export interface IUnsavedLinkedResource {
     id: string;
     type: ResourceType;
-    title: string;
+    title?: string;
     subtitle?: string;
 }
 
@@ -67,7 +67,7 @@ export default function UnsavedResourceLinker({
         uniqueId: v.id, // For unsaved resources, the linkId doesn't exist yet, so we use the resource id
         resourceId: v.id,
         type: v.type,
-        title: v.title,
+        title: v.title ?? "Untitled",
         subtitle: v.subtitle
     }));
 

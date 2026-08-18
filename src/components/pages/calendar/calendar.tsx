@@ -7,7 +7,7 @@ import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper
 import { HeaderSearch } from '@/components/shared/header-search';
 import { ICalendarEvent, IEvent } from '@/types/calendar';
 import EventManagerDialog from './dialogs/event-manager-dialog';
-import { EventCategory } from '@prisma/client';
+import { Event, EventCategory } from '@prisma/client';
 import { getUnifiedCalendarData } from '@/server/actions/calendar-actions';
 
 export default function CalendarDashboard({ 
@@ -29,7 +29,7 @@ export default function CalendarDashboard({
         `${new Date().getFullYear()}-${new Date().getMonth()}`
     );
 
-    const handleEventCreated = (createdEvent: any) => {
+    const handleEventCreated = (createdEvent: Event) => {
         const eventColor = categories.find((category) => category.id === createdEvent.categoryId)?.color ?? "#3182ce";
 
         const newCalendarEvent: ICalendarEvent = {

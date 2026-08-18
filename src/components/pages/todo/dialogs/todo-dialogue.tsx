@@ -697,7 +697,7 @@ export default function ToDoDialog({
                         <UnsavedResourceLinker
                           allowedTargetTypes={["NOTE"]}
                           searchAction={searchLinkableResources}
-                          value={(field.value as any) || []}
+                          value={field.value || []}
                           onChange={field.onChange}
                         />
                       )}

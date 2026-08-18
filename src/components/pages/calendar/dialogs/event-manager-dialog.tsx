@@ -9,8 +9,8 @@ import { format } from 'date-fns';
 import { createEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
 import { IEventCreateInput } from '@/types/calendar';
-import { EventCategory } from '@prisma/client';
-import UnsavedResourceLinker from '@/components/shared/unsaved-resource-linker';
+import { Event, EventCategory } from '@prisma/client';
+import UnsavedResourceLinker, { IUnsavedLinkedResource } from '@/components/shared/unsaved-resource-linker';
 import { searchLinkableResources } from '@/server/actions/resource-link-actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,7 +22,7 @@ export default function EventManagerDialog({
     onEventCreated,
 }: {
     categories?: EventCategory[];
-    onEventCreated?: (event: any) => void;
+    onEventCreated?: (event: Event) => void;
 }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function EventManagerDialog({
     const [endTime, setEndTime] = useState("10:00");
     const [isAllDay, setIsAllDay] = useState(false);
     const [categoryId, setCategoryId] = useState<string>("");
-    const [linkedResources, setLinkedResources] = useState<Array<any>>([]);
+    const [linkedResources, setLinkedResources] = useState<IUnsavedLinkedResource[]>([]);
     const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +63,7 @@ export default function EventManagerDialog({
 
             if (result.success) {
                 toast.success("Event created successfully");
-                onEventCreated?.(result.event);
+                if (result.event) onEventCreated?.(result.event);
                 setOpen(false);
                 // Reset form
                 setTitle("");
@@ -250,8 +250,8 @@ export default function EventManagerDialog({
                         <UnsavedResourceLinker
                             allowedTargetTypes={["TODO", "NOTE"]}
                             searchAction={searchLinkableResources}
-                            value={linkedResources as any}
-                            onChange={(val) => setLinkedResources(val as any)}
+                            value={linkedResources}
+                            onChange={setLinkedResources}
                         />
                     </div>
 

@@ -2,7 +2,23 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import Image from "next/image";
 
-async function fetchUsers(page: number, limit: number, q: string) {
+interface AdminUsersResponse {
+  total: number;
+  users: {
+    id: string;
+    name: string | null;
+    email: string;
+    displayName: string | null;
+    avatar: string | null;
+    createdAt: string | Date;
+    isActive?: boolean;
+    isDeleted?: boolean;
+    deactivatedAt?: string | Date | null;
+    deletedAt?: string | Date | null;
+  }[];
+}
+
+async function fetchUsers(page: number, limit: number, q: string): Promise<AdminUsersResponse> {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const url = `${base}/api/admin/users?page=${page}&limit=${limit}&q=${encodeURIComponent(q)}`;
   const requestHeaders = await headers();
@@ -11,7 +27,7 @@ async function fetchUsers(page: number, limit: number, q: string) {
     headers: { cookie: requestHeaders.get("cookie") || "" },
   });
   if (!res.ok) console.log(res)
-  return res.json();
+  return res.json() as Promise<AdminUsersResponse>;
 }
 
 export default async function UsersPage({
@@ -65,7 +81,7 @@ export default async function UsersPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {users.map((user: any) => {
+            {users.map((user) => {
               const isActive = user.isActive ?? true;
               const isDeleted = user.isDeleted ?? false;
               const deactivatedAt = user.deactivatedAt;

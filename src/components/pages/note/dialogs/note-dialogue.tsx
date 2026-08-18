@@ -169,7 +169,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
                     <UnsavedResourceLinker
                       allowedTargetTypes={["TODO"]}
                       searchAction={searchLinkableResources}
-                      value={(field.value as any) || []}
+                      value={field.value || []}
                       onChange={field.onChange}
                     />
                   )}

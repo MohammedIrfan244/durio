@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import type { AdminRecord } from "@/types/admin";
+
+interface UserExploreData {
+  direct: Record<string, AdminRecord[]>;
+  emailMatches: Record<string, AdminRecord[]>;
+}
 
 export default function UserExplorer({ userId }: { userId: string }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<UserExploreData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +22,7 @@ export default function UserExplorer({ userId }: { userId: string }) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `Status ${res.status}`);
       }
-      const json = await res.json();
+      const json = await res.json() as UserExploreData;
       setData(json);
     } catch (er) {
       console.error(er);

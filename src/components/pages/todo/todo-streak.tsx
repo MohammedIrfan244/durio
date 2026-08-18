@@ -503,7 +503,7 @@ export function StatsColumn({
           </CardHeader>
 
           <CardContent className="space-y-1">
-            {stats.insights.map((insight: any, index: number) => (
+            {stats.insights.map((insight, index) => (
               <div
                 key={insight.id}
                 className="text-xs p-2 rounded bg-muted/40 hover:bg-muted/70 transition-all duration-300 hover:translate-x-1 animate-fade-in"

@@ -11,8 +11,8 @@ interface AdminUserDeletionSectionProps {
     email: string;
     isActive: boolean;
     isDeleted: boolean;
-    deactivatedAt: string | null;
-    deletedAt: string | null;
+    deactivatedAt: string | Date | null;
+    deletedAt: string | Date | null;
   };
 }
 

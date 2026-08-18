@@ -9,9 +9,10 @@ import {
 } from "@/server/actions/greeting-actions";
 import { toast } from "sonner";
 import Image from "next/image";
+import type { GreetingCard } from "@prisma/client";
 
 export default function AdminGreetingsPage() {
-  const [greetings, setGreetings] = useState<any[]>([]);
+  const [greetings, setGreetings] = useState<GreetingCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [title, setTitle] = useState("");

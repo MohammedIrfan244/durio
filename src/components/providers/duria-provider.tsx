@@ -2,20 +2,21 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { getTodosForAI, getNotesForAI, getEventsForAI } from "@/server/actions/duria-actions";
+import type { DuriaEventContext, DuriaListFilters, DuriaNoteContext, DuriaTodoContext } from "@/types/duria";
 
 interface AiPayload {
-  todos: any[];
-  notes: any[];
-  events: any[];
+  todos: DuriaTodoContext[];
+  notes: DuriaNoteContext[];
+  events: DuriaEventContext[];
   docs: { title: string, content: string }[];
 }
 
 interface DuriaContextType {
   aiPayload: AiPayload;
   isLoading: boolean;
-  attachTodos: (filters?: any) => Promise<void>;
-  attachNotes: (filters?: any) => Promise<void>;
-  attachEvents: (filters?: any) => Promise<void>;
+  attachTodos: (filters?: DuriaListFilters) => Promise<void>;
+  attachNotes: (filters?: DuriaListFilters) => Promise<void>;
+  attachEvents: (filters?: DuriaListFilters) => Promise<void>;
   attachDoc: (title: string, path: string) => Promise<void>;
   clearContext: () => void;
   removeContextItem: (type: keyof AiPayload, index: number) => void;
@@ -32,29 +33,29 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const attachTodos = async (filters?: any) => {
+  const attachTodos = async (filters?: DuriaListFilters) => {
     setIsLoading(true);
     const res = await getTodosForAI(filters);
     if (res.success && res.data) {
-      setAiPayload(prev => ({ ...prev, todos: [...prev.todos, ...res.data] }));
+      setAiPayload(prev => ({ ...prev, todos: [...prev.todos, ...(res.data ?? [])] }));
     }
     setIsLoading(false);
   };
 
-  const attachNotes = async (filters?: any) => {
+  const attachNotes = async (filters?: DuriaListFilters) => {
     setIsLoading(true);
     const res = await getNotesForAI(filters);
     if (res.success && res.data) {
-      setAiPayload(prev => ({ ...prev, notes: [...prev.notes, ...res.data] }));
+      setAiPayload(prev => ({ ...prev, notes: [...prev.notes, ...(res.data ?? [])] }));
     }
     setIsLoading(false);
   };
 
-  const attachEvents = async (filters?: any) => {
+  const attachEvents = async (filters?: DuriaListFilters) => {
     setIsLoading(true);
     const res = await getEventsForAI(filters);
     if (res.success && res.data) {
-      setAiPayload(prev => ({ ...prev, events: [...prev.events, ...res.data] }));
+      setAiPayload(prev => ({ ...prev, events: [...prev.events, ...(res.data ?? [])] }));
     }
     setIsLoading(false);
   };

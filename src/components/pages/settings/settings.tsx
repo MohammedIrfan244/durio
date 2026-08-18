@@ -133,7 +133,7 @@ export default function Settings() {
                 >
                   <div className="space-y-0.5">
                     <Label className="text-sm font-semibold capitalize">
-                      {(module as any).label || key.toLowerCase()}
+                      {"label" in module && typeof module.label === "string" ? module.label : key.toLowerCase()}
                     </Label>
                     {isSystemDisabled && (
                       <p className="text-xs text-orange-500 font-medium flex items-center gap-1">

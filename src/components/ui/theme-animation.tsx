@@ -1,34 +1,28 @@
 'use client';
 
+import { Particle, Theme } from '@/types/theme';
 import { useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'pookie' | 'gothic' | 'natural';
 
-interface Particle {
-  id: string;
-  type: string;
-  style: React.CSSProperties;
+function detectTheme(): Theme {
+  if (typeof document === 'undefined') return 'light';
+
+  const html = document.documentElement;
+  const body = document.body;
+  
+  if (body.classList.contains('pookie') || html.classList.contains('pookie')) return 'pookie';
+  if (body.classList.contains('gothic') || html.classList.contains('gothic')) return 'gothic';
+  if (body.classList.contains('natural') || html.classList.contains('natural')) return 'natural';
+  if (body.classList.contains('dark') || html.classList.contains('dark')) return 'dark';
+  return 'light';
 }
 
 export default function ThemeAnimations() {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(() => detectTheme());
   const [particles, setParticles] = useState<Particle[]>([]);
 
   // Detect theme
   useEffect(() => {
-    const detectTheme = (): Theme => {
-      const html = document.documentElement;
-      const body = document.body;
-      
-      if (body.classList.contains('pookie') || html.classList.contains('pookie')) return 'pookie';
-      if (body.classList.contains('gothic') || html.classList.contains('gothic')) return 'gothic';
-      if (body.classList.contains('natural') || html.classList.contains('natural')) return 'natural';
-      if (body.classList.contains('dark') || html.classList.contains('dark')) return 'dark';
-      return 'light';
-    };
-
-    setTheme(detectTheme());
-
     const observer = new MutationObserver(() => {
       setTheme(detectTheme());
     });

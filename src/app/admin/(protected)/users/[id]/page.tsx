@@ -5,8 +5,9 @@ import UserExplorer from "@/components/admin/user-explorer-loader";
 import RevealFcmTokens from "@/components/admin/reveal-fcm-tokens";
 import AdminUserDeletionSection from "@/components/admin/admin-user-deletion-section";
 import Image from "next/image";
+import type { AdminUserSummary } from "@/server/admin-resolvers";
 
-async function fetchSummary(id: string) {
+async function fetchSummary(id: string): Promise<AdminUserSummary> {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const url = `${base}/api/admin/users/${id}/summary`;
   const requestHeaders = await headers();
@@ -17,7 +18,7 @@ async function fetchSummary(id: string) {
   if (!res.ok) {
     throw new Error("Failed to load summary");
   }
-  return res.json();
+  return res.json() as Promise<AdminUserSummary>;
 }
 
 function maskArray(arr: string[] | undefined) {
@@ -27,7 +28,7 @@ function maskArray(arr: string[] | undefined) {
 
 export default async function UserDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  let summary: any;
+  let summary: AdminUserSummary;
   try {
     summary = await fetchSummary(id);
   } catch (e) {
@@ -113,49 +114,49 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
       <DataTable
         title={`Todos (${latest.todos.length})`}
         columns={["Title", "Status", "Created", "Updated"]}
-        rows={latest.todos.map((t: any) => [t.title, t.status, new Date(t.createdAt).toLocaleDateString(), new Date(t.updatedAt).toLocaleDateString()])}
+        rows={latest.todos.map((t) => [t.title, t.status, new Date(t.createdAt).toLocaleDateString(), new Date(t.updatedAt).toLocaleDateString()])}
       />
 
       {/* Latest Notes */}
       <DataTable
         title={`Notes (${latest.notes.length})`}
         columns={["Heading", "Status", "Created", "Updated"]}
-        rows={latest.notes.map((n: any) => [n.heading, n.status, new Date(n.createdAt).toLocaleDateString(), new Date(n.updatedAt).toLocaleDateString()])}
+        rows={latest.notes.map((n) => [n.heading, n.status, new Date(n.createdAt).toLocaleDateString(), new Date(n.updatedAt).toLocaleDateString()])}
       />
 
       {/* Latest Notifications */}
       <DataTable
         title={`Notifications (${latest.notifications.length})`}
         columns={["Message", "Read", "Created"]}
-        rows={latest.notifications.map((n: any) => [n.message, n.read ? "Yes" : "No", new Date(n.createdAt).toLocaleDateString()])}
+        rows={latest.notifications.map((n) => [n.message, n.read ? "Yes" : "No", new Date(n.createdAt).toLocaleDateString()])}
       />
 
       {/* Latest Events */}
       <DataTable
         title={`Events (${latest.events.length})`}
         columns={["Title", "Start", "End", "Created"]}
-        rows={latest.events.map((e: any) => [e.title, new Date(e.startDate).toLocaleDateString(), new Date(e.endDate).toLocaleDateString(), new Date(e.createdAt).toLocaleDateString()])}
+        rows={latest.events.map((e) => [e.title, new Date(e.startDate).toLocaleDateString(), new Date(e.endDate).toLocaleDateString(), new Date(e.createdAt).toLocaleDateString()])}
       />
 
       {/* Latest Routine Blocks */}
       <DataTable
         title={`Routine Blocks (${latest.routineBlocks.length})`}
         columns={["Title", "Active", "Created"]}
-        rows={latest.routineBlocks.map((r: any) => [r.title, r.isActive ? "Yes" : "No", new Date(r.createdAt).toLocaleDateString()])}
+        rows={latest.routineBlocks.map((r) => [r.title, r.isActive ? "Yes" : "No", new Date(r.createdAt).toLocaleDateString()])}
       />
 
       {/* Latest Block Logs */}
       <DataTable
         title={`Block Logs (${latest.blockLogs.length})`}
         columns={["Status", "Date", "Created"]}
-        rows={latest.blockLogs.map((b: any) => [b.status, new Date(b.date).toLocaleDateString(), new Date(b.createdAt).toLocaleDateString()])}
+        rows={latest.blockLogs.map((b) => [b.status, new Date(b.date).toLocaleDateString(), new Date(b.createdAt).toLocaleDateString()])}
       />
 
       {/* Latest Resource Links */}
       <DataTable
         title={`Resource Links (${latest.resourceLinks.length})`}
         columns={["From Type", "From ID", "To Type", "To ID", "Created"]}
-        rows={latest.resourceLinks.map((r: any) => [r.fromType, r.fromId, r.toType, r.toId, new Date(r.createdAt).toLocaleDateString()])}
+        rows={latest.resourceLinks.map((r) => [r.fromType, r.fromId, r.toType, r.toId, new Date(r.createdAt).toLocaleDateString()])}
       />
 
       {/* User Avatar History */}
@@ -163,7 +164,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
         <section>
           <h2 className="text-sm font-bold text-zinc-400 mb-3 uppercase tracking-wider">Avatar History</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {summary.avatars.map((avatar: any) => (
+            {summary.avatars.map((avatar) => (
               <div
                 key={avatar.publicId}
                 className={`rounded-lg border p-4 bg-zinc-900 ${avatar.isCurrent ? "border-emerald-500" : "border-zinc-800"}`}
@@ -198,11 +199,11 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   );
 }
 
-function CountCard({ title, value }: { title: string; value: number }) {
+function CountCard({ title, value }: { title: string; value: number | null }) {
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
       <p className="text-xs text-zinc-500 uppercase tracking-wider">{title}</p>
-      <p className="text-xl font-bold text-white mt-1">{value}</p>
+      <p className="text-xl font-bold text-white mt-1">{value ?? 0}</p>
     </div>
   );
 }

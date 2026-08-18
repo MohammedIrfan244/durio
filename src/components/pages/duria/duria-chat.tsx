@@ -10,10 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import ProposalCard from './proposal-card';
 import { getAIUsage } from '@/server/actions/ai-usage';
+import type { DuriaProposalPayload, DuriaToolInvocation, DuriaToolPart } from '@/types/duria-chat';
+
+type DuriaClientMessage = UIMessage & {
+  content?: string;
+  toolInvocations?: DuriaToolInvocation[];
+};
 
 const ContextAttachDialog = dynamic(() => import('./context-attach-dialog'), {
   ssr: false,
@@ -21,14 +28,18 @@ const ContextAttachDialog = dynamic(() => import('./context-attach-dialog'), {
 
 const MESSAGE_LIMIT = 2000;
 
-function getMessageText(msg: any) {
+function getMessageText(msg: DuriaClientMessage) {
   return msg.content ||
-    msg.parts?.find((part: any) => part.type === 'text')?.text ||
+    msg.parts?.find((part) => part.type === 'text')?.text ||
     "";
 }
 
-function getProposalToolCalls(msg: any) {
-  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation: any) => ({
+function isDuriaToolPart(part: UIMessage["parts"][number]): part is UIMessage["parts"][number] & DuriaToolPart {
+  return part.type.startsWith('tool-');
+}
+
+function getProposalToolCalls(msg: DuriaClientMessage): DuriaToolInvocation[] {
+  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation) => ({
     toolCallId: toolInvocation.toolCallId,
     toolName: toolInvocation.toolName,
     args: toolInvocation.args ?? toolInvocation.input ?? {},
@@ -37,8 +48,8 @@ function getProposalToolCalls(msg: any) {
   }));
 
   const partToolCalls = (msg.parts || [])
-    .filter((part: any) => typeof part.type === 'string' && part.type.startsWith('tool-'))
-    .map((part: any) => ({
+    .filter(isDuriaToolPart)
+    .map((part) => ({
       toolCallId: part.toolCallId,
       toolName: part.toolName || part.type.replace(/^tool-/, ''),
       args: part.input ?? {},
@@ -46,7 +57,7 @@ function getProposalToolCalls(msg: any) {
       state: part.state,
     }));
 
-  return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolName);
+  return [...legacyToolCalls, ...partToolCalls].filter((toolCall) => Boolean(toolCall.toolName));
 }
 
 export default function DuriaChat() {
@@ -70,13 +81,14 @@ export default function DuriaChat() {
   }, []);
 
   const { messages, status, sendMessage, error } = useChat({
-    // @ts-expect-error - Ignore type error for useChat options
-    api: '/api/chat',
-    body: {
-      contextPayload: aiPayload
-    },
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+      body: {
+        contextPayload: aiPayload
+      },
+    }),
     onFinish: refreshUsage,
-  }) as any;
+  });
 
   const isLoading = status === 'submitted' || status === 'streaming';
   const trimmedInput = input.trim();
@@ -88,7 +100,7 @@ export default function DuriaChat() {
     e.preventDefault();
     if (!trimmedInput || isLoading || isMessageTooLong) return;
     setHasAskedToClear(false);
-    sendMessage({ role: 'user', content: trimmedInput });
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: trimmedInput }] });
     setInput('');
   };
 
@@ -161,9 +173,10 @@ export default function DuriaChat() {
             </div>
           )}
           
-          {messages.map((msg: any, i: number) => {
-            const textContent = getMessageText(msg);
-            const proposalToolCalls = getProposalToolCalls(msg);
+          {messages.map((msg, i) => {
+            const duriaMessage = msg as DuriaClientMessage;
+            const textContent = getMessageText(duriaMessage);
+            const proposalToolCalls = getProposalToolCalls(duriaMessage);
 
             return (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -184,9 +197,10 @@ export default function DuriaChat() {
                         <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{textContent}</ReactMarkdown>
                       </div>
                     )}
-                    {proposalToolCalls.map((toolInvocation: any) => {
+                    {proposalToolCalls.map((toolInvocation) => {
                       const toolCallId = toolInvocation.toolCallId;
                       const toolName = toolInvocation.toolName;
+                      if (!toolCallId || !toolName) return null;
                       
                       if (toolName.startsWith('propose')) {
                         const status = proposalStatus[toolCallId] || 'pending';
@@ -194,11 +208,11 @@ export default function DuriaChat() {
                           <div key={toolCallId} className="mt-2 w-full max-w-sm">
                             <ProposalCard 
                               toolName={toolName}
-                              args={toolInvocation.args}
+                              args={(toolInvocation.args ?? {}) as DuriaProposalPayload}
                               status={status}
                               onConfirm={(payload, resultMsg) => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'confirmed' }));
-                                sendMessage({ role: 'user', content: `[SYSTEM] Result: ${resultMsg}` });
+                                sendMessage({ role: 'user', parts: [{ type: 'text', text: `[SYSTEM] Result: ${resultMsg}` }] });
                               }}
                               onCancel={() => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'cancelled' }));
@@ -212,7 +226,7 @@ export default function DuriaChat() {
                         return (
                           <div key={toolCallId} className="bg-primary/10 border border-primary/20 text-primary rounded-md p-2 text-xs flex items-center gap-2 mt-2">
                             <span className="font-semibold">✅ Executed: {toolInvocation.toolName}</span>
-                            <span className="opacity-80 truncate">- {toolInvocation.result}</span>
+                            <span className="opacity-80 truncate">- {String(toolInvocation.result)}</span>
                           </div>
                         );
                       } else {

@@ -12,23 +12,10 @@ import {
 import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { z } from "zod";
 import { MONGOID } from "@/schema/mongo";
+import { eventCreateSchema, searchSchema } from "@/schema/calendar";
 
-const eventCreateSchema = z.object({
-    title: z.string().trim().min(1).max(200),
-    description: z.string().trim().max(10000).optional(),
-    location: z.string().trim().max(200).optional(),
-    isAllDay: z.boolean().optional(),
-    startDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
-    endDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
-    categoryId: MONGOID.optional(),
-    linkedResources: z.array(z.object({
-        id: MONGOID,
-        type: z.enum(["EVENT", "TODO", "NOTE", "PROJECT"]),
-    })).max(20).optional(),
-});
 
 const eventUpdateSchema = eventCreateSchema.partial().omit({ linkedResources: true });
-const searchSchema = z.string().trim().max(100);
 
 const DEFAULT_CATEGORIES = [
     { name: "Personal", color: "#3B82F6", isSystem: true },
@@ -93,7 +80,7 @@ async function sendCalendarEventNotification(userId: string, event: Event) {
         select: { fcmTokens: true },
     });
 
-    const tokens = (dbUser as any)?.fcmTokens as string[] | undefined;
+    const tokens = dbUser?.fcmTokens;
     if (!tokens || tokens.length === 0) return;
 
     try {

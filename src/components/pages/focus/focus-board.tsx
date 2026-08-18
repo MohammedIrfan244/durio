@@ -8,11 +8,13 @@ import TimelineGrid from './timeline-grid';
 import BlockDialog from './dialogs/block-dialog';
 import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper';
 import { DAYS, getInsightForDay } from '@/lib/focus-constants';
+import type { FocusNotePickerOption } from '@/types/focus';
+import type { RoutineBlock } from '@prisma/client';
 
-export default function FocusBoard({ initialBlocks, availableNotes }: { initialBlocks: any[], availableNotes: any[] }) {
+export default function FocusBoard({ initialBlocks, availableNotes }: { initialBlocks: RoutineBlock[], availableNotes: FocusNotePickerOption[] }) {
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingBlock, setEditingBlock] = useState<any>(null);
+  const [editingBlock, setEditingBlock] = useState<RoutineBlock | null>(null);
 
   // Filter blocks for the selected day and order them by start time
   const activeBlocks = useMemo(() => {
@@ -32,7 +34,7 @@ export default function FocusBoard({ initialBlocks, availableNotes }: { initialB
     setInsightMessage(getInsightForDay(activeBlocks.length, highEnergyCount, recoveryCount));
   }, [activeBlocks.length, highEnergyCount, recoveryCount]);
 
-  const handleEdit = (block: any) => {
+  const handleEdit = (block: RoutineBlock) => {
     setEditingBlock(block);
     setIsDialogOpen(true);
   };

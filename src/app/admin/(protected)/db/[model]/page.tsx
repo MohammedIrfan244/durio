@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import type { AdminRecordsResponse } from "@/types/admin";
 
-async function fetchRecords(model: string, q = "") {
+async function fetchRecords(model: string, q = ""): Promise<AdminRecordsResponse> {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const url = `${base}/api/admin/model/${model}/records?q=${encodeURIComponent(q)}`;
   const requestHeaders = await headers();
@@ -10,7 +11,7 @@ async function fetchRecords(model: string, q = "") {
     headers: { cookie: requestHeaders.get("cookie") || "" },
   });
   if (!res.ok) throw new Error("Failed to load records");
-  return res.json();
+  return res.json() as Promise<AdminRecordsResponse>;
 }
 
 export default async function ModelPage({ params, searchParams }: { params: Promise<{ model: string }>; searchParams?: Promise<{ q?: string }> }) {
@@ -48,7 +49,7 @@ export default async function ModelPage({ params, searchParams }: { params: Prom
 
       {/* Records */}
       <div className="space-y-4">
-        {data.records.map((r: any) => (
+        {data.records.map((r) => (
           <div key={r.id} className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
             <div className="flex items-center gap-3 mb-2">
               <Link href={`/admin/db/${model}/${r.id}`} className="text-white font-medium text-sm hover:underline">

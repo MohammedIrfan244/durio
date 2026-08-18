@@ -6,6 +6,7 @@ import { Gift, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import type { GreetingCard } from "@prisma/client";
 
 const FloatingCalculator = dynamic(
   () => import("@/components/shared/floating-calculator"),
@@ -13,7 +14,7 @@ const FloatingCalculator = dynamic(
 );
 
 export default function GreetingWidget() {
-  const [greeting, setGreeting] = useState<any>(null);
+  const [greeting, setGreeting] = useState<GreetingCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
 

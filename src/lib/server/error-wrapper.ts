@@ -1,18 +1,6 @@
 import { error as logError } from "@/lib/utils/logger";
+import { ApiResponse, AppError } from "@/types/api";
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: {
-    message: string;
-    code: string;
-  };
-}
-
-export interface AppError extends Error {
-  code?: string;
-  status?: number;
-}
 
 /**
  * Wraps async server action functions with error handling
@@ -30,7 +18,8 @@ export function withErrorWrapper<T, Args extends unknown[]>(
         data,
       };
     } catch (err) {
-      const error = err as AppError;
+      const isAppError = err instanceof Error;
+      const error = isAppError ? (err as AppError) : undefined;
       const errorMessage = error?.message || "An unexpected error occurred";
       const errorCode = error?.code || "INTERNAL_ERROR";
 
