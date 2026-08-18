@@ -49,6 +49,7 @@ export interface DuriaChatRequestBody {
     todos?: unknown[];
     notes?: unknown[];
     events?: unknown[];
+    focusBlocks?: unknown[];
     docs?: { title: string; content: string }[];
   };
 }

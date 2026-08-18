@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/server/get-user";
+import { getUserTimezone, validateDateNotBeforeToday } from "@/lib/server/date-utils";
 import { revalidatePath } from "next/cache";
 import { 
     IEventCreateInput, 
@@ -145,6 +146,29 @@ export async function createEvent(data: IEventCreateInput): Promise<ICalendarAct
 
         const { linkedResources, ...eventData } = validatedData;
 
+        // Get user's timezone for date validation
+        const userTimezone = await getUserTimezone(user.id as string);
+
+        // Validate start date is not in the past (unless it's a special event like birthday)
+        const categoryId = eventData.categoryId;
+        let categoryName = "";
+        if (categoryId) {
+            const category = await prisma.eventCategory.findUnique({
+                where: { id: categoryId },
+                select: { name: true },
+            });
+            categoryName = category?.name || "";
+        }
+
+        // Allow past dates for special categories like Birthdays and Anniversaries
+        const isSpecialCategory = categoryName === "Birthdays" || categoryName === "Anniversaries";
+        if (!isSpecialCategory && eventData.startDate) {
+            const dateError = validateDateNotBeforeToday(eventData.startDate, userTimezone);
+            if (dateError) {
+                return { success: false, error: dateError };
+            }
+        }
+
         const event = await prisma.event.create({
             data: {
                 userId: user.id as string,
@@ -193,6 +217,26 @@ export async function updateEvent(id: string, data: Partial<IEventCreateInput>):
         const validatedData = eventUpdateSchema.parse(data);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
+
+        // Get user's timezone for date validation
+        const userTimezone = await getUserTimezone(user.id as string);
+
+        // Validate start date if provided
+        if (validatedData.startDate) {
+            const existingEvent = await prisma.event.findFirst({
+                where: { id: eventId, userId: user.id as string },
+                include: { category: true },
+            });
+
+            // Allow past dates for special categories
+            const isSpecialCategory = existingEvent?.category?.name === "Birthdays" || existingEvent?.category?.name === "Anniversaries";
+            if (!isSpecialCategory) {
+                const dateError = validateDateNotBeforeToday(validatedData.startDate, userTimezone);
+                if (dateError) {
+                    return { success: false, error: dateError };
+                }
+            }
+        }
 
         const event = await prisma.event.update({
             where: { id: eventId, userId: user.id as string },

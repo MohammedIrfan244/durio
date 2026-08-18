@@ -1,13 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { getTodosForAI, getNotesForAI, getEventsForAI } from "@/server/actions/duria-actions";
-import type { DuriaEventContext, DuriaListFilters, DuriaNoteContext, DuriaTodoContext } from "@/types/duria";
+import { getTodosForAI, getNotesForAI, getEventsForAI, getFocusBlocksForAI } from "@/server/actions/duria-actions";
+import type { DuriaEventContext, DuriaListFilters, DuriaNoteContext, DuriaTodoContext, DuriaFocusBlockContext } from "@/types/duria";
 
 interface AiPayload {
   todos: DuriaTodoContext[];
   notes: DuriaNoteContext[];
   events: DuriaEventContext[];
+  focusBlocks: DuriaFocusBlockContext[];
   docs: { title: string, content: string }[];
 }
 
@@ -17,6 +18,7 @@ interface DuriaContextType {
   attachTodos: (filters?: DuriaListFilters) => Promise<void>;
   attachNotes: (filters?: DuriaListFilters) => Promise<void>;
   attachEvents: (filters?: DuriaListFilters) => Promise<void>;
+  attachFocusBlocks: (filters?: DuriaListFilters) => Promise<void>;
   attachDoc: (title: string, path: string) => Promise<void>;
   clearContext: () => void;
   removeContextItem: (type: keyof AiPayload, index: number) => void;
@@ -29,6 +31,7 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
     todos: [],
     notes: [],
     events: [],
+    focusBlocks: [],
     docs: []
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +63,15 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   };
 
+  const attachFocusBlocks = async (filters?: DuriaListFilters) => {
+    setIsLoading(true);
+    const res = await getFocusBlocksForAI(filters);
+    if (res.success && res.data) {
+      setAiPayload(prev => ({ ...prev, focusBlocks: [...prev.focusBlocks, ...(res.data ?? [])] }));
+    }
+    setIsLoading(false);
+  };
+
   const attachDoc = async (title: string, path: string) => {
     setIsLoading(true);
     try {
@@ -77,7 +89,7 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
   };
 
   const clearContext = () => {
-    setAiPayload({ todos: [], notes: [], events: [], docs: [] });
+    setAiPayload({ todos: [], notes: [], events: [], focusBlocks: [], docs: [] });
   };
 
   const removeContextItem = (type: keyof AiPayload, index: number) => {
@@ -95,6 +107,7 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
       attachTodos,
       attachNotes,
       attachEvents,
+      attachFocusBlocks,
       attachDoc,
       clearContext,
       removeContextItem

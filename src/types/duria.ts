@@ -43,3 +43,16 @@ export interface DuriaEventContext {
   location: string | null;
   category: EventCategory | null;
 }
+
+export interface DuriaFocusBlockContext {
+  id: string;
+  title: string;
+  description: string | null;
+  startTime: string;
+  endTime: string;
+  daysOfWeek: number[];
+  priority: string;
+  energyLevel: string;
+  transitionRitual: string | null;
+  isActive: boolean;
+}

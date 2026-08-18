@@ -314,6 +314,9 @@ ${primaryGuide}
       if ((contextPayload.events?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED EVENTS]:\n${JSON.stringify(contextPayload.events, null, 2)}\n\n`;
       }
+      if ((contextPayload.focusBlocks?.length ?? 0) > 0) {
+        systemPrompt += `[ATTACHED FOCUS BLOCKS]:\n${JSON.stringify(contextPayload.focusBlocks, null, 2)}\n\n`;
+      }
       if ((contextPayload.docs?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED FEATURE MANUALS]:\n`;
         contextPayload.docs?.forEach((doc) => {

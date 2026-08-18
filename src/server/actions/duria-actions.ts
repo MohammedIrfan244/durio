@@ -8,6 +8,7 @@ import type {
     DuriaListFilters,
     DuriaNoteContext,
     DuriaTodoContext,
+    DuriaFocusBlockContext,
 } from "@/types/duria";
 import { aiListSchema } from "@/schema/duria";
 
@@ -99,4 +100,29 @@ export const getEventsForAI = withErrorWrapper<DuriaEventContext[], [DuriaListFi
         }
     });
     return events;
+});
+
+export const getFocusBlocksForAI = withErrorWrapper<DuriaFocusBlockContext[], [DuriaListFilters | undefined]>(async (input) => {
+    const validatedInput = aiListSchema.parse(input);
+    const userId = await getUserId();
+    const limit = validatedInput?.limit || 20;
+
+    const focusBlocks = await prisma.routineBlock.findMany({
+        where: { userId, isActive: true },
+        orderBy: { startTime: "asc" },
+        take: limit,
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            startTime: true,
+            endTime: true,
+            daysOfWeek: true,
+            priority: true,
+            energyLevel: true,
+            transitionRitual: true,
+            isActive: true,
+        }
+    });
+    return focusBlocks as DuriaFocusBlockContext[];
 });

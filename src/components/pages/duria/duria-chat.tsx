@@ -70,7 +70,7 @@ export default function DuriaChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [proposalStatus, setProposalStatus] = useState<Record<string, 'pending' | 'confirmed' | 'cancelled' | 'error'>>({});
 
-  const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
+  const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.focusBlocks.length + aiPayload.docs.length;
   const refreshUsage = useCallback(async () => {
     setIsUsageLoading(true);
     const response = await getAIUsage();
