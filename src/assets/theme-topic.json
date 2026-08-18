@@ -33,5 +33,12 @@
         "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1784052196/Screenshot_2026-07-14_231757_finvqp.png",
         "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1784052196/Screenshot_2026-07-14_232002_cbxrte.png",
         "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1784052197/Screenshot_2026-07-14_232323_mazy77.png"
+    },
+    "album":{
+        "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051135/Screenshot_2026-07-14_231505_tae4md.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051134/Screenshot_2026-07-14_231348_ovcm02.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051133/Screenshot_2026-07-14_222711_nrk8o9.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051124/Screenshot_2026-07-14_222522_zf2tn6.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051124/Screenshot_2026-07-14_222109_ye3cou.png"
     }
 }

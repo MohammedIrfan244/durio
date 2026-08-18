@@ -47,7 +47,7 @@ const AVAILABLE_ICONS = [
 function getLucideIcon(name?: string): LucideIcon {
   if (!name || !(name in LucideIcons)) return HelpCircle;
   const icon = LucideIcons[name as keyof typeof LucideIcons];
-  return typeof icon === "function" ? icon as LucideIcon : HelpCircle;
+  return (icon as LucideIcon) ?? HelpCircle;
 }
 
 export function IconPicker({ value, onChange, className }: IconPickerProps) {

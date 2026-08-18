@@ -65,7 +65,7 @@ export const createGreeting = withErrorWrapper(async (formData: FormData) => {
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const folder = `${process.env.CLOUDINARY_FOLDER_NAME || "durio"}/greetings`;
+  const folder = `${process.env.CLOUDINARY_FOLDER_NAME || "Durio"}/greetings`;
 
   const crypto = await import("crypto");
   const stringToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
