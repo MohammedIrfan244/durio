@@ -1,7 +1,4 @@
 "use client";
-
-import React, { useState } from 'react';
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarHeart, ListTodo, Tag } from 'lucide-react';
 import { IEvent } from '@/types/calendar';

@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import BlockCard from './block-card';
+import type { RoutineBlock } from '@prisma/client';
 
 interface TimelineGridProps {
-  blocks: any[];
-  onEdit: (block: any) => void;
+  blocks: RoutineBlock[];
+  onEdit: (block: RoutineBlock) => void;
 }
 
 export default function TimelineGrid({ blocks, onEdit }: TimelineGridProps) {

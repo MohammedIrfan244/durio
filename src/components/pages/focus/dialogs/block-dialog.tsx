@@ -8,17 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Flame, Zap, BatteryCharging, Coffee, AlertCircle, Clock } from 'lucide-react';
+import { Flame, Zap, BatteryCharging, Coffee, AlertCircle } from 'lucide-react';
 import { createFocusBlock, updateFocusBlock, deleteFocusBlock } from '@/server/actions/focus-actions';
 import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
 import { DAYS } from '@/lib/focus-constants';
+import type { FocusBlockInput, FocusEnergyLevel, FocusNotePickerOption } from '@/types/focus';
+import type { Priority, RoutineBlock } from '@prisma/client';
 
 interface BlockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData?: any;
-  availableNotes: any[];
+  initialData?: RoutineBlock | null;
+  availableNotes: FocusNotePickerOption[];
 }
 
 export default function BlockDialog({ open, onOpenChange, initialData, availableNotes }: BlockDialogProps) {
@@ -29,8 +31,8 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1,2,3,4,5]);
-  const [energyLevel, setEnergyLevel] = useState('MEDIUM');
-  const [priority, setPriority] = useState('MEDIUM');
+  const [energyLevel, setEnergyLevel] = useState<FocusEnergyLevel>('MEDIUM');
+  const [priority, setPriority] = useState<Priority>('MEDIUM');
   const [transitionRitual, setTransitionRitual] = useState('');
   const [linkedNoteId, setLinkedNoteId] = useState<string>('none');
   const [isActive, setIsActive] = useState(true);
@@ -43,7 +45,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
         setStartTime(initialData.startTime);
         setEndTime(initialData.endTime);
         setDaysOfWeek(initialData.daysOfWeek || []);
-        setEnergyLevel(initialData.energyLevel || 'MEDIUM');
+        setEnergyLevel((initialData.energyLevel as FocusEnergyLevel | null) || 'MEDIUM');
         setPriority(initialData.priority || 'MEDIUM');
         setTransitionRitual(initialData.transitionRitual || '');
         setLinkedNoteId(initialData.linkedNoteId || 'none');
@@ -77,7 +79,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
     }
 
     setIsSaving(true);
-    const payload = {
+    const payload: FocusBlockInput = {
       title,
       description,
       startTime,
@@ -102,10 +104,11 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
         toast.success(`Block ${initialData?.id ? 'updated' : 'created'} successfully!`);
         onOpenChange(false);
       } else {
-        toast.error(res.error || "Failed to save block");
+        toast.error(res.error?.message || "Failed to save block");
       }
-    } catch (e: any) {
-      toast.error(e.message || "An error occurred");
+    } catch (e) {
+      console.error(e);
+      toast.error("An error occurred");
     } finally {
       setIsSaving(false);
     }
@@ -120,7 +123,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
          toast.success("Block deleted");
          onOpenChange(false);
       } else {
-         toast.error("Failed to delete");
+         toast.error(res.error?.message || "Failed to delete");
       }
       setIsSaving(false);
     }
@@ -186,7 +189,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
                   return (
                     <button
                       key={energy.id}
-                      onClick={() => setEnergyLevel(energy.id)}
+                      onClick={() => setEnergyLevel(energy.id as FocusEnergyLevel)}
                       className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                         selected ? `border-${energy.color}-500 bg-${energy.color}-500/10 text-${energy.color}-600 dark:text-${energy.color}-400` : 'border-border/50 text-muted-foreground hover:bg-secondary'
                       }`}
@@ -207,7 +210,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-1">
                <Label>Priority</Label>
-               <Select value={priority} onValueChange={setPriority}>
+               <Select value={priority} onValueChange={(value) => setPriority(value as Priority)}>
                  <SelectTrigger><SelectValue /></SelectTrigger>
                  <SelectContent>
                    <SelectItem value="LOW">Low</SelectItem>
@@ -230,7 +233,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
                        return (
                          <React.Fragment key={note.id}>
                            <SelectItem value={`folder_${note.id}`} disabled className="font-bold opacity-50">{note.title}</SelectItem>
-                           {note.children.map((child: any) => (
+                           {note.children.map((child) => (
                               <SelectItem key={child.id} value={child.id} className="pl-6">{child.title}</SelectItem>
                            ))}
                          </React.Fragment>
@@ -251,7 +254,7 @@ export default function BlockDialog({ open, onOpenChange, initialData, available
           <div className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-secondary/20">
              <div className="space-y-0.5">
                <Label>Active Status</Label>
-               <p className="text-xs text-muted-foreground">If disabled, this block won't appear on your timeline.</p>
+               <p className="text-xs text-muted-foreground">If disabled, this block won&apos;t appear on your timeline.</p>
              </div>
              <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>

@@ -15,7 +15,6 @@ import {
   getNotifications,
   getUnreadNotificationCount,
   markAllAsRead,
-  markAsRead,
   deleteNotification,
 } from "@/server/actions/notification-actions";
 import { Notification } from "@prisma/client";
@@ -35,6 +34,7 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
     // Optionally set up an interval to poll for new notifications
     const interval = setInterval(fetchNotifications, 60000); // every minute
@@ -98,7 +98,7 @@ export default function NotificationBell() {
               <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
                 <Check size={24} className="text-muted-foreground/60" />
               </div>
-              <p className="text-sm text-muted-foreground">You're all caught up!</p>
+              <p className="text-sm text-muted-foreground">You&apos;re all caught up!</p>
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-border/40">

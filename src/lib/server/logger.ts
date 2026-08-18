@@ -12,15 +12,15 @@ export const logger = pino({
  * It logs to standard out AND writes asynchronously to the MongoDB SystemLog table.
  */
 export const auditLogger = {
-  info: (message: string, userId?: string, metadata?: Record<string, any>) => {
+  info: (message: string, userId?: string, metadata?: Record<string, unknown>) => {
     logger.info({ userId, ...metadata }, message);
     logToDatabase("INFO", message, userId, metadata);
   },
-  warn: (message: string, userId?: string, metadata?: Record<string, any>) => {
+  warn: (message: string, userId?: string, metadata?: Record<string, unknown>) => {
     logger.warn({ userId, ...metadata }, message);
     logToDatabase("WARNING", message, userId, metadata);
   },
-  error: (message: string, userId?: string, metadata?: Record<string, any>) => {
+  error: (message: string, userId?: string, metadata?: Record<string, unknown>) => {
     logger.error({ userId, ...metadata }, message);
     logToDatabase("ERROR", message, userId, metadata);
   },
@@ -30,7 +30,7 @@ function logToDatabase(
   level: "INFO" | "WARNING" | "ERROR",
   message: string,
   userId?: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ) {
   // Fire and forget (no await) to prevent slowing down the request
   prisma.systemLog

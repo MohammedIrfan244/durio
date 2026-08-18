@@ -10,8 +10,11 @@ import { cn } from "@/lib/utils";
 
 const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#ec4899", "#06b6d4"];
 
+
+type GraphingMode = "cartesian" | "polar" | "parametric";
+
 export default function Graphing() {
-  const [mode, setMode] = useState<"cartesian" | "polar" | "parametric">("cartesian");
+  const [mode, setMode] = useState<GraphingMode>("cartesian");
   const [funcStr, setFuncStr] = useState<string>("sin(x)");
   const [zoom, setZoom] = useState<number>(40); // pixels per unit
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +83,7 @@ export default function Graphing() {
             const py = originY - (logicalY * zoom);
             if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
           } catch (e) {
+            console.log(e)
             hasLocalError = true; break;
           }
         }
@@ -97,7 +101,8 @@ export default function Graphing() {
             const px = originX + (logicalX * zoom);
             const py = originY - (logicalY * zoom);
             if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
-          } catch (e) {
+          } catch (e: unknown) {
+            console.log(e);
             hasLocalError = true; break;
           }
         }
@@ -117,6 +122,7 @@ export default function Graphing() {
               const py = originY - (logicalY * zoom);
               if (isFirst) { ctx.moveTo(px, py); isFirst = false; } else { ctx.lineTo(px, py); }
             } catch (e) {
+              console.log(e);
               hasLocalError = true; break;
             }
           }
@@ -170,7 +176,7 @@ export default function Graphing() {
                 key={m}
                 type="button"
                 className={cn("px-3 py-1 rounded transition-colors capitalize", mode === m ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
-                onClick={() => setMode(m as any)}
+                onClick={() => setMode(m as GraphingMode)}
               >
                 {m}
               </button>

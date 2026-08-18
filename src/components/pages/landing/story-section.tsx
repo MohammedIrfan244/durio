@@ -76,7 +76,7 @@ export function StorySection() {
             So, how did we <br/><span className="text-[#ff6a00]">get here?</span>
           </h2>
           <p className="text-xl md:text-2xl text-white/40 italic mb-16 max-w-2xl font-[family-name:var(--font-body)]">
-            "If you scrolled this far, maybe you want to hear how this all started out..."
+            &quot;If you scrolled this far, maybe you want to hear how this all started out...&quot;
           </p>
         </motion.div>
 
@@ -93,7 +93,7 @@ export function StorySection() {
           </div>
           
           <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 0.2, duration: 0.5 }}>
-            DURIO began as a simple, local to-do list I built just so I could manage my own work easily. Nothing crazy, just something quick that wouldn't get in my way. Then, I added a local notepad because keeping thoughts in the same place made sense.
+            DURIO began as a simple, local to-do list I built just so I could manage my own work easily. Nothing crazy, just something quick that wouldn&apos;t get in my way. Then, I added a local notepad because keeping thoughts in the same place made sense.
           </motion.p>
           <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 0.4, duration: 0.5 }}>
             Before I knew it, the thought hit me: <strong className="text-white font-bold tracking-wide text-[110%]">Why not build a full application that handles all aspects of my life?</strong>
@@ -102,11 +102,11 @@ export function StorySection() {
             I showed the early version to a few friends. They loved the vibe, suggested a few tweaks, and actually started using it themselves. That was the spark. DURIO quickly evolved from a weekend script into a real ecosystem. 
           </motion.p>
           <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 0.8, duration: 0.5 }}>
-            I began adding modules, implementing proper security features, building out the mobile application, and expanding it into the complete productivity companion you see today. It was built for us, and now it's built for you.
+            I began adding modules, implementing proper security features, building out the mobile application, and expanding it into the complete productivity companion you see today. It was built for us, and now it&apos;s built for you.
           </motion.p>
           <motion.p initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false }} transition={{ delay: 1.0, duration: 0.5 }}>
-            By the way, if you're curious about how this all comes together, the entire <a href="https://github.com/MohammedIrfan244/to-do-app" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">codebase is open source</a>. 
-            Feel free to poke around my <a href="https://github.com/MohammedIrfan244" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">GitHub profile</a> or check out my <a href="https://mohammed-irfan.vercel.app" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">portfolio</a>. I'm always down to chat about code, design, or whatever you're building. ✌️
+            By the way, if you&apos;re curious about how this all comes together, the entire <a href="https://github.com/MohammedIrfan244/durio" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">codebase is open source</a>. 
+            Feel free to poke around my <a href="https://github.com/MohammedIrfan244" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">GitHub profile</a> or check out my <a href="https://mohammed-irfan.vercel.app" target="_blank" rel="noopener noreferrer" className="text-[#ff6a00] hover:text-[#ff8c40] underline decoration-[#ff6a00]/30 hover:decoration-[#ff6a00] transition-colors">portfolio</a>. I&apos;m always down to chat about code, design, or whatever you&apos;re building. ✌️
           </motion.p>
         </motion.div>
       </div>

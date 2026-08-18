@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Shield } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminWipeDataDialog from "./wipe-data-dialog";
 
@@ -11,8 +11,8 @@ interface AdminUserDeletionSectionProps {
     email: string;
     isActive: boolean;
     isDeleted: boolean;
-    deactivatedAt: string | null;
-    deletedAt: string | null;
+    deactivatedAt: string | Date | null;
+    deletedAt: string | Date | null;
   };
 }
 

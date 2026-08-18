@@ -29,15 +29,20 @@ import NaturalDecor from "@/components/decoration/natural-decor";
 import GothicDecor from "@/components/decoration/gothic-decor";
 import DarkDecor from "@/components/decoration/dark-decor";
 import LightDecor from "@/components/decoration/light-decor";
-import { APP_NAME, jakarta } from "@/lib/brand";
+import { APP_NAME } from "@/lib/brand";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const router = useRouter();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const isOpen = state === "expanded";
+  const closeSidebarOnNavigate = React.useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
   const { theme } = useTheme();
   const { fancyMode, disabledModules } = useSettings();
   const moduleKeyByPath = React.useMemo(() => {
@@ -56,6 +61,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     // Auto-collapse any manually opened groups when navigating out of their scope
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenGroups((prev) => 
       prev.filter((url) => pathname === url || (url !== "/" && pathname.startsWith(url + "/")))
     );
@@ -68,8 +74,9 @@ export default function Sidebar() {
   }, []);
 
   const goToSettings = React.useCallback(() => {
+    closeSidebarOnNavigate();
     router.push("/settings");
-  }, [router]);
+  }, [closeSidebarOnNavigate, router]);
 
   return (
     <>
@@ -158,8 +165,10 @@ export default function Sidebar() {
                       {item.subItems ? (
                         <button
                           className="w-full text-left"
-                          onClick={(e) => {
-                            if (!isOpen) { /* Do nothing or expand sidebar */ }
+                          onClick={() => {
+                            if (isMobile) {
+                              setOpenMobile(false);
+                            }
                             toggleGroup(item.url);
                           }}
                           disabled={isDisabled}
@@ -171,7 +180,7 @@ export default function Sidebar() {
                           {ButtonContent}
                         </div>
                       ) : (
-                        <Link href={item.url}>
+                        <Link href={item.url} onClick={closeSidebarOnNavigate}>
                           {ButtonContent}
                         </Link>
                       )}
@@ -197,7 +206,7 @@ export default function Sidebar() {
                                   : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                               }`}
                             >
-                              <Link href={sub.url} className="flex items-center relative">
+                              <Link href={sub.url} className="flex items-center relative" onClick={closeSidebarOnNavigate}>
                                 {/* Horizontal connector dash */}
                                 <div className="absolute -left-4 top-1/2 w-3 h-px bg-border/40" />
                                 {sub.label}
@@ -220,7 +229,10 @@ export default function Sidebar() {
           <SidebarMenuItem className="list-none">
             <SidebarMenuButton
               className="text-foreground cursor-pointer flex items-center gap-3 text-sm"
-              onClick={() => router.push("/feedback")}
+              onClick={() => {
+                closeSidebarOnNavigate();
+                router.push("/feedback");
+              }}
             >
               <MessageSquare size={18} />
               {isOpen && <span>Feedback</span>}
@@ -241,7 +253,10 @@ export default function Sidebar() {
             <SidebarMenuButton
               className="text-red-600 font-semibold cursor-pointer hover:text-red-700 logout-button"
               isActive={false}
-              onClick={() => setShowSignOutModal(true)}
+              onClick={() => {
+                closeSidebarOnNavigate();
+                setShowSignOutModal(true);
+              }}
             >
               <LogOut className="logout-icon" size={18} />
               {isOpen && <span>Sign out</span>}

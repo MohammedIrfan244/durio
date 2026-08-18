@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 function PetalSVG({ white }: { white: boolean }) {
   return (
@@ -12,45 +13,53 @@ function PetalSVG({ white }: { white: boolean }) {
   );
 }
 
+type Petal = {
+  left: number;
+  top: number;
+  duration: number;
+  delay: number;
+  swirl: string;
+  size: number;
+  isWhite: boolean;
+};
+
+function generatePetals(count: number): Petal[] {
+  return Array.from({ length: count }, () => ({
+    left: Math.random() * 100,
+    top: -10 - Math.random() * 10,
+    duration: 12 + Math.random() * 10,
+    delay: Math.random() * -14,
+    swirl: Math.random() > 0.5 ? "swirl" : "",
+    size: 10 + Math.random() * 14,
+    isWhite: Math.random() < 0.65,
+  }));
+}
+
 export default function PookieFlowers({ count = 24 }: { count?: number }) {
-  const petals = Array.from({ length: count });
-
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useIsMounted();
+  const [petals] = useState(() => generatePetals(count));
 
   if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>
-      {petals.map((_, i) => {
-        const left = Math.random() * 100;
-        const duration = 12 + Math.random() * 10;
-        const delay = Math.random() * -14;
-        const swirl = Math.random() > 0.5 ? "swirl" : "";
-        const size = 10 + Math.random() * 14;
-        const isWhite = Math.random() < 0.65;
-
-        return (
-          <div
-            key={i}
-            className={`pookie-petal ${swirl}`}
-            style={{
-              left: `${left}%`,
-              top: `${-10 - Math.random() * 10}vh`,
-              width: `${size}px`,
-              height: `${size}px`,
-              animationDuration: `${duration}s`,
-              animationDelay: `${delay}s`,
-              opacity: 0.95,
-            }}
-          >
-            <PetalSVG white={isWhite} />
-          </div>
-        );
-      })}
+      {petals.map((petal, i) => (
+        <div
+          key={i}
+          className={`pookie-petal ${petal.swirl}`}
+          style={{
+            left: `${petal.left}%`,
+            top: `${petal.top}vh`,
+            width: `${petal.size}px`,
+            height: `${petal.size}px`,
+            animationDuration: `${petal.duration}s`,
+            animationDelay: `${petal.delay}s`,
+            opacity: 0.95,
+          }}
+        >
+          <PetalSVG white={petal.isWhite} />
+        </div>
+      ))}
     </div>
   );
 }

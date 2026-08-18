@@ -1,4 +1,4 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { checkAdminAuth } from "@/server/actions/admin-auth";
 import Link from "next/link";
 

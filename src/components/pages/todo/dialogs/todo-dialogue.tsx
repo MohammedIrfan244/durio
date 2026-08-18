@@ -248,7 +248,7 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
       <div className="space-y-2 md:col-span-2 min-w-0">
         <Label className="flex items-center gap-2 text-sm font-medium">
           <CalendarIcon className="w-3.5 h-3.5" />
-          When's it due?
+          When&apos;s it due?
         </Label>
 
         <Popover>
@@ -386,7 +386,8 @@ const TimeSelect: React.FC<{
 
 // Checklist Management
 const ChecklistSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
-  const { control, register, watch, setValue, formState: { errors } } = form;
+  const { control, watch, setValue, formState: { errors } } = form;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const checklist = watch("checklist") || [];
 
   const addChecklistItem = useCallback(() => {
@@ -553,6 +554,7 @@ export default function ToDoDialog({
 
         reset(values as CreateTodoInput);
       } catch (error) {
+        console.error("Failed to load todo", error);
         toast.error("Failed to load todo");
         setOpen(false);
       } finally {
@@ -570,12 +572,13 @@ export default function ToDoDialog({
       let dueDateUTC: string | undefined = undefined;
       if (data.dueDate) {
         // If dueTime is present, combine date and time
-        let dateObj = new Date(data.dueDate);
+        const dateObj = new Date(data.dueDate);
         if (data.dueTime) {
           // Use same parsing logic as server
           const parts = data.dueTime.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i);
           if (parts) {
-            let [_, hourStr, minuteStr, period] = parts;
+            const [_, hourStr, minuteStr, period] = parts;
+            console.log(_)
             let hours = parseInt(hourStr, 10);
             const minutes = parseInt(minuteStr, 10);
             if (period.toUpperCase() === 'PM' && hours < 12) {
@@ -694,7 +697,7 @@ export default function ToDoDialog({
                         <UnsavedResourceLinker
                           allowedTargetTypes={["NOTE"]}
                           searchAction={searchLinkableResources}
-                          value={(field.value as any) || []}
+                          value={field.value || []}
                           onChange={field.onChange}
                         />
                       )}

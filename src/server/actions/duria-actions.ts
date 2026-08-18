@@ -2,22 +2,23 @@
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
 import { withErrorWrapper } from "@/lib/server/error-wrapper";
-import { z } from "zod";
+import { Prisma } from "@prisma/client";
+import type {
+    DuriaEventContext,
+    DuriaListFilters,
+    DuriaNoteContext,
+    DuriaTodoContext,
+    DuriaFocusBlockContext,
+} from "@/types/duria";
+import { aiListSchema } from "@/schema/duria";
 
-const aiListSchema = z.object({
-    folderId: z.string().trim().min(1).optional(),
-    startDate: z.union([z.string(), z.date()]).optional(),
-    endDate: z.union([z.string(), z.date()]).optional(),
-    limit: z.number().int().min(1).max(30).optional(),
-    includeArchived: z.boolean().optional(),
-}).optional();
 
-export const getTodosForAI = withErrorWrapper<any, [{ limit?: number, includeArchived?: boolean } | undefined]>(async (input) => {
+export const getTodosForAI = withErrorWrapper<DuriaTodoContext[], [DuriaListFilters | undefined]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
     
-    const whereClause: any = { userId };
+    const whereClause: Prisma.TodoWhereInput = { userId };
     if (!validatedInput?.includeArchived) {
         whereClause.status = { not: "ARCHIVED" };
     }
@@ -40,12 +41,12 @@ export const getTodosForAI = withErrorWrapper<any, [{ limit?: number, includeArc
     return todos;
 });
 
-export const getNotesForAI = withErrorWrapper<any, [{ folderId?: string, limit?: number } | undefined]>(async (input) => {
+export const getNotesForAI = withErrorWrapper<DuriaNoteContext[], [DuriaListFilters | undefined]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
 
-    const whereClause: any = { 
+    const whereClause: Prisma.NoteWhereInput = { 
         userId,
         status: { not: "ARCHIVED" } 
     };
@@ -70,12 +71,12 @@ export const getNotesForAI = withErrorWrapper<any, [{ folderId?: string, limit?:
     return notes;
 });
 
-export const getEventsForAI = withErrorWrapper<any, [{ startDate?: Date, endDate?: Date, limit?: number } | undefined]>(async (input) => {
+export const getEventsForAI = withErrorWrapper<DuriaEventContext[], [DuriaListFilters | undefined]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
 
-    const whereClause: any = { userId };
+    const whereClause: Prisma.EventWhereInput = { userId };
     
     if (validatedInput?.startDate || validatedInput?.endDate) {
         whereClause.startDate = {};
@@ -99,4 +100,29 @@ export const getEventsForAI = withErrorWrapper<any, [{ startDate?: Date, endDate
         }
     });
     return events;
+});
+
+export const getFocusBlocksForAI = withErrorWrapper<DuriaFocusBlockContext[], [DuriaListFilters | undefined]>(async (input) => {
+    const validatedInput = aiListSchema.parse(input);
+    const userId = await getUserId();
+    const limit = validatedInput?.limit || 20;
+
+    const focusBlocks = await prisma.routineBlock.findMany({
+        where: { userId, isActive: true },
+        orderBy: { startTime: "asc" },
+        take: limit,
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            startTime: true,
+            endTime: true,
+            daysOfWeek: true,
+            priority: true,
+            energyLevel: true,
+            transitionRitual: true,
+            isActive: true,
+        }
+    });
+    return focusBlocks as DuriaFocusBlockContext[];
 });

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Grid3x3, Plus, Minus, ArrowRight, RotateCw, Trash2, Equal } from "lucide-react";
+import { Grid3x3, Plus, Minus, ArrowRight } from "lucide-react";
 import { matrixLogic, Matrix as MatrixType } from "@/lib/logic/calculator/matrix";
 
 export default function MatrixCalculator() {
@@ -95,27 +94,27 @@ export default function MatrixCalculator() {
     try {
       setResult(op());
       setError(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError((e as Error).message || "Invalid operation");
       setResult(null);
     }
   };
 
-  const renderMatrixInput = (m: MatrixType, setM: (m: MatrixType) => void, label: string) => (
+  const renderMatrixInput = (m: MatrixType, setM: (m: MatrixType) => void, label: 'A' | 'B') => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
         <div className="flex items-center gap-2 bg-secondary/30 p-1 rounded-lg border border-border/50">
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'row', -1)}><Minus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'row', -1)}><Minus className="h-3 w-3"/></Button>
             <span className="text-xs font-mono w-4 text-center">{m.length}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'row', 1)}><Plus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'row', 1)}><Plus className="h-3 w-3"/></Button>
           </div>
           <span className="text-muted-foreground text-[10px]">×</span>
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'col', -1)}><Minus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'col', -1)}><Minus className="h-3 w-3"/></Button>
             <span className="text-xs font-mono w-4 text-center">{m[0].length}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label as any, 'col', 1)}><Plus className="h-3 w-3"/></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => adjustDimensions(label, 'col', 1)}><Plus className="h-3 w-3"/></Button>
           </div>
         </div>
       </div>

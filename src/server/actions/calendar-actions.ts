@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/server/get-user";
+import { getUserTimezone, validateDateNotBeforeToday } from "@/lib/server/date-utils";
 import { revalidatePath } from "next/cache";
 import { 
     IEventCreateInput, 
@@ -12,23 +13,10 @@ import {
 import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { z } from "zod";
 import { MONGOID } from "@/schema/mongo";
+import { eventCreateSchema, searchSchema } from "@/schema/calendar";
 
-const eventCreateSchema = z.object({
-    title: z.string().trim().min(1).max(200),
-    description: z.string().trim().max(10000).optional(),
-    location: z.string().trim().max(200).optional(),
-    isAllDay: z.boolean().optional(),
-    startDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
-    endDate: z.union([z.string(), z.date()]).transform((value) => new Date(value)),
-    categoryId: MONGOID.optional(),
-    linkedResources: z.array(z.object({
-        id: MONGOID,
-        type: z.enum(["EVENT", "TODO", "NOTE", "PROJECT"]),
-    })).max(20).optional(),
-});
 
 const eventUpdateSchema = eventCreateSchema.partial().omit({ linkedResources: true });
-const searchSchema = z.string().trim().max(100);
 
 const DEFAULT_CATEGORIES = [
     { name: "Personal", color: "#3B82F6", isSystem: true },
@@ -38,6 +26,82 @@ const DEFAULT_CATEGORIES = [
     { name: "Meetings", color: "#F97316", isSystem: true },
     { name: "Reminders", color: "#EAB308", isSystem: true },
 ];
+
+const CALENDAR_NOTIFICATION_CATEGORY_NAMES = new Set([
+    "Personal",
+    "Work",
+    "Birthdays",
+    "Anniversaries",
+    "Meetings",
+    "Reminders",
+]);
+
+function formatCalendarEventNotificationDate(date: Date) {
+    const eventDate = new Date(date);
+    const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(eventDate);
+
+    return formatted.replace(" at ", " ");
+}
+
+async function sendCalendarEventNotification(userId: string, event: Event) {
+    const categoryName = event.categoryId
+        ? (await prisma.eventCategory.findUnique({
+              where: { id: event.categoryId },
+              select: { name: true },
+          }))?.name
+        : null;
+
+    const categoryKey = categoryName ? categoryName.trim() : "";
+    if (!categoryKey || !CALENDAR_NOTIFICATION_CATEGORY_NAMES.has(categoryKey)) {
+        return;
+    }
+
+    const dateLabel = formatCalendarEventNotificationDate(event.startDate);
+    const message = `${categoryKey}: ${event.title} is scheduled for ${dateLabel}.`;
+
+    await prisma.notification.create({
+        data: {
+            userId,
+            message,
+            date: event.startDate,
+        },
+    });
+
+    const { adminMessaging } = await import("@/lib/server/firebase-admin");
+    if (!adminMessaging) return;
+
+    const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { fcmTokens: true },
+    });
+
+    const tokens = dbUser?.fcmTokens;
+    if (!tokens || tokens.length === 0) return;
+
+    try {
+        await adminMessaging.sendEachForMulticast({
+            tokens,
+            notification: {
+                title: "Durio Calendar",
+                body: message,
+            },
+            data: {
+                url: "/calendar",
+                eventId: event.id,
+                eventDate: event.startDate.toISOString(),
+                eventTime: event.startDate.toISOString(),
+            },
+        });
+    } catch (error) {
+        console.error("FCM Calendar Event Push Error:", error);
+    }
+}
 
 /**
  * Get or create the default event categories for a user.
@@ -82,12 +146,38 @@ export async function createEvent(data: IEventCreateInput): Promise<ICalendarAct
 
         const { linkedResources, ...eventData } = validatedData;
 
+        // Get user's timezone for date validation
+        const userTimezone = await getUserTimezone(user.id as string);
+
+        // Validate start date is not in the past (unless it's a special event like birthday)
+        const categoryId = eventData.categoryId;
+        let categoryName = "";
+        if (categoryId) {
+            const category = await prisma.eventCategory.findUnique({
+                where: { id: categoryId },
+                select: { name: true },
+            });
+            categoryName = category?.name || "";
+        }
+
+        // Allow past dates for special categories like Birthdays and Anniversaries
+        const isSpecialCategory = categoryName === "Birthdays" || categoryName === "Anniversaries";
+        if (!isSpecialCategory && eventData.startDate) {
+            const dateError = validateDateNotBeforeToday(eventData.startDate, userTimezone);
+            if (dateError) {
+                return { success: false, error: dateError };
+            }
+        }
+
         const event = await prisma.event.create({
             data: {
                 userId: user.id as string,
                 ...eventData,
             },
+            include: { category: true },
         });
+
+        await sendCalendarEventNotification(user.id as string, event);
 
         if (linkedResources && linkedResources.length > 0) {
             await Promise.all(
@@ -127,6 +217,26 @@ export async function updateEvent(id: string, data: Partial<IEventCreateInput>):
         const validatedData = eventUpdateSchema.parse(data);
         const user = await getUser();
         if (!user || "error" in user) throw new Error("Unauthorized");
+
+        // Get user's timezone for date validation
+        const userTimezone = await getUserTimezone(user.id as string);
+
+        // Validate start date if provided
+        if (validatedData.startDate) {
+            const existingEvent = await prisma.event.findFirst({
+                where: { id: eventId, userId: user.id as string },
+                include: { category: true },
+            });
+
+            // Allow past dates for special categories
+            const isSpecialCategory = existingEvent?.category?.name === "Birthdays" || existingEvent?.category?.name === "Anniversaries";
+            if (!isSpecialCategory) {
+                const dateError = validateDateNotBeforeToday(validatedData.startDate, userTimezone);
+                if (dateError) {
+                    return { success: false, error: dateError };
+                }
+            }
+        }
 
         const event = await prisma.event.update({
             where: { id: eventId, userId: user.id as string },
@@ -208,7 +318,7 @@ function getOrdinalIndicator(n: number) {
     return s[(v - 20) % 10] || s[v] || s[0];
 }
 
-async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
+export async function fetchFunFactForDate(month: number, day: number): Promise<string | undefined> {
     try {
         const res = await fetch(`https://history.muffinlabs.com/date/${month}/${day}`);
         const json = await res.json();
@@ -273,7 +383,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         
         events.forEach(e => {
             const isAnnualRecurrent = e.category?.name === "Birthdays" || e.category?.name === "Anniversaries";
-            const isBirthday = e.category?.name === "Birthdays";
+            // const isBirthday = e.category?.name === "Birthdays";
             
             if (isAnnualRecurrent) {
                 const startYear = validatedRange.startDate.getFullYear();
@@ -364,7 +474,7 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
         }
 
         const mappedTodos: ICalendarEvent[] = todosWithDates.map(t => {
-            let dateObj = new Date(t.dueDate!);
+            const dateObj = new Date(t.dueDate!);
             if (t.dueTime) {
                 const [hours, minutes] = t.dueTime.split(":");
                 dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
@@ -412,7 +522,7 @@ export async function getUpcomingMilestones(): Promise<IEvent[]> {
         const currentYear = now.getFullYear();
 
         for (const e of recurrentEvents) {
-            let nextDate = new Date(e.startDate);
+            const nextDate = new Date(e.startDate);
             nextDate.setFullYear(currentYear);
             
             const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());

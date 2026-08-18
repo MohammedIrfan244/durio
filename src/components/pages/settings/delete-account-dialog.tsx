@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 interface DeleteAccountDialogProps {
@@ -28,7 +27,6 @@ export default function DeleteAccountDialog({
 }: DeleteAccountDialogProps) {
   const [step, setStep] = useState<DeleteStep>("initial");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleClose = () => {
     setStep("initial");
@@ -168,7 +166,7 @@ export default function DeleteAccountDialog({
               <ul className="list-disc list-inside text-sm space-y-1 ml-2">
                 <li>All your data remains safe</li>
                 <li>Your account can be reactivated by contacting us</li>
-                <li>You'll be logged out immediately</li>
+                <li>You&apos;ll be logged out immediately</li>
               </ul>
               <p className="pt-2">
                 To reactivate, contact{" "}

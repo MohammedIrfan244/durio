@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useSettings } from '@/components/providers/settings-provider';
 import { APP_REGISTRY } from '@/config/modules';
 import { updateUserSettings } from '@/server/actions/settings-actions';
@@ -133,7 +133,7 @@ export default function Settings() {
                 >
                   <div className="space-y-0.5">
                     <Label className="text-sm font-semibold capitalize">
-                      {(module as any).label || key.toLowerCase()}
+                      {"label" in module && typeof module.label === "string" ? module.label : key.toLowerCase()}
                     </Label>
                     {isSystemDisabled && (
                       <p className="text-xs text-orange-500 font-medium flex items-center gap-1">
@@ -177,7 +177,7 @@ export default function Settings() {
             Delete Account
           </Button>
           <p className="text-xs text-muted-foreground mt-4">
-            See our <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">privacy policy</a> for details on account deletion options.
+            See our <a href="/privacy-policy" target="_self" rel="noopener noreferrer" className="text-primary hover:underline">privacy policy</a> for details on account deletion options.
           </p>
         </CardContent>
       </Card>

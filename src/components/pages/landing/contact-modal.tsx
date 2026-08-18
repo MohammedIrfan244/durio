@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Mail, Twitter, Github } from "lucide-react";
+import { MessageSquare, Mail, Github, PersonStanding } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
 import InfoModal from "@/components/shared/info-modal";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
           </Link>
 
           <Link href="https://mohammed-irfan.vercel.app" target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer text-foreground">
-            <Twitter className="text-[#ff6a00]" size={20} />
+            <PersonStanding className="text-[#ff6a00]" size={20} />
             <div>
               <div className="font-semibold">Meet the Dev</div>
               <div className="text-xs text-muted-foreground">mhd-irfan</div>

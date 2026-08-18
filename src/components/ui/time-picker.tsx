@@ -9,9 +9,10 @@ interface TimePickerProps {
   value: string; // "HH:mm" in 24h format
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean
 }
 
-export function TimePicker({ value, onChange, className }: TimePickerProps) {
+export function TimePicker({ value, onChange, className , disabled = false }: TimePickerProps) {
   const [hour, minute] = useMemo(() => {
     if (!value) return ["09", "00"];
     return value.split(":");
@@ -33,7 +34,7 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
       <div className="relative flex items-center h-12 w-full bg-secondary/30 rounded-md border border-input shadow-sm focus-within:ring-1 focus-within:ring-ring transition-colors px-1">
         <Clock className="absolute left-3 text-muted-foreground/70" size={18} />
         
-        <Select value={hour} onValueChange={handleHourChange}>
+        <Select value={hour} onValueChange={handleHourChange} disabled={disabled}>
           <SelectTrigger className="h-full border-0 bg-transparent shadow-none focus:ring-0 pl-9 pr-2 w-[100px] text-lg font-medium">
             <SelectValue placeholder="HH" />
           </SelectTrigger>
@@ -48,12 +49,12 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
 
         <span className="text-muted-foreground font-bold px-1">:</span>
 
-        <Select value={minute} onValueChange={handleMinuteChange}>
+        <Select value={minute} onValueChange={handleMinuteChange} disabled={disabled}>
           <SelectTrigger className="h-full border-0 bg-transparent shadow-none focus:ring-0 px-2 w-[90px] text-lg font-medium">
             <SelectValue placeholder="MM" />
           </SelectTrigger>
           <SelectContent className="max-h-[300px]">
-            {minutes.map((m) => (
+            {minutes.map((m) => ( 
               <SelectItem key={m} value={m}>
                 {m}
               </SelectItem>

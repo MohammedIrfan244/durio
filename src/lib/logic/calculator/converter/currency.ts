@@ -18,6 +18,7 @@ async function fetchRates() {
         lastFetched = now;
       }
     } catch (e) {
+      console.error(e);
       console.error("Failed to fetch rates, using fallback.");
     }
   }

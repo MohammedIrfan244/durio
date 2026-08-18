@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { streamText, tool } from "ai";
+import type { ModelMessage, ToolChoice } from "ai";
 import { google } from "@ai-sdk/google";
 import { promises as fs } from "fs";
 import path from "path";
@@ -9,12 +10,18 @@ import { getUserTimezone } from "@/lib/server/date-utils";
 import { checkRateLimit } from "@/lib/server/rate-limit";
 
 import { checkAndIncrementAIUsage } from "@/server/actions/ai-usage";
+import type {
+  DuriaChatRequestBody,
+  DuriaMessage,
+  DuriaToolCall,
+  DuriaToolPart,
+} from "@/types/duria-chat";
 
 const MAX_REQUEST_BODY_BYTES = 50 * 1024;
 const isDevelopment = process.env.NODE_ENV === "development";
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 
-async function logToDebugFile(tag: string, data: any) {
+async function logToDebugFile(tag: string, data: unknown) {
   try {
     const logPath = path.join(process.cwd(), "duria-debug.log");
     const timestamp = new Date().toISOString();
@@ -25,14 +32,18 @@ async function logToDebugFile(tag: string, data: any) {
   }
 }
 
-function getTextFromMessage(msg: any) {
+function getTextFromMessage(msg: Partial<DuriaMessage>) {
   return msg.content ||
-    (msg.parts?.find((part: any) => part.type === 'text')?.text) ||
+    (msg.parts?.find((part) => part.type === 'text')?.text) ||
     "";
 }
 
-function getToolCallsFromMessage(msg: any) {
-  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation: any) => ({
+function isDuriaToolPart(part: NonNullable<DuriaMessage["parts"]>[number]): part is DuriaToolPart {
+  return part.type.startsWith('tool-');
+}
+
+function getToolCallsFromMessage(msg: Partial<DuriaMessage>): DuriaToolCall[] {
+  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation) => ({
     toolCallId: toolInvocation.toolCallId,
     toolName: toolInvocation.toolName,
     input: toolInvocation.input ?? toolInvocation.args ?? {},
@@ -41,8 +52,8 @@ function getToolCallsFromMessage(msg: any) {
   }));
 
   const partToolCalls = (msg.parts || [])
-    .filter((part: any) => typeof part.type === 'string' && part.type.startsWith('tool-'))
-    .map((part: any) => ({
+    .filter(isDuriaToolPart)
+    .map((part) => ({
       toolCallId: part.toolCallId,
       toolName: part.toolName || part.type.replace(/^tool-/, ''),
       input: part.input ?? {},
@@ -50,25 +61,33 @@ function getToolCallsFromMessage(msg: any) {
       state: part.state,
     }));
 
-  return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolCallId && toolCall.toolName);
+  return [...legacyToolCalls, ...partToolCalls]
+    .filter((toolCall) => Boolean(toolCall.toolCallId && toolCall.toolName))
+    .map((toolCall) => ({
+      toolCallId: String(toolCall.toolCallId),
+      toolName: String(toolCall.toolName),
+      input: toolCall.input ?? {},
+      output: toolCall.output,
+      state: toolCall.state,
+    }));
 }
 
-function inferManageToolChoice(messages: any[]) {
-  const latestRawMessage = [...(messages || [])].reverse().find((msg: any) => getTextFromMessage(msg).trim());
+function inferManageToolChoice(messages: DuriaMessage[] = []) {
+  const latestRawMessage = [...messages].reverse().find((msg) => getTextFromMessage(msg).trim());
   if (getTextFromMessage(latestRawMessage || {}).trim().startsWith("[SYSTEM]")) {
     return undefined;
   }
 
-  const conversationMessages = (messages || []).filter((msg: any) => {
+  const conversationMessages = messages.filter((msg) => {
     const text = getTextFromMessage(msg).trim();
     return !text.startsWith("[SYSTEM]");
   });
   const latestUserText = getTextFromMessage(
-    [...conversationMessages].reverse().find((msg: any) => msg.role === 'user') || {}
+    [...conversationMessages].reverse().find((msg) => msg.role === 'user') || {}
   );
   const recentText = conversationMessages
     .slice(-6)
-    .map((msg: any) => getTextFromMessage(msg))
+    .map((msg) => getTextFromMessage(msg))
     .join("\n")
     .toLowerCase();
   const latest = String(latestUserText || '').toLowerCase();
@@ -115,10 +134,10 @@ function rateLimitResponse(retryAfter?: number) {
   });
 }
 
-function getLatestUserMessageText(messages: any[]) {
-  const latestUserMessage = [...(messages || [])]
+function getLatestUserMessageText(messages: DuriaMessage[] = []) {
+  const latestUserMessage = [...messages]
     .reverse()
-    .find((msg: any) => msg.role === "user");
+    .find((msg) => msg.role === "user");
 
   return getTextFromMessage(latestUserMessage || {});
 }
@@ -174,9 +193,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse request body
-    let body: any;
+    let body: DuriaChatRequestBody;
     try {
-      body = JSON.parse(rawBody);
+      body = JSON.parse(rawBody) as DuriaChatRequestBody;
     } catch {
       return new Response("Invalid JSON body", { status: 400 });
     }
@@ -209,6 +228,7 @@ export async function POST(req: NextRequest) {
       const guidePath = path.join(process.cwd(), "feature_guide.md");
       primaryGuide = await fs.readFile(guidePath, "utf-8");
     } catch (e) {
+      console.error("Failed to load feature_guide.md for AI context", e);
       console.warn("Could not load feature_guide.md for AI context");
     }
 
@@ -285,27 +305,30 @@ ${primaryGuide}
     if (contextPayload) {
       systemPrompt += `\n\nThe user has explicitly attached the following deeper context for this specific conversation. Use this data heavily to answer their prompt:\n\n`;
       
-      if (contextPayload.todos?.length > 0) {
+      if ((contextPayload.todos?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED TASKS]:\n${JSON.stringify(contextPayload.todos, null, 2)}\n\n`;
       }
-      if (contextPayload.notes?.length > 0) {
+      if ((contextPayload.notes?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED NOTES]:\n${JSON.stringify(contextPayload.notes, null, 2)}\n\n`;
       }
-      if (contextPayload.events?.length > 0) {
+      if ((contextPayload.events?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED EVENTS]:\n${JSON.stringify(contextPayload.events, null, 2)}\n\n`;
       }
-      if (contextPayload.docs?.length > 0) {
+      if ((contextPayload.focusBlocks?.length ?? 0) > 0) {
+        systemPrompt += `[ATTACHED FOCUS BLOCKS]:\n${JSON.stringify(contextPayload.focusBlocks, null, 2)}\n\n`;
+      }
+      if ((contextPayload.docs?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED FEATURE MANUALS]:\n`;
-        contextPayload.docs.forEach((doc: any) => {
+        contextPayload.docs?.forEach((doc) => {
           systemPrompt += `--- ${doc.title} ---\n${doc.content}\n\n`;
         });
       }
     }
 
     // Manually map UIMessages to ModelMessages to avoid AI SDK crashes
-    const coreMessages: any[] = [];
+    const coreMessages: ModelMessage[] = [];
     
-    (messages || []).forEach((msg: any) => {
+    (messages || []).forEach((msg) => {
       if (msg.role === 'user') {
         coreMessages.push({ role: 'user', content: getTextFromMessage(msg) });
       } else if (msg.role === 'assistant') {
@@ -314,7 +337,7 @@ ${primaryGuide}
 
         if (toolCalls.length > 0) {
           const proposalSummary = toolCalls
-            .map((toolCall: any) => `[DURIA proposed ${toolCall.toolName}: ${JSON.stringify(toolCall.input)}]`)
+            .map((toolCall) => `[DURIA proposed ${toolCall.toolName}: ${JSON.stringify(toolCall.input)}]`)
             .join("\n");
 
           coreMessages.push({
@@ -324,19 +347,8 @@ ${primaryGuide}
         } else if (content) {
           coreMessages.push({ role: 'assistant', content });
         }
-      } else if (msg.role === 'tool') {
-        const toolCalls = getToolCallsFromMessage(msg);
-        coreMessages.push({
-          role: 'tool',
-          content: toolCalls.map((toolCall: any) => ({
-            type: 'tool-result',
-            toolCallId: toolCall.toolCallId,
-            toolName: toolCall.toolName,
-            output: toolCall.output,
-          })),
-        });
       } else {
-        coreMessages.push({ role: msg.role, content: msg.content });
+        coreMessages.push({ role: msg.role, content: getTextFromMessage(msg) });
       }
     });
 
@@ -351,24 +363,7 @@ ${primaryGuide}
     }
 
     // 6. Call Gemini
-    const result = streamText({
-      model: google("gemini-3.5-flash"),
-      system: systemPrompt,
-      messages: coreMessages,
-      temperature: 0.7,
-      toolChoice: toolChoice as any,
-      onFinish: async (event) => {
-        if (isDevelopment) {
-          await logToDebugFile("GEMINI RESPONSE (onFinish)", {
-            text: event.text,
-            toolCalls: event.toolCalls,
-            usage: event.usage,
-            finishReason: event.finishReason,
-          });
-        }
-      },
-      tools: {
-        // @ts-ignore
+    const duriaTools = {
         proposeCreateTask: tool({
           description: "Propose a new task for the user's to-do list. You have full capability to set the title, description, priority, dueDate, and dueTime if mentioned.",
           inputSchema: z.object({
@@ -379,8 +374,7 @@ ${primaryGuide}
             dueTime: z.string().optional().describe("Due time in HH:mm format"),
             tags: z.array(z.string()).optional().describe("Array of tags for the task"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeUpdateTask: tool({
           description: "Propose updates to an existing task (e.g., mark as DONE, change priority). Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
@@ -392,15 +386,13 @@ ${primaryGuide}
             tags: z.array(z.string()).optional().describe("Array of tags"),
             status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]).optional().describe("The new status for the task"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeDeleteTask: tool({
           description: "Propose deleting a task. Do not ask for or require an ID; the app will let the user select the exact task.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeCreateNote: tool({
           description: "Propose a new note for the user. Use whenever the user asks to save or write a note.",
           inputSchema: z.object({
@@ -408,8 +400,7 @@ ${primaryGuide}
             description: z.string().describe("The body content of the note"),
             color: z.string().optional().describe("Optional hex color string for the note card"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeUpdateNote: tool({
           description: "Propose updates to an existing note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
@@ -417,15 +408,13 @@ ${primaryGuide}
             description: z.string().optional().describe("The new body content"),
             color: z.string().optional().describe("New optional hex color string"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeDeleteNote: tool({
           description: "Propose deleting a note. Do not ask for or require an ID; the app will let the user select the exact note.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeCreateEvent: tool({
           description: "Propose a new calendar event. Always try to infer the correct categoryName from context: use 'Birthdays', 'Anniversaries', 'Meetings', 'Reminders', 'Work', or 'Personal'.",
           inputSchema: z.object({
@@ -437,8 +426,7 @@ ${primaryGuide}
             endDate: z.string().describe("The end date/time in ISO 8601 format. If not specified, set it 1 hour after startDate."),
             categoryName: z.string().optional().describe("The category for the event. Must be one of: Personal, Work, Birthdays, Anniversaries, Meetings, Reminders"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeUpdateEvent: tool({
           description: "Propose updates to an existing calendar event (e.g., reschedule). Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
@@ -450,15 +438,13 @@ ${primaryGuide}
             endDate: z.string().optional().describe("The new end date/time in ISO 8601 format"),
             categoryName: z.string().optional().describe("The category for the event"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeDeleteEvent: tool({
           description: "Propose deleting a calendar event. Do not ask for or require an ID; the app will let the user select the exact event.",
           inputSchema: z.object({
             reason: z.string().optional().describe("Optional reason or context for the deletion."),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeCreateFocusBlock: tool({
           description: "Propose a new focus time / routine block.",
           inputSchema: z.object({
@@ -471,8 +457,7 @@ ${primaryGuide}
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().describe("Priority"),
             transitionRitual: z.string().optional().describe("Ritual before block"),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeUpdateFocusBlock: tool({
           description: "Propose updates to a focus block.",
           inputSchema: z.object({
@@ -483,22 +468,42 @@ ${primaryGuide}
             energyLevel: z.string().optional(),
             priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
           }),
-        } as any),
-        // @ts-ignore
+        }),
         proposeDeleteFocusBlock: tool({
           description: "Propose deleting a focus block.",
           inputSchema: z.object({
             reason: z.string().optional(),
           }),
-        } as any)
-      }
+        })
+      };
+
+    const typedToolChoice = toolChoice as ToolChoice<typeof duriaTools> | undefined;
+
+    const result = streamText({
+      model: google("gemini-3.5-flash"),
+      system: systemPrompt,
+      messages: coreMessages,
+      temperature: 0.7,
+      toolChoice: typedToolChoice,
+      onFinish: async (event) => {
+        if (isDevelopment) {
+          await logToDebugFile("GEMINI RESPONSE (onFinish)", {
+            text: event.text,
+            toolCalls: event.toolCalls,
+            usage: event.usage,
+            finishReason: event.finishReason,
+          });
+        }
+      },
+      tools: duriaTools
     });
 
     // 7. Stream response back to client
     return result.toUIMessageStreamResponse();
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("DURIA API Error:", error);
-    return new Response(error.message || "Internal Server Error", { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Server Error";
+    return new Response(message, { status: 500 });
   }
 }

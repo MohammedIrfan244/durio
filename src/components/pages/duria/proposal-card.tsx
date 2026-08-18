@@ -12,11 +12,16 @@ import { createNote, updateNote, deleteNote, getNoteById } from '@/server/action
 import { createEvent, updateEvent, deleteEvent, getOrCreateDefaultCategories, getEventById } from '@/server/actions/calendar-actions';
 import { getTodosForAI, getNotesForAI, getEventsForAI } from '@/server/actions/duria-actions';
 import { createFocusBlock, updateFocusBlock, deleteFocusBlock, getFocusBlocksForAI, getFocusBlockById } from '@/server/actions/focus-actions';
+import type { DuriaProposalPayload } from '@/types/duria-chat';
+import type { IEventCreateInput } from '@/types/calendar';
+import type { CreateTodoInput, UpdateTodoInput } from '@/schema/todo';
+import type { CreateNoteInput, UpdateNoteInput } from '@/schema/note';
+import type { FocusBlockInput, UpdateFocusBlockInput } from '@/types/focus';
 
 interface ProposalCardProps {
   toolName: string;
-  args: Record<string, any>;
-  onConfirm: (finalPayload: any, resultMessage: string) => void;
+  args: DuriaProposalPayload;
+  onConfirm: (finalPayload: DuriaProposalPayload, resultMessage: string) => void;
   onCancel: (cancelMessage: string) => void;
   status: 'pending' | 'confirmed' | 'cancelled' | 'error';
 }
@@ -29,7 +34,7 @@ interface ActionTarget {
   subtitle?: string;
 }
 
-function normalizeProposalPayload(toolName: string, args: Record<string, any>) {
+function normalizeProposalPayload(toolName: string, args: DuriaProposalPayload): DuriaProposalPayload {
   const normalized = { ...args };
 
   if (toolName.includes('Task')) {
@@ -72,28 +77,28 @@ function getActionMode(toolName: string) {
   return 'Proposal';
 }
 
-function formatTargetDate(value: any) {
+function formatTargetDate(value: string | Date | null | undefined) {
   if (!value) return undefined;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return undefined;
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function formatDateInput(value: any) {
+function formatDateInput(value: string | Date | null | undefined) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().slice(0, 10);
 }
 
-function formatDateTimeInput(value: any) {
+function formatDateTimeInput(value: string | Date | null | undefined) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().slice(0, 16);
 }
 
-function getProposedDirtyFields(args: Record<string, any>) {
+function getProposedDirtyFields(args: DuriaProposalPayload) {
   return Object.keys(args || {}).filter((key) => !['id', 'reason'].includes(key) && args[key] !== undefined);
 }
 
@@ -104,12 +109,25 @@ function getAllowedUpdateFields(targetType: TargetType) {
   return ['title', 'description', 'location', 'isAllDay', 'startDate', 'endDate', 'categoryName'];
 }
 
-function valuesMatch(a: any, b: any) {
+function valuesMatch(a: unknown, b: unknown) {
   return String(a ?? '') === String(b ?? '');
 }
 
-function pickDirtyPayload(payload: Record<string, any>, dirtyFields: string[], originalPayload?: Record<string, any> | null, allowedFields?: string[]) {
-  return dirtyFields.reduce((acc: Record<string, any>, field) => {
+function stringValue(value: DuriaProposalPayload[string]) {
+  return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+}
+
+function booleanValue(value: DuriaProposalPayload[string]) {
+  return typeof value === 'boolean' ? value : false;
+}
+
+function dateValue(value: DuriaProposalPayload[string]) {
+  if (typeof value === 'string' || typeof value === 'number') return new Date(value);
+  return new Date();
+}
+
+function pickDirtyPayload(payload: DuriaProposalPayload, dirtyFields: string[], originalPayload?: DuriaProposalPayload | null, allowedFields?: string[]) {
+  return dirtyFields.reduce((acc: DuriaProposalPayload, field) => {
     if (allowedFields && !allowedFields.includes(field)) return acc;
     if (!originalPayload || !valuesMatch(payload[field], originalPayload[field])) {
       acc[field] = payload[field];
@@ -119,13 +137,13 @@ function pickDirtyPayload(payload: Record<string, any>, dirtyFields: string[], o
 }
 
 export default function ProposalCard({ toolName, args, onConfirm, onCancel, status }: ProposalCardProps) {
-  const [payload, setPayload] = useState<any>(() => normalizeProposalPayload(toolName, args));
-  const [originalPayload, setOriginalPayload] = useState<any>(null);
+  const [payload, setPayload] = useState<DuriaProposalPayload>(() => normalizeProposalPayload(toolName, args));
+  const [originalPayload, setOriginalPayload] = useState<DuriaProposalPayload | null>(null);
   const [dirtyFields, setDirtyFields] = useState<string[]>(() => getProposedDirtyFields(args));
   const [isSaving, setIsSaving] = useState(false);
   const [targetType, setTargetType] = useState<TargetType>(() => getInitialTargetType(toolName));
   const [targets, setTargets] = useState<ActionTarget[]>([]);
-  const [selectedTargetId, setSelectedTargetId] = useState(args.id || '');
+  const [selectedTargetId, setSelectedTargetId] = useState<string>(() => stringValue(args.id));
   const [isLoadingTargets, setIsLoadingTargets] = useState(false);
   const [isLoadingSelectedTarget, setIsLoadingSelectedTarget] = useState(false);
   const actionMode = getActionMode(toolName);
@@ -142,7 +160,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
     setOriginalPayload(null);
     setDirtyFields(getProposedDirtyFields(args));
     setTargetType(getInitialTargetType(toolName));
-    setSelectedTargetId(args.id || '');
+    setSelectedTargetId(stringValue(args.id));
   }, [toolName, args]);
 
   useEffect(() => {
@@ -157,7 +175,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (targetType === 'Task') {
           const res = await getTodosForAI({ limit: 30 });
           if (res.success && res.data) {
-            nextTargets = res.data.map((todo: any) => ({
+            nextTargets = res.data.map((todo) => ({
               id: todo.id,
               title: todo.title,
               subtitle: [
@@ -172,7 +190,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (targetType === 'Note') {
           const res = await getNotesForAI({ limit: 30 });
           if (res.success && res.data) {
-            nextTargets = res.data.map((note: any) => ({
+            nextTargets = res.data.map((note) => ({
               id: note.id,
               title: note.heading,
               subtitle: note.folder?.name || note.description,
@@ -183,7 +201,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (targetType === 'Event') {
           const res = await getEventsForAI({ limit: 30 });
           if (res.success && res.data) {
-            nextTargets = res.data.map((event: any) => ({
+            nextTargets = res.data.map((event) => ({
               id: event.id,
               title: event.title,
               subtitle: [
@@ -198,7 +216,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (targetType === 'FocusBlock') {
           const res = await getFocusBlocksForAI({ limit: 30 });
           if (res.success && res.data) {
-            nextTargets = res.data.map((block: any) => ({
+            nextTargets = res.data.map((block) => ({
               id: block.id,
               title: block.title,
               subtitle: `${block.startTime} - ${block.endTime} | ${block.energyLevel}`,
@@ -240,7 +258,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
       setIsLoadingSelectedTarget(true);
       try {
         const proposedPayload = normalizeProposalPayload(toolName, args);
-        let basePayload: any = null;
+        let basePayload: DuriaProposalPayload | null = null;
 
         if (targetType === 'Task') {
           const res = await getTodoById({ id: selectedTargetId });
@@ -322,8 +340,8 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
     };
   }, [actionMode, selectedTargetId, targetType, toolName, args]);
 
-  const handleChange = (field: string, value: any) => {
-    setPayload((prev: any) => ({ ...prev, [field]: value }));
+  const handleChange = (field: string, value: DuriaProposalPayload[string]) => {
+    setPayload((prev) => ({ ...prev, [field]: value }));
     setDirtyFields((prev) => {
       const shouldBeDirty = !originalPayload || !valuesMatch(value, originalPayload[field]);
       if (shouldBeDirty && !prev.includes(field)) return [...prev, field];
@@ -345,12 +363,12 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           : payload;
 
       if (toolName === 'proposeCreateTask') {
-        const res = await createTodo(payload);
+        const res = await createTodo(payload as unknown as CreateTodoInput);
         if (!res.success) throw new Error(res.error?.message || "Failed to create task");
         resultMessage = `Task "${payload.title}" created successfully.`;
       } 
       else if (actionMode === 'Update' && targetType === 'Task') {
-        const res = await updateTodo(finalPayload);
+        const res = await updateTodo(finalPayload as unknown as UpdateTodoInput);
         if (!res.success) throw new Error(res.error?.message || "Failed to update task");
         resultMessage = `Task "${selectedTarget?.title || payload.title || 'selected task'}" updated successfully.`;
       } 
@@ -360,12 +378,12 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         resultMessage = `Task "${selectedTarget?.title || 'selected task'}" deleted successfully.`;
       } 
       else if (toolName === 'proposeCreateNote') {
-        const res = await createNote(payload);
+        const res = await createNote(payload as unknown as CreateNoteInput);
         if (!res.success) throw new Error(res.error?.message || "Failed to create note");
         resultMessage = `Note "${payload.heading}" created successfully.`;
       } 
       else if (actionMode === 'Update' && targetType === 'Note') {
-        const res = await updateNote(finalPayload);
+        const res = await updateNote(finalPayload as UpdateNoteInput);
         if (!res.success) throw new Error(res.error?.message || "Failed to update note");
         resultMessage = `Note "${selectedTarget?.title || payload.heading || 'selected note'}" updated successfully.`;
       } 
@@ -378,30 +396,31 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         let categoryId = undefined;
         if (payload.categoryName) {
            const categories = await getOrCreateDefaultCategories();
-           const matched = categories.find((c: any) => c.name.toLowerCase() === payload.categoryName.toLowerCase());
+           const categoryName = String(payload.categoryName);
+           const matched = categories.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
            if (matched) categoryId = matched.id;
         }
-        const { categoryName, ...eventPayload } = payload;
+        const eventPayload = { ...payload };
+        delete eventPayload.categoryName;
         const res = await createEvent({
             ...eventPayload,
-            startDate: new Date(payload.startDate),
-            endDate: new Date(payload.endDate),
+            startDate: dateValue(payload.startDate),
+            endDate: dateValue(payload.endDate),
             categoryId
-        });
+        } as IEventCreateInput);
         if (!res.success) throw new Error(res.error || "Failed to create event");
         resultMessage = `Event "${payload.title}" created successfully.`;
       } 
       else if (actionMode === 'Update' && targetType === 'Event') {
-        const updateData: any = { ...finalPayload };
+        const updateData: Partial<IEventCreateInput> & { categoryName?: string } = { ...finalPayload } as Partial<IEventCreateInput> & { categoryName?: string };
         if (updateData.categoryName) {
           const categories = await getOrCreateDefaultCategories();
-          const matched = categories.find((c: any) => c.name.toLowerCase() === updateData.categoryName.toLowerCase());
+          const matched = categories.find((c) => c.name.toLowerCase() === updateData.categoryName?.toLowerCase());
           if (matched) updateData.categoryId = matched.id;
           delete updateData.categoryName;
         }
         if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
         if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
-        delete updateData.id;
         const res = await updateEvent(selectedTargetId, updateData);
         if (!res.success) throw new Error(res.error || "Failed to update event");
         resultMessage = `Event "${selectedTarget?.title || payload.title || 'selected event'}" updated successfully.`;
@@ -412,24 +431,25 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         resultMessage = `Event "${selectedTarget?.title || 'selected event'}" deleted successfully.`;
       }
       else if (toolName === 'proposeCreateFocusBlock') {
-        const res = await createFocusBlock(payload);
-        if (!res.success) throw new Error(res.error || "Failed to create focus block");
+        const res = await createFocusBlock(payload as unknown as FocusBlockInput);
+        if (!res.success) throw new Error(res.error?.message || "Failed to create focus block");
         resultMessage = `Focus Block "${payload.title}" created successfully.`;
       } 
       else if (actionMode === 'Update' && targetType === 'FocusBlock') {
-        const res = await updateFocusBlock(finalPayload);
-        if (!res.success) throw new Error(res.error || "Failed to update focus block");
+        const res = await updateFocusBlock(finalPayload as unknown as UpdateFocusBlockInput);
+        if (!res.success) throw new Error(res.error?.message || "Failed to update focus block");
         resultMessage = `Focus Block "${selectedTarget?.title || payload.title || 'selected block'}" updated successfully.`;
       } 
       else if (actionMode === 'Delete' && targetType === 'FocusBlock') {
         const res = await deleteFocusBlock({ id: selectedTargetId });
-        if (!res.success) throw new Error(res.error || "Failed to delete focus block");
+        if (!res.success) throw new Error(res.error?.message || "Failed to delete focus block");
         resultMessage = `Focus Block "${selectedTarget?.title || 'selected block'}" deleted successfully.`;
       }
       
       onConfirm(finalPayload, resultMessage);
-    } catch (e: any) {
-      onCancel(`Error executing action: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Unknown error";
+      onCancel(`Error executing action: ${message}`);
     } finally {
       setIsSaving(false);
     }
@@ -509,16 +529,16 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           {renderTargetSelector()}
           <div className="space-y-1">
             <Label>Title</Label>
-            <Input value={payload.title || ''} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
+              <Input value={stringValue(payload.title)} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="space-y-1">
             <Label>Description</Label>
-            <Textarea value={payload.description || ''} onChange={(e) => handleChange('description', e.target.value)} disabled={fieldsDisabled} />
+            <Textarea value={stringValue(payload.description)} onChange={(e) => handleChange('description', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Priority</Label>
-              <Select disabled={fieldsDisabled} value={payload.priority || (actionMode === 'Create' ? 'LOW' : undefined)} onValueChange={(val) => handleChange('priority', val)}>
+              <Select disabled={fieldsDisabled} value={stringValue(payload.priority) || (actionMode === 'Create' ? 'LOW' : undefined)} onValueChange={(val) => handleChange('priority', val)}>
                 <SelectTrigger><SelectValue placeholder="No change" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="LOW">Low</SelectItem>
@@ -530,7 +550,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
             {actionMode === 'Update' && (
                <div className="space-y-1">
                 <Label>Status</Label>
-                <Select disabled={fieldsDisabled} value={payload.status} onValueChange={(val) => handleChange('status', val)}>
+                <Select disabled={fieldsDisabled} value={stringValue(payload.status)} onValueChange={(val) => handleChange('status', val)}>
                   <SelectTrigger><SelectValue placeholder="Choose status" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PLAN">Plan</SelectItem>
@@ -545,11 +565,11 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Due Date</Label>
-              <Input type="date" value={payload.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)} disabled={fieldsDisabled} />
+              <Input type="date" value={stringValue(payload.dueDate)} onChange={(e) => handleChange('dueDate', e.target.value)} disabled={fieldsDisabled} />
             </div>
             <div className="space-y-1">
               <Label>Due Time</Label>
-              <Input type="time" value={payload.dueTime || ''} onChange={(e) => handleChange('dueTime', e.target.value)} disabled={fieldsDisabled} />
+              <Input type="time" value={stringValue(payload.dueTime)} onChange={(e) => handleChange('dueTime', e.target.value)} disabled={fieldsDisabled} />
             </div>
           </div>
         </div>
@@ -562,11 +582,11 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           {renderTargetSelector()}
           <div className="space-y-1">
             <Label>Heading</Label>
-            <Input value={payload.heading || ''} onChange={(e) => handleChange('heading', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.heading)} onChange={(e) => handleChange('heading', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="space-y-1">
             <Label>Description</Label>
-            <Textarea rows={4} value={payload.description || ''} onChange={(e) => handleChange('description', e.target.value)} disabled={fieldsDisabled} />
+            <Textarea rows={4} value={stringValue(payload.description)} onChange={(e) => handleChange('description', e.target.value)} disabled={fieldsDisabled} />
           </div>
         </div>
       );
@@ -578,11 +598,11 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           {renderTargetSelector()}
           <div className="space-y-1">
             <Label>Title</Label>
-            <Input value={payload.title || ''} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.title)} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="space-y-1">
             <Label>Category</Label>
-            <Select disabled={fieldsDisabled} value={payload.categoryName || (actionMode === 'Create' ? 'Personal' : undefined)} onValueChange={(val) => handleChange('categoryName', val)}>
+            <Select disabled={fieldsDisabled} value={stringValue(payload.categoryName) || (actionMode === 'Create' ? 'Personal' : undefined)} onValueChange={(val) => handleChange('categoryName', val)}>
               <SelectTrigger><SelectValue placeholder="No category" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Personal">Personal</SelectItem>
@@ -596,20 +616,20 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           </div>
           <div className="space-y-1">
             <Label>Start Date (ISO)</Label>
-            <Input value={payload.startDate || ''} onChange={(e) => handleChange('startDate', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.startDate)} onChange={(e) => handleChange('startDate', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="space-y-1">
             <Label>End Date (ISO)</Label>
-            <Input value={payload.endDate || ''} onChange={(e) => handleChange('endDate', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.endDate)} onChange={(e) => handleChange('endDate', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="space-y-1">
             <Label>Location</Label>
-            <Input value={payload.location || ''} onChange={(e) => handleChange('location', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.location)} onChange={(e) => handleChange('location', e.target.value)} disabled={fieldsDisabled} />
           </div>
           {actionMode === 'Update' && (
             <div className="flex items-center justify-between rounded-md border border-border/60 p-3">
               <Label>All Day</Label>
-              <Switch checked={!!payload.isAllDay} onCheckedChange={(val) => handleChange('isAllDay', val)} disabled={fieldsDisabled} />
+              <Switch checked={booleanValue(payload.isAllDay)} onCheckedChange={(val) => handleChange('isAllDay', val)} disabled={fieldsDisabled} />
             </div>
           )}
         </div>
@@ -622,22 +642,22 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           {renderTargetSelector()}
           <div className="space-y-1">
             <Label>Title</Label>
-            <Input value={payload.title || ''} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
+            <Input value={stringValue(payload.title)} onChange={(e) => handleChange('title', e.target.value)} disabled={fieldsDisabled} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Start Time</Label>
-              <Input type="time" value={payload.startTime || ''} onChange={(e) => handleChange('startTime', e.target.value)} disabled={fieldsDisabled} />
+              <Input type="time" value={stringValue(payload.startTime)} onChange={(e) => handleChange('startTime', e.target.value)} disabled={fieldsDisabled} />
             </div>
             <div className="space-y-1">
               <Label>End Time</Label>
-              <Input type="time" value={payload.endTime || ''} onChange={(e) => handleChange('endTime', e.target.value)} disabled={fieldsDisabled} />
+              <Input type="time" value={stringValue(payload.endTime)} onChange={(e) => handleChange('endTime', e.target.value)} disabled={fieldsDisabled} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Energy Level</Label>
-              <Select disabled={fieldsDisabled} value={payload.energyLevel || 'MEDIUM'} onValueChange={(val) => handleChange('energyLevel', val)}>
+              <Select disabled={fieldsDisabled} value={stringValue(payload.energyLevel) || 'MEDIUM'} onValueChange={(val) => handleChange('energyLevel', val)}>
                 <SelectTrigger><SelectValue placeholder="Energy Level" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="HIGH">High Energy</SelectItem>
@@ -649,7 +669,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
             </div>
             <div className="space-y-1">
               <Label>Priority</Label>
-              <Select disabled={fieldsDisabled} value={payload.priority || 'MEDIUM'} onValueChange={(val) => handleChange('priority', val)}>
+              <Select disabled={fieldsDisabled} value={stringValue(payload.priority) || 'MEDIUM'} onValueChange={(val) => handleChange('priority', val)}>
                 <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="HIGH">High</SelectItem>
@@ -661,7 +681,7 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           </div>
           <div className="space-y-1">
             <Label>Transition Ritual</Label>
-            <Input placeholder="e.g. Drink water and stretch" value={payload.transitionRitual || ''} onChange={(e) => handleChange('transitionRitual', e.target.value)} disabled={fieldsDisabled} />
+            <Input placeholder="e.g. Drink water and stretch" value={stringValue(payload.transitionRitual)} onChange={(e) => handleChange('transitionRitual', e.target.value)} disabled={fieldsDisabled} />
           </div>
         </div>
       );

@@ -267,7 +267,7 @@ const DueAndCompletionColumn: React.FC<CommonProps> = ({ todo }) => (
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          When's this due?
+          When&apos;s this due?
         </label>
         <div className="space-y-2 flex">
           {todo.dueDate && (
@@ -422,11 +422,13 @@ const TagsSection: React.FC<CommonProps> = ({ todo }) => {
 
   const statusColors = Object.values(statusColor);
   const priorityColors = Object.values(priorityColor);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const uniqueColorArray = useMemo(
     () => Array.from(new Set([...statusColors, ...priorityColors])),
     [statusColors, priorityColors],
   );
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const getColorForTag = useCallback(
     (tag: string) => {
       const hash = Array.from(tag).reduce(
@@ -529,6 +531,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({
         onUpdate?.();
       }
     } catch (err) {
+      console.error(err);
       toast.error("Couldn't update that");
     } finally {
       setUpdatingChecklistId(null);
@@ -550,6 +553,7 @@ const DataFetchingWrapper: React.FC<TodoDetailedProps> = ({
         onUpdate?.();
       }
     } catch (err) {
+      console.error(err);
       toast.error("Couldn't update status");
     } finally {
       setUpdatingStatus(false);

@@ -79,9 +79,8 @@ export default function CalendarGrid({
         }
     }, [date]);
 
-    const events: ICalendarEvent[] = initialEvents ?? [];
-
     const filteredEvents = React.useMemo(() => {
+        const events: ICalendarEvent[] = initialEvents ?? [];
         let result = events;
 
         // 1. Filter by category
@@ -106,7 +105,7 @@ export default function CalendarGrid({
             }
             return false;
         });
-    }, [events, searchQuery, selectedCategories]);
+    }, [initialEvents, searchQuery, selectedCategories]);
 
     const handleNavigate = (newDate: Date) => onNavigate(newDate);
     const handleViewChange = (newView: View) => setView(newView);

@@ -11,7 +11,6 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 import SessionProviderWrapper from "@/components/layout/session-provider";
-import { APP_NAME } from "@/lib/brand";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -53,11 +53,11 @@ export function WhyDurioSection() {
             Why DURIO?
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-black font-[family-name:var(--font-heading)] text-white tracking-tighter leading-none">
-            Your life isn't scattered.<br />
+            Your life isn&apos;t scattered.<br />
             <span className="text-muted-foreground italic text-3xl sm:text-4xl md:text-6xl">Your apps are.</span>
           </h2> 
           <p className="text-base sm:text-lg md:text-xl font-[family-name:var(--font-body)] text-muted-foreground max-w-lg leading-relaxed">
-            You already told me. Now let's do something about it. You've got tasks in one place, notes in another, and calendar events somewhere else. 
+            You already told me. Now let&apos;s do something about it. You&apos;ve got tasks in one place, notes in another, and calendar events somewhere else. 
             DURIO brings it all together so you can stop switching tabs and start chilling. Together.
           </p>
         </motion.div>

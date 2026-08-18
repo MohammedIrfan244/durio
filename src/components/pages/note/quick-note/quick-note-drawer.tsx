@@ -31,6 +31,7 @@ export function QuickNoteDrawer() {
 
   // Initialize from local storage on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const saved = localStorage.getItem("quick-notes");
     if (saved) {

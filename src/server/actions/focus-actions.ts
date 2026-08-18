@@ -2,13 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
-import { Priority } from "@prisma/client";
+import { withErrorWrapper } from "@/lib/server/error-wrapper";
+import type { RoutineBlock } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import type {
+  DeleteFocusBlockInput,
+  FocusBlockInput,
+  FocusBlockLogInput,
+  FocusBlockWithNoteTitle,
+  UpdateFocusBlockInput,
+} from "@/types/focus";
 
-export async function createFocusBlock(data: any) {
-  try {
+export const createFocusBlock = withErrorWrapper<RoutineBlock, [FocusBlockInput]>(async (data) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const block = await prisma.routineBlock.create({
       data: {
@@ -19,7 +26,7 @@ export async function createFocusBlock(data: any) {
         endTime: data.endTime,
         daysOfWeek: data.daysOfWeek || [0, 1, 2, 3, 4, 5, 6], // default all days
         energyLevel: data.energyLevel || "MEDIUM",
-        priority: (data.priority as Priority) || "MEDIUM",
+        priority: data.priority || "MEDIUM",
         transitionRitual: data.transitionRitual,
         color: data.color,
         icon: data.icon,
@@ -30,24 +37,19 @@ export async function createFocusBlock(data: any) {
 
     revalidatePath("/focus");
     revalidatePath("/dashboard");
-    return { success: true, data: block };
-  } catch (error: any) {
-    console.error("Error creating focus block:", error);
-    return { success: false, error: error.message };
-  }
-}
+    return block;
+});
 
-export async function updateFocusBlock(data: any) {
-  try {
+export const updateFocusBlock = withErrorWrapper<RoutineBlock, [UpdateFocusBlockInput]>(async (data) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const { id, ...updateData } = data;
     
     // Ensure block belongs to user
     const existing = await prisma.routineBlock.findUnique({ where: { id } });
     if (!existing || existing.userId !== userId) {
-      return { success: false, error: "Not found or unauthorized" };
+      throw new Error("Not found or unauthorized");
     }
 
     const block = await prisma.routineBlock.update({
@@ -60,21 +62,16 @@ export async function updateFocusBlock(data: any) {
 
     revalidatePath("/focus");
     revalidatePath("/dashboard");
-    return { success: true, data: block };
-  } catch (error: any) {
-    console.error("Error updating focus block:", error);
-    return { success: false, error: error.message };
-  }
-}
+    return block;
+});
 
-export async function deleteFocusBlock(data: { id: string; reason?: string }) {
-  try {
+export const deleteFocusBlock = withErrorWrapper<void, [DeleteFocusBlockInput]>(async (data) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const existing = await prisma.routineBlock.findUnique({ where: { id: data.id } });
     if (!existing || existing.userId !== userId) {
-      return { success: false, error: "Not found or unauthorized" };
+      throw new Error("Not found or unauthorized");
     }
 
     // Delete associated logs first
@@ -88,17 +85,11 @@ export async function deleteFocusBlock(data: { id: string; reason?: string }) {
 
     revalidatePath("/focus");
     revalidatePath("/dashboard");
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error deleting focus block:", error);
-    return { success: false, error: error.message };
-  }
-}
+});
 
-export async function getFocusBlocksForAI(params?: { limit?: number }) {
-  try {
+export const getFocusBlocksForAI = withErrorWrapper<RoutineBlock[], [{ limit?: number } | undefined]>(async (params) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const blocks = await prisma.routineBlock.findMany({
       where: { userId },
@@ -106,37 +97,27 @@ export async function getFocusBlocksForAI(params?: { limit?: number }) {
       take: params?.limit || 50,
     });
 
-    return { success: true, data: blocks };
-  } catch (error: any) {
-    console.error("Error fetching focus blocks for AI:", error);
-    return { success: false, error: error.message };
-  }
-}
+    return blocks;
+});
 
-export async function getFocusBlockById({ id }: { id: string }) {
-  try {
+export const getFocusBlockById = withErrorWrapper<RoutineBlock, [{ id: string }]>(async ({ id }) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const block = await prisma.routineBlock.findUnique({
       where: { id },
     });
 
     if (!block || block.userId !== userId) {
-      return { success: false, error: "Not found or unauthorized" };
+      throw new Error("Not found or unauthorized");
     }
 
-    return { success: true, data: block };
-  } catch (error: any) {
-    console.error("Error fetching focus block:", error);
-    return { success: false, error: error.message };
-  }
-}
+    return block;
+});
 
-export async function getTodaysFocusBlocks() {
-  try {
+export const getTodaysFocusBlocks = withErrorWrapper<FocusBlockWithNoteTitle[], []>(async () => {
     const userId = await getUserId();
-    if (!userId) return { success: false, data: [] };
+    if (!userId) return [];
     
     const now = new Date();
     const blocks = await prisma.routineBlock.findMany({
@@ -166,17 +147,12 @@ export async function getTodaysFocusBlocks() {
       linkedNoteTitle: block.linkedNoteId ? noteMap.get(block.linkedNoteId) ?? null : null,
     }));
 
-    return { success: true, data: blocksWithNotes };
-  } catch (error: any) {
-    console.error("Error fetching today's focus blocks:", error);
-    return { success: false, data: [] };
-  }
-}
+    return blocksWithNotes;
+});
 
-export async function getPendingReviews() {
-  try {
+export const getPendingReviews = withErrorWrapper<RoutineBlock[], []>(async () => {
     const userId = await getUserId();
-    if (!userId) return { success: false, data: [] };
+    if (!userId) return [];
 
     const now = new Date();
     const yesterday = new Date(now);
@@ -193,7 +169,7 @@ export async function getPendingReviews() {
       }
     });
 
-    if (blocks.length === 0) return { success: true, data: [] };
+    if (blocks.length === 0) return [];
 
     // Get existing logs for yesterday
     const logs = await prisma.blockLog.findMany({
@@ -209,17 +185,12 @@ export async function getPendingReviews() {
     const loggedBlockIds = new Set(logs.map(l => l.routineBlockId));
     const pendingBlocks = blocks.filter(b => !loggedBlockIds.has(b.id));
 
-    return { success: true, data: pendingBlocks };
-  } catch (error: any) {
-    console.error("Error fetching pending reviews:", error);
-    return { success: false, data: [] };
-  }
-}
+    return pendingBlocks;
+});
 
-export async function saveBlockLogs(logsData: { routineBlockId: string, status: string, flowPoints: number }[]) {
-  try {
+export const saveBlockLogs = withErrorWrapper<void, [FocusBlockLogInput[]]>(async (logsData) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -239,37 +210,20 @@ export async function saveBlockLogs(logsData: { routineBlockId: string, status: 
     await prisma.$transaction(creations);
     
     // Add logic to update some overall gamification score on User if desired
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error saving block logs:", error);
-    return { success: false, error: error.message };
-  }
-}
+});
 
-export async function getReviewTimeConfig() {
-  try {
+export const getReviewTimeConfig = withErrorWrapper<string, []>(async () => {
     const userId = await getUserId();
-    if (!userId) return { success: false, data: "21:00" };
+    if (!userId) return "21:00";
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { endOfDayReviewTime: true } });
-    return { success: true, data: user?.endOfDayReviewTime || "21:00" };
-  } catch (error: any) {
-    console.error("Error fetching review time:", error);
-    return { success: false, data: "21:00" };
-  }
-}
+    return user?.endOfDayReviewTime || "21:00";
+});
 
-export async function updateReviewTimeConfig(time: string) {
-  try {
+export const updateReviewTimeConfig = withErrorWrapper<void, [string]>(async (time) => {
     const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    if (!userId) throw new Error("Unauthorized");
     await prisma.user.update({
       where: { id: userId },
       data: { endOfDayReviewTime: time }
     });
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error updating review time:", error);
-    return { success: false, error: error.message };
-  }
-}
+});

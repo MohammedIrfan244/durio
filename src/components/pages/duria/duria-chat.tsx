@@ -10,10 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import ProposalCard from './proposal-card';
 import { getAIUsage } from '@/server/actions/ai-usage';
+import type { DuriaProposalPayload, DuriaToolInvocation, DuriaToolPart } from '@/types/duria-chat';
+
+type DuriaClientMessage = UIMessage & {
+  content?: string;
+  toolInvocations?: DuriaToolInvocation[];
+};
 
 const ContextAttachDialog = dynamic(() => import('./context-attach-dialog'), {
   ssr: false,
@@ -21,14 +28,18 @@ const ContextAttachDialog = dynamic(() => import('./context-attach-dialog'), {
 
 const MESSAGE_LIMIT = 2000;
 
-function getMessageText(msg: any) {
+function getMessageText(msg: DuriaClientMessage) {
   return msg.content ||
-    msg.parts?.find((part: any) => part.type === 'text')?.text ||
+    msg.parts?.find((part) => part.type === 'text')?.text ||
     "";
 }
 
-function getProposalToolCalls(msg: any) {
-  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation: any) => ({
+function isDuriaToolPart(part: UIMessage["parts"][number]): part is UIMessage["parts"][number] & DuriaToolPart {
+  return part.type.startsWith('tool-');
+}
+
+function getProposalToolCalls(msg: DuriaClientMessage): DuriaToolInvocation[] {
+  const legacyToolCalls = (msg.toolInvocations || []).map((toolInvocation) => ({
     toolCallId: toolInvocation.toolCallId,
     toolName: toolInvocation.toolName,
     args: toolInvocation.args ?? toolInvocation.input ?? {},
@@ -37,8 +48,8 @@ function getProposalToolCalls(msg: any) {
   }));
 
   const partToolCalls = (msg.parts || [])
-    .filter((part: any) => typeof part.type === 'string' && part.type.startsWith('tool-'))
-    .map((part: any) => ({
+    .filter(isDuriaToolPart)
+    .map((part) => ({
       toolCallId: part.toolCallId,
       toolName: part.toolName || part.type.replace(/^tool-/, ''),
       args: part.input ?? {},
@@ -46,7 +57,7 @@ function getProposalToolCalls(msg: any) {
       state: part.state,
     }));
 
-  return [...legacyToolCalls, ...partToolCalls].filter((toolCall: any) => toolCall.toolName);
+  return [...legacyToolCalls, ...partToolCalls].filter((toolCall) => Boolean(toolCall.toolName));
 }
 
 export default function DuriaChat() {
@@ -59,7 +70,7 @@ export default function DuriaChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [proposalStatus, setProposalStatus] = useState<Record<string, 'pending' | 'confirmed' | 'cancelled' | 'error'>>({});
 
-  const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.docs.length;
+  const totalContextItems = aiPayload.todos.length + aiPayload.notes.length + aiPayload.events.length + aiPayload.focusBlocks.length + aiPayload.docs.length;
   const refreshUsage = useCallback(async () => {
     setIsUsageLoading(true);
     const response = await getAIUsage();
@@ -70,13 +81,14 @@ export default function DuriaChat() {
   }, []);
 
   const { messages, status, sendMessage, error } = useChat({
-    // @ts-ignore - Ignore type error for useChat options
-    api: '/api/chat',
-    body: {
-      contextPayload: aiPayload
-    },
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+      body: {
+        contextPayload: aiPayload
+      },
+    }),
     onFinish: refreshUsage,
-  }) as any;
+  });
 
   const isLoading = status === 'submitted' || status === 'streaming';
   const trimmedInput = input.trim();
@@ -88,8 +100,7 @@ export default function DuriaChat() {
     e.preventDefault();
     if (!trimmedInput || isLoading || isMessageTooLong) return;
     setHasAskedToClear(false);
-    // @ts-ignore
-    sendMessage({ role: 'user', content: trimmedInput });
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: trimmedInput }] });
     setInput('');
   };
 
@@ -101,6 +112,7 @@ export default function DuriaChat() {
   }, [messages]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUsage();
   }, [refreshUsage]);
 
@@ -134,12 +146,12 @@ export default function DuriaChat() {
                     </p>
                   </div>
                   <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. She's got hands</h4>
+                    <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><DuriaAvatar size={16} /> 2. She&apos;s got hands</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Tell her to <strong>"Create a Note"</strong>, <strong>"Schedule a lunch event"</strong>, or <strong>"Check off that task"</strong>.
+                      Tell her to <strong>&quot;Create a Note&quot;</strong>, <strong>&quot;Schedule a lunch event&quot;</strong>, or <strong>&quot;Check off that task&quot;</strong>.
                     </p>
                   </div>
-                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center border-primary/20 bg-primary/5">
+                  <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm md:col-span-2 text-center">
                     <h4 className="font-semibold text-sm flex items-center justify-center gap-2 mb-1">⚡ 3. Keep it light</h4>
                     <p className="text-xs text-muted-foreground">
                       To keep her fast and free, you get <strong>{usage?.limit || 50} chats per day</strong>. Wipe her memory (Clear Data) after finishing a topic to save tokens!
@@ -161,9 +173,10 @@ export default function DuriaChat() {
             </div>
           )}
           
-          {messages.map((msg: any, i: number) => {
-            const textContent = getMessageText(msg);
-            const proposalToolCalls = getProposalToolCalls(msg);
+          {messages.map((msg, i) => {
+            const duriaMessage = msg as DuriaClientMessage;
+            const textContent = getMessageText(duriaMessage);
+            const proposalToolCalls = getProposalToolCalls(duriaMessage);
 
             return (
             <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -184,9 +197,10 @@ export default function DuriaChat() {
                         <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{textContent}</ReactMarkdown>
                       </div>
                     )}
-                    {proposalToolCalls.map((toolInvocation: any) => {
+                    {proposalToolCalls.map((toolInvocation) => {
                       const toolCallId = toolInvocation.toolCallId;
                       const toolName = toolInvocation.toolName;
+                      if (!toolCallId || !toolName) return null;
                       
                       if (toolName.startsWith('propose')) {
                         const status = proposalStatus[toolCallId] || 'pending';
@@ -194,12 +208,11 @@ export default function DuriaChat() {
                           <div key={toolCallId} className="mt-2 w-full max-w-sm">
                             <ProposalCard 
                               toolName={toolName}
-                              args={toolInvocation.args}
+                              args={(toolInvocation.args ?? {}) as DuriaProposalPayload}
                               status={status}
                               onConfirm={(payload, resultMsg) => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'confirmed' }));
-                                // @ts-ignore
-                                sendMessage({ role: 'user', content: `[SYSTEM] Result: ${resultMsg}` });
+                                sendMessage({ role: 'user', parts: [{ type: 'text', text: `[SYSTEM] Result: ${resultMsg}` }] });
                               }}
                               onCancel={() => {
                                 setProposalStatus(prev => ({ ...prev, [toolCallId]: 'cancelled' }));
@@ -213,7 +226,7 @@ export default function DuriaChat() {
                         return (
                           <div key={toolCallId} className="bg-primary/10 border border-primary/20 text-primary rounded-md p-2 text-xs flex items-center gap-2 mt-2">
                             <span className="font-semibold">✅ Executed: {toolInvocation.toolName}</span>
-                            <span className="opacity-80 truncate">- {toolInvocation.result}</span>
+                            <span className="opacity-80 truncate">- {String(toolInvocation.result)}</span>
                           </div>
                         );
                       } else {
@@ -250,7 +263,7 @@ export default function DuriaChat() {
                 <p className="text-sm text-muted-foreground font-medium">Wanna keep these attachments for the next question?</p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => setHasAskedToClear(true)}>
-                    Yeah, keep 'em
+                    Yeah, keep &apos;em
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => { clearContext(); setHasAskedToClear(true); }}>
                     Nah, wipe it

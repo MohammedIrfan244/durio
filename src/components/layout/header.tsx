@@ -51,6 +51,7 @@ import GothicDecor from "../decoration/gothic-decor";
 import DarkDecor from "../decoration/dark-decor";
 import LightDecor from "../decoration/light-decor";
 import LogoutConfirmDialog from "../auth/logout-dialogue";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 export default function Header() {
   const pathname = usePathname();
@@ -59,7 +60,7 @@ export default function Header() {
 
   // State
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
   const [greeting, setGreeting] = useState("");
@@ -87,7 +88,6 @@ export default function Header() {
 
   // Logic: Clock & Initialization
   useEffect(() => {
-    setMounted(true);
     flagTimestamp(pathname || "/").catch((error) => {
       console.error("Failed to update page timestamp", error);
     });

@@ -2,9 +2,24 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { CreateNoteSchema, UpdateNoteSchema, DeleteNoteSchema, CreateFolderSchema, UpdateFolderSchema, DeleteFolderSchema, CreateNoteInput } from "@/schema/note";
+import {
+	CreateNoteSchema,
+	UpdateNoteSchema,
+	DeleteNoteSchema,
+	CreateFolderSchema,
+	UpdateFolderSchema,
+	DeleteFolderSchema,
+	CreateNoteInput,
+	UpdateNoteInput,
+	MoveNoteInput,
+	DeleteNoteInput,
+	CreateFolderInput,
+	UpdateFolderInput,
+	DeleteFolderInput,
+	MoveNoteSchema,
+} from "@/schema/note";
 import { MONGOID } from "@/schema/mongo";
-import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload, IGetNoteListPayload } from "@/types/note";
+import { INote, INoteFolder, IGetNoteList, IGetArchivedNoteListPayload } from "@/types/note";
 import { withErrorWrapper } from "@/lib/server/error-wrapper"; 
 import { getUserId } from "@/lib/server/get-user"; 
 
@@ -175,7 +190,7 @@ export const getNoteById = withErrorWrapper<INote, [string]>(async (id) => {
 });
 
 // Update note
-export const updateNote = withErrorWrapper<INote, [any]>(async (input) => {
+export const updateNote = withErrorWrapper<INote, [UpdateNoteInput]>(async (input) => {
 	const validatedInput = UpdateNoteSchema.parse(input);
 	const userId = await getUserId();
 	const existingNote = await prisma.note.findFirst({
@@ -196,9 +211,7 @@ export const updateNote = withErrorWrapper<INote, [any]>(async (input) => {
 });
 
 // Move note to folder
-export const moveNote = withErrorWrapper<INote, [any]>(async (input) => {
-    // Import dynamically to avoid circular dependencies if any are present in schema import
-    const { MoveNoteSchema } = await import("@/schema/note");
+export const moveNote = withErrorWrapper<INote, [MoveNoteInput]>(async (input) => {
 	const validatedInput = MoveNoteSchema.parse(input);
 	const userId = await getUserId();
 	
@@ -226,7 +239,7 @@ export const moveNote = withErrorWrapper<INote, [any]>(async (input) => {
 });
 
 // Delete note (soft or hard)
-export const deleteNote = withErrorWrapper<void, [any]>(async (input) => {
+export const deleteNote = withErrorWrapper<void, [DeleteNoteInput]>(async (input) => {
 	const validatedInput = DeleteNoteSchema.parse(input);
 	const userId = await getUserId();
 	const note = await prisma.note.findFirst({
@@ -309,7 +322,7 @@ export const searchArchivedNotes = withErrorWrapper<IGetArchivedNoteListPayload,
 });
 
 // Folder actions
-export const createNoteFolder = withErrorWrapper<INoteFolder, [any]>(async (input) => {
+export const createNoteFolder = withErrorWrapper<INoteFolder, [CreateFolderInput]>(async (input) => {
 	const validatedInput = CreateFolderSchema.parse(input);
 	const userId = await getUserId();
 	const folder = await prisma.noteFolder.create({
@@ -323,7 +336,7 @@ export const createNoteFolder = withErrorWrapper<INoteFolder, [any]>(async (inpu
 	return folder as INoteFolder;
 });
 
-export const updateNoteFolder = withErrorWrapper<INoteFolder, [any]>(async (input) => {
+export const updateNoteFolder = withErrorWrapper<INoteFolder, [UpdateFolderInput]>(async (input) => {
 	const validatedInput = UpdateFolderSchema.parse(input);
 	const userId = await getUserId();
 	const existingFolder = await prisma.noteFolder.findFirst({
@@ -341,7 +354,7 @@ export const updateNoteFolder = withErrorWrapper<INoteFolder, [any]>(async (inpu
 	return folder as INoteFolder;
 });
 
-export const deleteNoteFolder = withErrorWrapper<void, [any]>(async (input) => {
+export const deleteNoteFolder = withErrorWrapper<void, [DeleteFolderInput]>(async (input) => {
 	const validatedInput = DeleteFolderSchema.parse(input);
 	const userId = await getUserId();
 	const existingFolder = await prisma.noteFolder.findFirst({

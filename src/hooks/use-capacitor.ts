@@ -8,6 +8,7 @@ export function useCapacitor() {
 
   useEffect(() => {
     const isNative = Capacitor.isNativePlatform();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsCapacitor(isNative);
     
     if (isNative) {

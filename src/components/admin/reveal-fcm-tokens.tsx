@@ -24,8 +24,9 @@ export default function RevealFcmTokens({ userId }: { userId: string }) {
         throw new Error(body.error || "Failed to reveal FCM tokens");
       }
       setTokens(body.fcmTokens || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to reveal FCM tokens");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to reveal FCM tokens");
     } finally {
       setLoading(false);
     }

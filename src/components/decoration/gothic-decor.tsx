@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useIsMounted } from "@/hooks/use-is-mounted";
+import React, { useState } from "react";
 
 function BatSVG() {
   return (
@@ -9,15 +10,47 @@ function BatSVG() {
   );
 }
 
-export default function GothicDecor({ embers = 14, bats = 6 }) {
-  const emberItems = Array.from({ length: embers });
-  const batItems = Array.from({ length: bats });
+type Ember = {
+  left: number;
+  top: number;
+  size: number;
+  duration: number;
+  delay: number;
+};
 
-  const [isMounted, setIsMounted] = useState(false);
+type Bat = {
+  left: number;
+  top: number;
+  size: number;
+  duration: number;
+  delay: number;
+};
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+function generateEmbers(count: number): Ember[] {
+  return Array.from({ length: count }, () => ({
+    left: Math.random() * 100,
+    top: 50 + Math.random() * 40,
+    size: 5 + Math.random() * 8,
+    duration: 3 + Math.random() * 2,
+    delay: Math.random() * -5,
+  }));
+}
+
+function generateBats(count: number): Bat[] {
+  return Array.from({ length: count }, () => ({
+    left: Math.random() * 90,
+    top: 70 - Math.random() * 50,
+    size: 20 + Math.random() * 14,
+    duration: 6 + Math.random() * 6,
+    delay: Math.random() * -8,
+  }));
+}
+
+
+export default function GothicDecor({ embers = 14, bats = 6 }: { embers?: number; bats?: number }) {
+  const isMounted = useIsMounted();
+  const [emberItems] = useState(() => generateEmbers(embers));
+  const [batItems] = useState(() => generateBats(bats));
 
   if (!isMounted) return null;
 
@@ -26,54 +59,37 @@ export default function GothicDecor({ embers = 14, bats = 6 }) {
       <div className="gothic-aura" />
       <div className="gothic-crack" />
 
-      {emberItems.map((_, i) => {
-        const left = Math.random() * 100;
-        const top = 50 + Math.random() * 40;
-        const size = 5 + Math.random() * 8;
-        const duration = 3 + Math.random() * 2;
-        const delay = Math.random() * -5;
+      {emberItems.map((ember, i) => (
+        <div
+          key={`e${i}`}
+          className="gothic-ember"
+          style={{
+            left: `${ember.left}%`,
+            top: `${ember.top}%`,
+            width: `${ember.size}px`,
+            height: `${ember.size}px`,
+            animationDuration: `${ember.duration}s`,
+            animationDelay: `${ember.delay}s`,
+          }}
+        />
+      ))}
 
-        return (
-          <div
-            key={`e${i}`}
-            className="gothic-ember"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              width: `${size}px`,
-              height: `${size}px`,
-              animationDuration: `${duration}s`,
-              animationDelay: `${delay}s`,
-            }}
-          />
-        );
-      })}
-
-      {batItems.map((_, i) => {
-        const left = Math.random() * 90;
-        const top = 70 - Math.random() * 50;
-        const size = 20 + Math.random() * 14;
-        const duration = 6 + Math.random() * 6;
-        const delay = Math.random() * -8;
-
-        return (
-          <div
-            key={`b${i}`}
-            className="gothic-bat"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              width: `${size}px`,
-              height: `${size * 0.6}px`,
-              animationDuration: `${duration}s`,
-              animationDelay: `${delay}s`,
-            }}
-          >
-            <BatSVG />
-          </div>
-        );
-      })}
+      {batItems.map((bat, i) => (
+        <div
+          key={`b${i}`}
+          className="gothic-bat"
+          style={{
+            left: `${bat.left}%`,
+            top: `${bat.top}%`,
+            width: `${bat.size}px`,
+            height: `${bat.size * 0.6}px`,
+            animationDuration: `${bat.duration}s`,
+            animationDelay: `${bat.delay}s`,
+          }}
+        >
+          <BatSVG />
+        </div>
+      ))}
     </div>
   );
 }
-

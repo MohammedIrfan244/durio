@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { INote, INoteFolder } from "@/types/note";
 import { 
@@ -8,8 +8,6 @@ import {
     searchNotesAndFolders, 
     searchArchivedNotes,
     getArchivedFolders,
-    bulkSoftDeleteNotes,
-    bulkDeleteNotes,
     restoreNoteFromArchive,
     restoreAllFromArchive,
     moveNote,
@@ -46,13 +44,10 @@ export default function Note() {
   
   const [loading, setLoading] = useState(true); // Initial load
   const [loadingMoreNotes, setLoadingMoreNotes] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   // Pagination State
   const [notePage, setNotePage] = useState(1);
   const [hasMoreNotes, setHasMoreNotes] = useState(true);
-  const [folderPage, setFolderPage] = useState(1);
-  // Folder pagination might be less critical but let's be consistent
   
   // --- Dialog States ---
   const [openCreateNote, setOpenCreateNote] = useState(false);
@@ -76,7 +71,6 @@ export default function Note() {
   useEffect(() => {
     setNotePage(1);
     setHasMoreNotes(true);
-    setFolderPage(1);
     // Trigger load
     loadData(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,6 +141,7 @@ export default function Note() {
             }
         }
     } catch (e) {
+        console.error(e);
         toast.error("Failed to load data");
     } finally {
         setLoading(false);
@@ -179,7 +174,8 @@ export default function Note() {
       if (notePage > 1) {
           loadData(false);
       }
-  }, [notePage]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notePage]);
 
 
   // --- Actions ---
@@ -234,21 +230,21 @@ export default function Note() {
       if (selectedNoteIds.length > 0) setConfirmBulkDelete(true);
   };
 
-  const performBulkDelete = async () => {
-      startTransition(async () => {
-          if (archiveMode) {
-              await bulkDeleteNotes(selectedNoteIds);
-              toast.success("Notes permanently deleted");
-          } else {
-              await bulkSoftDeleteNotes(selectedNoteIds);
-              toast.success("Notes archived");
-          }
-          setSelectedNoteIds([]);
-          setSelectionMode(false);
-          setConfirmBulkDelete(false);
-          loadData(true); 
-      });
-  };
+//   const performBulkDelete = async () => {
+//       startTransition(async () => {
+//           if (archiveMode) {
+//               await bulkDeleteNotes(selectedNoteIds);
+//               toast.success("Notes permanently deleted");
+//           } else {
+//               await bulkSoftDeleteNotes(selectedNoteIds);
+//               toast.success("Notes archived");
+//           }
+//           setSelectedNoteIds([]);
+//           setSelectionMode(false);
+//           setConfirmBulkDelete(false);
+//           loadData(true); 
+//       });
+//   };
 
   const handleRestoreNote = async (note: INote) => {
        setRestoringNote(note);
@@ -295,6 +291,7 @@ export default function Note() {
       
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMoreNotes, loading, loadingMoreNotes]);
 
   return (

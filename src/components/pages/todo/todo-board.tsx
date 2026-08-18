@@ -30,6 +30,7 @@ import TodoBulkDeleteDialogue from "./dialogs/todo-bulk-delete-dialogue";
 import { getTodayTodos, getTodoList } from "@/server/actions/to-do-action";
 import { getTodaysFocusBlocks } from "@/server/actions/focus-actions";
 import { TodoFilterInput } from "@/schema/todo";
+import type { FocusBlockWithNoteTitle } from "@/types/focus";
 
 interface TodoColumnProps {
   title: "PLAN" | "PENDING" | "DONE";
@@ -58,7 +59,7 @@ function TodoColumn({
   onToggleSelect,
   onRefreshBoard,
   activeFocusBlocks
-}: TodoColumnProps & { activeFocusBlocks?: any[] }) {
+}: TodoColumnProps & { activeFocusBlocks?: FocusBlockWithNoteTitle[] }) {
   const statusKey = title as keyof typeof statusToneBoard;
   const [todos, setTodos] = useState<IGetTodoList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -240,18 +241,18 @@ export default function TodoBoard({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stat, setStat] = useState<ITodoStatsResponsePayload | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [activeFocusBlocks, setActiveFocusBlocks] = useState<any[]>([]);
+  const [activeFocusBlocks, setActiveFocusBlocks] = useState<FocusBlockWithNoteTitle[]>([]);
 
   const fetchActiveFocus = async () => {
     const res = await withClientAction(() => getTodaysFocusBlocks());
     if (res) {
       const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const active = res.filter((b: any) => {
+      const active = res.filter((b) => {
          if (b.priority !== "HIGH") return false;
          const [sh, sm] = b.startTime.split(':').map(Number);
          const [eh, em] = b.endTime.split(':').map(Number);
-         let start = sh * 60 + sm;
+         const start = sh * 60 + sm;
          let end = eh * 60 + em;
          if (end <= start) end += 24 * 60;
          const current = currentMinutes;
@@ -278,6 +279,7 @@ export default function TodoBoard({
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStats();
     fetchActiveFocus();
     
@@ -291,6 +293,7 @@ export default function TodoBoard({
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });

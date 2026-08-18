@@ -7,7 +7,7 @@ import { Clock, MapPin, AlignLeft, Tag, Trash2, CheckCircle } from 'lucide-react
 import { format } from 'date-fns';
 import { deleteEvent } from '@/server/actions/calendar-actions';
 import { toast } from 'sonner';
-import { ICalendarEvent, IEvent } from '@/types/calendar';
+import { ICalendarEvent } from '@/types/calendar';
 import ResourceLinker from '@/components/shared/resource-linker';
 import { searchLinkableResources } from '@/server/actions/resource-link-actions';
 
@@ -24,7 +24,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
 
     const isTodo = event.type === "todo";
     const isFocus = event.type === "focus";
-    const raw = event.raw as any;
+    const raw = event.raw;
 
     const handleDelete = async () => {
         if (isTodo) {
@@ -65,7 +65,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                                 color: event.color 
                             }}
                         >
-                            {isTodo ? "Task" : isFocus ? "Focus Block" : (raw.category?.name || "Event")}
+                            {isTodo ? "Task" : isFocus ? "Focus Block" : ("category" in raw ? raw.category?.name || "Event" : "Event")}
                         </span>
                         <span className="text-sm text-foreground">
                             {format(new Date(event.start), "EEEE, MMMM d, yyyy")}
@@ -84,14 +84,14 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                         </div>
                     )}
 
-                    {!isTodo && isFocus && raw.energyLevel && (
+                    {!isTodo && isFocus && "energyLevel" in raw && raw.energyLevel && (
                         <div className="flex items-center gap-3">
                             <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
                             <span className="text-sm text-foreground">Energy: {String(raw.energyLevel)}</span>
                         </div>
                     )}
 
-                    {!isTodo && isFocus && raw.priority && (
+                    {!isTodo && isFocus && "priority" in raw && raw.priority && (
                         <div className="flex items-center gap-3">
                             <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
                             <span className="text-sm text-foreground">Priority: {String(raw.priority)}</span>
@@ -99,7 +99,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                     )}
 
                     {/* Location */}
-                    {!isTodo && raw.location && (
+                    {!isTodo && "location" in raw && raw.location && (
                         <div className="flex items-center gap-3">
                             <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
                             <span className="text-sm text-foreground">{raw.location}</span>
@@ -107,7 +107,7 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                     )}
 
                     {/* Category */}
-                    {!isTodo && raw.category && (
+                    {!isTodo && "category" in raw && raw.category && (
                         <div className="flex items-center gap-3">
                             <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
                             <div className="flex items-center gap-2">
@@ -121,14 +121,14 @@ export default function EventDetailsDialog({ event, open, onClose }: EventDetail
                     )}
 
                     {/* Description */}
-                    {!isTodo && raw.description && (
+                    {!isTodo && "description" in raw && raw.description && (
                         <div className="flex gap-3">
                             <AlignLeft className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                             <p className="text-sm text-muted-foreground leading-relaxed">{raw.description}</p>
                         </div>
                     )}
 
-                    {isFocus && raw.transitionRitual && (
+                    {isFocus && "transitionRitual" in raw && raw.transitionRitual && (
                         <div className="flex gap-3">
                             <AlignLeft className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                             <p className="text-sm text-muted-foreground leading-relaxed">

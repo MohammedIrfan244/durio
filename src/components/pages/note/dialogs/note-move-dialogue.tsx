@@ -51,7 +51,7 @@ export function NoteMoveDialog({
         </DialogHeader>
         <div className="py-4">
           <p className="mb-4 text-sm text-muted-foreground">
-            Select a folder to move <span className="font-semibold text-foreground">"{note?.heading}"</span> to:
+            Select a folder to move <span className="font-semibold text-foreground">&quot;{note?.heading}&quot;</span> to:
           </p>
           
           <RadioGroup

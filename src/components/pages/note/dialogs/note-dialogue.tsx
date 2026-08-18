@@ -112,6 +112,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
             folderId: note.folderId || undefined,
           });
         } catch (error) {
+          console.error("Failed to load note", error);
           toast.error("Failed to load note");
           setOpen(false);
         } finally {
@@ -168,7 +169,7 @@ export default function NoteDialog({ noteId, defaultFolderId, onSaved, open: ext
                     <UnsavedResourceLinker
                       allowedTargetTypes={["TODO"]}
                       searchAction={searchLinkableResources}
-                      value={(field.value as any) || []}
+                      value={field.value || []}
                       onChange={field.onChange}
                     />
                   )}

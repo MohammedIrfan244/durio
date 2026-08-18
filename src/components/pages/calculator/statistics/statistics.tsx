@@ -188,7 +188,7 @@ export default function Statistics() {
                           contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }} 
                           itemStyle={{ color: 'hsl(var(--foreground))' }}
                           labelStyle={{ fontWeight: 'bold' }}
-                          formatter={(value: any) => [Number(value).toFixed(4), "Density"]}
+                          formatter={(value: unknown) => [Number(value).toFixed(4), "Density"]}
                         />
                         <Line 
                           type="monotone" 

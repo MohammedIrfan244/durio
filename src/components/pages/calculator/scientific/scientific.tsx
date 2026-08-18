@@ -65,7 +65,8 @@ export default function Scientific() {
       const res = calculate(input, { angleMode });
       if (isNaN(res)) throw new Error("Invalid");
       setResult(res);
-    } catch (e) {
+    } catch (e: unknown) {
+      console.error(e);
       setResult(null);
       setError("Error");
     }

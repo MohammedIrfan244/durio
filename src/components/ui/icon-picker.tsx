@@ -13,22 +13,9 @@ import {
   CommandList 
 } from "@/components/ui/command";
 import { 
-  Folder, File, Star, Heart, Zap, Home, Briefcase, User, 
-  Settings, Music, Video, Image, Camera, Cloud, Mail, 
-  MessageCircle, Phone, Calendar, Clock, MapPin, Flag,
-  AlertCircle, CheckCircle, XCircle, HelpCircle, Info,
-  Menu, Grid, List, Search, Bell, Lock, Unlock,
-  Edit, Trash, Plus, Minus, Hash, Tag, Bookmark,
-  Link, ExternalLink, Share, Download, Upload,
-  Eye, EyeOff, Smile, Frown, Meh, Sun, Moon,
-  Monitor, Smartphone, Tablet, Laptop, Headphones,
-  Speaker, Wifi, Bluetooth, Battery, Cpu, Database,
-  Code, Terminal, GitBranch, GitCommit, GitMerge,
-  Box, Package, Layers, Layout, Compass, Globe,
-  Anchor, Coffee, Utensils, Beer, Wine, Archive,
-  Trash2, FolderOpen, FolderPlus, FolderMinus, FileText,
-  FileCode, FileSpreadsheet, FileImage, FileAudio, FileVideo,
-  PenTool, Pen
+  Grid,
+  HelpCircle,
+  type LucideIcon,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import {
@@ -57,13 +44,17 @@ const AVAILABLE_ICONS = [
   "Utensils", "Smile", "Frown", "Meh"
 ];
 
+function getLucideIcon(name?: string): LucideIcon {
+  if (!name || !(name in LucideIcons)) return HelpCircle;
+  const icon = LucideIcons[name as keyof typeof LucideIcons];
+  return typeof icon === "function" ? icon as LucideIcon : HelpCircle;
+}
+
 export function IconPicker({ value, onChange, className }: IconPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Dynamic Icon component
-  const SelectedIcon = value && (LucideIcons as any)[value] 
-    ? (LucideIcons as any)[value] 
-    : HelpCircle;
+  const SelectedIcon = getLucideIcon(value);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -79,7 +70,7 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
           <div className="flex items-center gap-2">
              {value ? (
                <>
-                 <SelectedIcon className="h-4 w-4" />
+                 {React.createElement(SelectedIcon, { className: "h-4 w-4" })}
                  <span>{value}</span>
                </>
              ) : (
@@ -99,8 +90,7 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
               <CommandGroup heading="Icons">
                 <div className="grid grid-cols-5 gap-2 p-2">
                     {AVAILABLE_ICONS.map((iconName) => {
-                        const Icon = (LucideIcons as any)[iconName];
-                        if (!Icon) return null;
+                        const Icon = getLucideIcon(iconName);
                         
                         return (
                             <TooltipProvider key={iconName}>
@@ -117,7 +107,7 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
                                                 value === iconName && "bg-primary text-primary-foreground aria-selected:bg-primary aria-selected:text-primary-foreground"
                                             )}
                                         >
-                                            <Icon className="h-5 w-5" />
+                                            {React.createElement(Icon, { className: "h-5 w-5" })}
                                         </CommandItem>
                                     </TooltipTrigger>
                                     <TooltipContent>

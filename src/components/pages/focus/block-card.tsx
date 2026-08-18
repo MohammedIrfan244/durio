@@ -1,9 +1,10 @@
 import React from 'react';
-import { Clock, Edit3, Flame, Coffee, Zap, BatteryCharging, AlertCircle } from 'lucide-react';
+import { Edit3, Flame, Coffee, Zap, BatteryCharging, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { RoutineBlock } from '@prisma/client';
 
 interface BlockCardProps {
-  block: any;
+  block: RoutineBlock;
   onEdit: () => void;
 }
 
@@ -52,8 +53,8 @@ export default function BlockCard({ block, onEdit }: BlockCardProps) {
       >
         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-30" />
         
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex gap-2">
              <div className={`p-1.5 rounded-md bg-background/50 backdrop-blur-sm ${style.text} shadow-sm border border-current/10`}>
                {style.icon}
              </div>

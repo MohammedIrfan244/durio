@@ -168,9 +168,9 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
         if (adminMessaging) {
           const dbUser = await prisma.user.findUnique({
             where: { id: user.id as string },
-            // Using type assertion to avoid TS errors if prisma client isn't fully generated yet
+            select: { fcmTokens: true },
           });
-          const tokens = (dbUser as any)?.fcmTokens as string[] | undefined;
+          const tokens = dbUser?.fcmTokens;
           
           if (tokens && tokens.length > 0) {
             try {
@@ -202,16 +202,16 @@ export async function registerFCMToken(token: string): Promise<{ success: boolea
     if (!user || "error" in user) throw new Error("Unauthorized");
 
     const dbUser = await prisma.user.findUnique({
-      where: { id: user.id as string }
+      where: { id: user.id as string },
+      select: { fcmTokens: true },
     });
 
-    const currentTokens = (dbUser as any)?.fcmTokens as string[] || [];
+    const currentTokens = dbUser?.fcmTokens || [];
     
     if (!currentTokens.includes(token)) {
       await prisma.user.update({
         where: { id: user.id as string },
         data: {
-          // @ts-ignore - Ignore TS error until prisma generate runs
           fcmTokens: {
             push: token
           }

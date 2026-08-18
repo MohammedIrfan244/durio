@@ -41,6 +41,7 @@ export function convertToTime(time: string) {
   
   const meridiem = rawMeridiem ? rawMeridiem.toUpperCase() : undefined;
 
+  // eslint-disable-next-line prefer-const
   let [hours, minutes] = timePart.split(":").map(Number);
 
   if (meridiem === "AM" && hours === 12) {

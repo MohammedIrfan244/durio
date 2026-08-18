@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Statistics Calculator - ${APP_NAME}`,
     description: "Statistical analysis tools: variations, modes, permutations, and regression.",
   },

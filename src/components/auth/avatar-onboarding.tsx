@@ -12,8 +12,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Upload, X, Camera } from "lucide-react";
-import { uploadAvatar } from "@/server/actions/upload-action";
+import { Upload, X, Camera, MoveRight } from "lucide-react";
+import { uploadAvatar, uploadAvatarWithUrl } from "@/server/actions/upload-action";
+import Image from "next/image";
+
+const DEFAULT_ONBOARDING_AVATAR =
+  "https://res.cloudinary.com/doseusf1y/image/upload/v1785866143/tr8fhorr79bifsqfqozv.jpg";
 
 export default function AvatarOnboarding() {
   const { data: session, update } = useSession();
@@ -26,7 +30,6 @@ export default function AvatarOnboarding() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // If logged in and no avatar, show modal (after timezone is set)
     if (session?.user && !session.user.avatar && session.user.timezone) {
       setOpen(true);
     }
@@ -101,30 +104,41 @@ export default function AvatarOnboarding() {
     }
 
     setLoading(true);
-try {
-  const result = await uploadAvatar({ file });
+    try {
+      const result = await uploadAvatar({ file });
 
-  if (!result.success) {
-    toast.error(result.error?.message || "Ooops.. Failed to upload avatar");
-    return;
-  }
+      if (!result.success) {
+        toast.error(result.error?.message || "Ooops.. Failed to upload avatar");
+        return;
+      }
 
-  await update({ avatar: result.data });
-  toast.success("Avatar uploaded successfully!");
-  setOpen(false);
-  router.refresh();
-} catch (error) {
-  console.error(error);
-  toast.error("Oops.."+ (error instanceof Error ? `: ${error.message}` : ""));
-} finally {
-  setLoading(false);
-}
+      await update({ avatar: result.data });
+      toast.success("Avatar uploaded successfully!");
+      setOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Oops.." + (error instanceof Error ? `: ${error.message}` : ""));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // const handleSkip = async () => {
-  //   setOpen(false);
-  //   router.refresh();
-  // };
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      const result = await uploadAvatarWithUrl(DEFAULT_ONBOARDING_AVATAR );
+      await update({ avatar: result.data });
+      toast.success("Default profile picture applied. You can change it later in Settings.");
+      setOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Could not apply the default profile picture." + (error instanceof Error ? `: ${error.message}` : ""));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -138,6 +152,10 @@ try {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex flex-col items-center gap-4">
+            <p className="text-xs text-muted-foreground text-center">
+              Warning: image should be 5MB or lower.
+            </p>
+
             {/* Upload Area */}
             <div
               className={`relative w-32 h-32 rounded-full border-2 border-dashed transition-all duration-200 flex items-center justify-center overflow-hidden ${
@@ -152,9 +170,10 @@ try {
             >
               {preview ? (
                 <>
-                  <img
+                  <Image
                     src={preview}
                     alt="Avatar preview"
+                    fill
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -189,17 +208,27 @@ try {
 
             {/* Upload Button */}
             <Button
-              variant="outline"
+              variant="default"
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
               className="w-full sm:w-auto"
             >
               <Upload size={16} className="mr-2" />
-              {file ? "Change Image" : "Choose Image"}
+              {file ? "Choose Different Image" : "Use Custom Profile Picture"}
             </Button>
           </div>
         </div>
-        <div className="flex justify-end gap-3">
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleSkip}
+            disabled={loading}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <MoveRight size={16} />
+          </Button>
           <Button onClick={handleSave} disabled={loading || !file}>
             {loading ? "Uploading..." : "Save Avatar"}
           </Button>

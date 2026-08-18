@@ -1,5 +1,6 @@
+import React from "react";
 import { INoteFolder } from "@/types/note";
-import { Folder, Edit2, Trash2, RotateCcw, FileText } from "lucide-react";
+import { Folder, Edit2, Trash2, RotateCcw, FileText, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import * as LucideIcons from "lucide-react";
@@ -11,6 +12,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+function getLucideIcon(name?: string | null): LucideIcon {
+  if (!name || !(name in LucideIcons)) return Folder;
+  const icon = LucideIcons[name as keyof typeof LucideIcons];
+  return typeof icon === "function" ? icon as LucideIcon : Folder;
+}
+
 interface NoteFolderCardProps {
   folder: INoteFolder;
   isSelected?: boolean;
@@ -21,9 +28,7 @@ interface NoteFolderCardProps {
 }
 
 export function NoteFolderCard({ folder, isSelected, onClick, onEdit, onDelete, onRestore }: NoteFolderCardProps) {
-  const IconComponent = folder.icon && (LucideIcons as any)[folder.icon] 
-    ? (LucideIcons as any)[folder.icon] 
-    : Folder;
+  const IconComponent = getLucideIcon(folder.icon);
 
   const noteCount = folder._count?.notes ?? 0;
 
@@ -111,13 +116,13 @@ export function NoteFolderCard({ folder, isSelected, onClick, onEdit, onDelete, 
               "bg-background/80 shadow-sm group-hover:scale-110 group-hover:rotate-6"
             )}
           >
-            <IconComponent 
-              className={cn(
+            {React.createElement(IconComponent, {
+              className: cn(
                 "h-4 w-4 transition-all duration-300",
                 isSelected && "scale-110"
-              )} 
-              style={{ color: folder.color || "inherit" }} 
-            />
+              ),
+              style: { color: folder.color || "inherit" },
+            })}
           </div>
 
           <div 

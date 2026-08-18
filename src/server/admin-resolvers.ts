@@ -1,16 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { AvatarHistoryItem, CloudinaryResourceResponse } from "@/types/admin";
+import type { Prisma } from "@prisma/client";
 
-interface AvatarHistoryItem {
-  publicId: string;
-  secureUrl: string;
-  createdAt: string;
-  width?: number;
-  height?: number;
-  format?: string;
-  isCurrent: boolean;
-}
 
 async function getAvatarHistory(userId: string, currentAvatarUrl: string | null): Promise<AvatarHistoryItem[]> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -40,13 +33,13 @@ async function getAvatarHistory(userId: string, currentAvatarUrl: string | null)
       return [];
     }
 
-    const result = await res.json();
+    const result = await res.json() as CloudinaryResourceResponse;
     if (!result.resources || !Array.isArray(result.resources)) {
       return [];
     }
 
-    return result.resources.map((resource: any) => {
-      const secureUrl = resource.secure_url as string;
+    return result.resources.map((resource) => {
+      const secureUrl = resource.secure_url;
       const normalizedCurrent = currentAvatarUrl?.replace(/^https?:/, "") ?? null;
       return {
         publicId: resource.public_id,
@@ -200,3 +193,6 @@ export async function getDashboardSummary() {
     totalAiRequests: aiUsages._sum.requestsToday || 0,
   };
 }
+
+export type AdminUserSummary = NonNullable<Prisma.PromiseReturnType<typeof getUserSummary>>;
+export type AdminDashboardSummary = Prisma.PromiseReturnType<typeof getDashboardSummary>;

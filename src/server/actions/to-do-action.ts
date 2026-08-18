@@ -1,9 +1,9 @@
 "use server";
-import { withErrorWrapper, AppError } from "@/lib/server/error-wrapper";
+import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { auditLogger } from "@/lib/server/logger";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload , IGetArchivedTodoListPayload } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, IGetArchivedTodoListPayload } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -29,8 +29,9 @@ import {
   SearchArchiveTodosInput
 } from "@/schema/todo";
 import type { Prisma } from "@prisma/client";
-import { getUserTimezone, getUserDateRanges, parseToUserDate } from "@/lib/server/date-utils";
-import { isRenewalDay, generateInsights } from "@/lib/logic/todo/todo-insights";
+import { getUserTimezone, getUserDateRanges, parseToUserDate, validateDateNotBeforeToday } from "@/lib/server/date-utils";
+import { isRenewalDay } from "@/lib/logic/todo/todo-insights";
+import { AppError } from "@/types/api";
 
 
 
@@ -47,10 +48,17 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
 
   const priorityInt = getPrioritySortValue(validatedInput.priority);
 
-
-
   const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
+
+  // Validate that due date is not in the past
+  if (dueDate) {
+    const dateError = validateDateNotBeforeToday(dueDate, timezone);
+    if (dateError) {
+      const error = new Error(dateError) as AppError;
+      error.code = "DATE_NOT_BEFORE_TODAY";
+    }
+  }
 
   const todo = await prisma.$transaction(async (tx) => {
     const newTodo = await tx.todo.create({
@@ -250,10 +258,18 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     priorityInt = getPrioritySortValue(validatedInput.priority);
   }
 
-
-
   const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
+
+  // Validate that due date is not in the past
+  if (dueDate) {
+    const dateError = validateDateNotBeforeToday(dueDate, timezone);
+    if (dateError) {
+      const error = new Error(dateError) as AppError;
+      error.code = "INVALID_DUE_DATE";
+      throw error;
+    }
+  }
 
   const todo = await prisma.todo.update({
     where: { id: validatedInput.id },
@@ -488,7 +504,7 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
   const userId = await getUserId();
   const timezone = await getUserTimezone(userId);
   
-  const { startOfToday, startOfTomorrow, now } = getUserDateRanges(timezone);
+  const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
 
   const todos = await prisma.todo.findMany({
     where: {

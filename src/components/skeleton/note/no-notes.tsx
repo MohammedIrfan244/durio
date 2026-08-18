@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Archive, Search, PenTool } from 'lucide-react';
+import { Archive, Search, PenTool } from 'lucide-react';
 
 type NoNotesVariant = 'default' | 'archive' | 'search';
 

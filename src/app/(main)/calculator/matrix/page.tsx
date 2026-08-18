@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Matrix & Linear Algebra - ${APP_NAME}`,
     description: "Complex matrix arithmetic, determinants, and linear transformations.",
   },

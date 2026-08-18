@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 function LeafSVG() {
   return (
@@ -12,46 +13,50 @@ function LeafSVG() {
   );
 }
 
+type Leaf = {
+  left: number;
+  top: number;
+  size: number;
+  duration: number;
+  delay: number;
+};
+
+function generateLeaves(count: number): Leaf[] {
+  return Array.from({ length: count }, () => ({
+    left: 5 + Math.random() * 90,
+    top: -20 - Math.random() * 40,
+    size: 8 + Math.random() * 12,
+    duration: 12 + Math.random() * 10,
+    delay: Math.random() * -20,
+  }));
+}
+
 export default function NaturalDecor({ leaves = 8 }: { leaves?: number }) {
-  const items = Array.from({ length: leaves });
-
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useIsMounted();
+  const [items] = useState(() => generateLeaves(leaves));
 
   if (!isMounted) return null;
 
   return (
     <div className="sidebar-decorations" aria-hidden>
       {/* floating leaves */}
-      {items.map((_, i) => {
-        const left = 5 + Math.random() * 90;
-        const top = -20 - Math.random() * 40;
-        const size = 8 + Math.random() * 12;
-
-        const duration = 12 + Math.random() * 10;
-        const delay = Math.random() * -20;
-
-        return (
-          <div
-            key={i}
-            className="natural-leaf"
-            style={{
-              left: `${left}%`,
-              top: `${top}vh`,
-              width: `${size}px`,
-              height: `${size}px`,
-              animationDuration: `${duration}s`,
-              animationDelay: `${delay}s`,
-              opacity: 0.92,
-            }}
-          >
-            <LeafSVG />
-          </div>
-        );
-      })}
+      {items.map((leaf, i) => (
+        <div
+          key={i}
+          className="natural-leaf"
+          style={{
+            left: `${leaf.left}%`,
+            top: `${leaf.top}vh`,
+            width: `${leaf.size}px`,
+            height: `${leaf.size}px`,
+            animationDuration: `${leaf.duration}s`,
+            animationDelay: `${leaf.delay}s`,
+            opacity: 0.92,
+          }}
+        >
+          <LeafSVG />
+        </div>
+      ))}
     </div>
   );
 }

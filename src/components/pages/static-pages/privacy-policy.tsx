@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
           </Link>
           <h1 className="text-4xl font-bold text-foreground">Privacy Policy</h1>
           <p className="text-muted-foreground mt-2">
-            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            Last updated: 15 August 2026
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <p className="text-sm mt-4">
-                You can request account deletion in your account settings under &quot;Delete Account".
+                You can request account deletion in your account settings under &quot;Delete Account&quot;.
               </p>
             </div>
           </section>
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-semibold">7. Changes to This Policy</h2>
             <p className="text-muted-foreground">
               We may update this privacy policy from time to time. Changes will be posted on this page with an
-              updated "Last updated&quot; date. Continued use of {APP_NAME} after changes constitutes your acceptance
+              updated &quot;Last updated&quot; date. Continued use of {APP_NAME} after changes constitutes your acceptance
               of the revised policy.
             </p>
           </section>

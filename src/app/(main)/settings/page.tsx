@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `Settings - ${APP_NAME}`,
     description: "Personalize your DURIO app — themes, modules, and more.",
   },

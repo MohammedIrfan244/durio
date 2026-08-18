@@ -31,7 +31,7 @@ export default function ContextAttachDialog({ open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle>Attach Context</DialogTitle>
           <DialogDescription>
-            Select data or manuals to attach to DURIA's memory for this conversation.
+            Select data or manuals to attach to DURIA&apos;s memory for this conversation.
           </DialogDescription>
         </DialogHeader>
 

@@ -6,7 +6,6 @@ import {
   ArrowUpRight,
   CloudSun,
   Equal,
-  Settings,
   Sparkles,
   StickyNote,
   Target,
@@ -133,6 +132,7 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStats();
   }, [loadStats]);
 
@@ -483,7 +483,7 @@ function ModuleInsight({
        return (
         <div className="space-y-3">
           <p className="rounded-lg border border-border/40 bg-background/45 p-3 text-xs leading-relaxed text-muted-foreground">
-            You've completed all your scheduled focus blocks for today!
+            You&apos;ve completed all your scheduled focus blocks for today!
           </p>
         </div>
       );

@@ -163,3 +163,16 @@ async function generateSignature(
   const stringToSign = `${sortedParams}${apiSecret}`;
   return crypto.createHash("sha1").update(stringToSign).digest("hex");
 }
+
+export const uploadAvatarWithUrl = withErrorWrapper<void, [string]>(
+  async (input: string): Promise<void> => {
+    const userId = await getUserId();
+
+    if(!input) return;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: input },
+    });
+  }
+);
