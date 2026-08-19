@@ -14,7 +14,7 @@ export const APP_REGISTRY = {
     CALENDAR:     { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/calendar" },
     BOOKS:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/books" },
     JOURNAL:      { enabled: false, systemDisabled: true,  aiAccess: false, path: "/journal" },
-    ALBUM:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/album" },
+    ALBUM:        { enabled: true,  systemDisabled: false, aiAccess: false, path: "/album" },
     WORKOUT:      { enabled: false, systemDisabled: true,  aiAccess: false, path: "/workout" },
     SLEEP:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/sleep" },
     MENSTRUATION: { enabled: false, systemDisabled: true,  aiAccess: false, path: "/menstruation" },
