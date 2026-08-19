@@ -18,7 +18,7 @@ export const HeaderSearch: React.FC<HeaderSearchProps> = ({
 }) => {
   return (
     <div className={cn("flex-1 relative group nav-item-group", className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
+      <Search className="absolute left-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:text-primary animate-zap" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}

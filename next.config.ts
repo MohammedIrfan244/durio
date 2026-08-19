@@ -5,6 +5,7 @@ const cspHeader = `
   script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://res.cloudinary.com https://*.googleusercontent.com;
+  media-src 'self': https://res.cloudinary.com https://*.googleusercontent.com;
   font-src 'self';
   object-src 'none';
   base-uri 'self';
