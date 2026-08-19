@@ -85,6 +85,11 @@ export const uploadMedia = withErrorWrapper<IMedia, [UploadMediaInput]>(
       },
     });
 
+    if (validatedInput.albumId) {
+      await assertAlbumAndMedia(validatedInput.albumId, media.id, userId);
+      await addMediaToAlbumInternal(validatedInput.albumId, media.id, userId);
+    }
+
     return media as IMedia;
   }
 );
@@ -113,7 +118,29 @@ export const toggleFavoriteMedia = withErrorWrapper<IMedia, [UpdateMediaInput]>(
 
     const media = await prisma.media.update({
       where: { id: validatedInput.id },
-      data: { isFavorite: validatedInput.isFavorite ?? !existing.isFavorite },
+      data: {
+        isFavorite: validatedInput.isFavorite ?? !existing.isFavorite,
+        filename: validatedInput.filename,
+      },
+    });
+
+    return media as IMedia;
+  }
+);
+
+export const updateMedia = withErrorWrapper<IMedia, [UpdateMediaInput]>(
+  async (input) => {
+    const validatedInput = UpdateMediaSchema.parse(input);
+    const userId = await getUserId();
+    const existing = await prisma.media.findFirst({ where: { id: validatedInput.id, userId } });
+    if (!existing) throw new Error("Media not found");
+
+    const media = await prisma.media.update({
+      where: { id: validatedInput.id },
+      data: {
+        filename: validatedInput.filename,
+        isFavorite: validatedInput.isFavorite,
+      },
     });
 
     return media as IMedia;
@@ -193,27 +220,7 @@ export const addMediaToAlbum = withErrorWrapper<void, [AlbumMediaInput]>(async (
   const validatedInput = AlbumMediaSchema.parse(input);
   const userId = await getUserId();
   await assertAlbumAndMedia(validatedInput.albumId, validatedInput.mediaId, userId);
-
-  const last = await prisma.albumMedia.findFirst({
-    where: { albumId: validatedInput.albumId, userId },
-    orderBy: { position: "desc" },
-  });
-
-  await prisma.albumMedia.upsert({
-    where: {
-      albumId_mediaId: {
-        albumId: validatedInput.albumId,
-        mediaId: validatedInput.mediaId,
-      },
-    },
-    create: {
-      userId,
-      albumId: validatedInput.albumId,
-      mediaId: validatedInput.mediaId,
-      position: (last?.position ?? -1) + 1,
-    },
-    update: {},
-  });
+  await addMediaToAlbumInternal(validatedInput.albumId, validatedInput.mediaId, userId);
 });
 
 export const removeMediaFromAlbum = withErrorWrapper<void, [AlbumMediaInput]>(async (input) => {
@@ -281,6 +288,12 @@ async function getMediaInternal(input?: GetMediaInput): Promise<IMedia[]> {
     });
     const ids = memberships.map((membership) => membership.mediaId);
     where.id = { in: ids };
+  } else if (validatedInput?.openOnly) {
+    const memberships = await prisma.albumMedia.findMany({
+      where: { userId },
+      select: { mediaId: true },
+    });
+    where.id = { notIn: memberships.map((membership) => membership.mediaId) };
   }
 
   const media = await prisma.media.findMany({
@@ -361,6 +374,29 @@ async function assertAlbumAndMedia(albumId: string, mediaId: string, userId: str
   ]);
   if (!album) throw new Error("Album not found");
   if (!media) throw new Error("Media not found");
+}
+
+async function addMediaToAlbumInternal(albumId: string, mediaId: string, userId: string) {
+  const last = await prisma.albumMedia.findFirst({
+    where: { albumId, userId },
+    orderBy: { position: "desc" },
+  });
+
+  await prisma.albumMedia.upsert({
+    where: {
+      albumId_mediaId: {
+        albumId,
+        mediaId,
+      },
+    },
+    create: {
+      userId,
+      albumId,
+      mediaId,
+      position: (last?.position ?? -1) + 1,
+    },
+    update: {},
+  });
 }
 
 async function destroyCloudinaryResource(publicId: string, mediaType: "IMAGE" | "VIDEO") {

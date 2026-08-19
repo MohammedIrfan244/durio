@@ -8,15 +8,19 @@ const shortText = z.string().trim().min(1).max(200);
 const optionalText = z.string().trim().max(1000).optional();
 
 export const UploadMediaSchema = z.object({
-  file: z.instanceof(File),
+  file: z
+    .instanceof(File)
+    .refine((file) => file.size <= 9 * 1024 * 1024, "Media must be 9 MB or smaller"),
   capturedAt: z.coerce.date().optional(),
   location: z.string().trim().max(200).optional(),
+  albumId: MONGOID.optional(),
 });
 
 export const GetMediaSchema = z
   .object({
     search: z.string().trim().max(100).optional(),
     albumId: MONGOID.optional(),
+    openOnly: z.boolean().optional(),
     mediaType: MediaTypeEnum.optional(),
     favoritesOnly: z.boolean().optional(),
     dateFrom: z.coerce.date().optional(),
@@ -28,6 +32,7 @@ export const GetMediaSchema = z
 
 export const UpdateMediaSchema = z.object({
   id: MONGOID,
+  filename: shortText.optional(),
   isFavorite: z.boolean().optional(),
 });
 

@@ -8,6 +8,8 @@ import {
   ArrowDown,
   ArrowUp,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Eye,
   Filter,
@@ -63,12 +65,31 @@ import {
   reorderAlbumMedia,
   toggleFavoriteMedia,
   updateAlbum,
+  updateMedia,
   uploadMedia,
 } from "@/server/actions/album-actions";
 import type { IAlbum, IMedia } from "@/types/album";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type ViewMode = "gallery" | "timeline";
 type MediaTypeFilter = "ALL" | "IMAGE" | "VIDEO";
+
+const MAX_MEDIA_UPLOAD_BYTES = 9 * 1024 * 1024;
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const breakpointColumns = {
   default: 5,
@@ -85,6 +106,7 @@ export default function Album() {
   const [onThisDay, setOnThisDay] = useState<IMedia[]>([]);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | undefined>();
   const [selectedMedia, setSelectedMedia] = useState<IMedia | null>(null);
+  const [viewerSource, setViewerSource] = useState<IMedia[]>([]);
   const [editingAlbum, setEditingAlbum] = useState<IAlbum | null>(null);
   const [albumDialogOpen, setAlbumDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -98,6 +120,10 @@ export default function Album() {
   const debouncedSearch = useDebounce(search, 300);
 
   const selectedAlbum = albums.find((album) => album.id === selectedAlbumId);
+  const openViewer = (item: IMedia, source: IMedia[]) => {
+    setSelectedMedia(item);
+    setViewerSource(source);
+  };
 
   const loadData = useCallback((showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -105,6 +131,7 @@ export default function Album() {
       const result = await getAlbumDashboard({
         search: debouncedSearch || undefined,
         albumId: selectedAlbumId,
+        openOnly: !selectedAlbumId,
         mediaType: mediaType === "ALL" ? undefined : mediaType,
         favoritesOnly,
         dateFrom: dateFrom ? new Date(dateFrom) : undefined,
@@ -141,16 +168,44 @@ export default function Album() {
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
+    const oversized = files.filter((file) => file.size > MAX_MEDIA_UPLOAD_BYTES);
+    if (oversized.length > 0) {
+      toast.error(`${oversized[0].name} is too large. Keep each upload at 9 MB or less.`);
+      event.target.value = "";
+      return;
+    }
 
-    const uploading = toast.loading(`Uploading ${files.length} ${files.length === 1 ? "item" : "items"}...`);
+    const uploading = toast.loading(
+      selectedAlbum
+        ? `Tucking ${files.length} ${files.length === 1 ? "memory" : "memories"} into ${selectedAlbum.title}...`
+        : `Adding ${files.length} ${files.length === 1 ? "memory" : "memories"}...`
+    );
     for (const file of files) {
-      const result = await uploadMedia({ file, capturedAt: new Date(file.lastModified) });
+      const result = await uploadMedia({
+        file,
+        capturedAt: new Date(file.lastModified),
+        albumId: selectedAlbumId,
+      });
       if (!result.success) toast.error(result.error?.message || `Failed to upload ${file.name}`);
     }
     toast.dismiss(uploading);
-    toast.success("Upload complete");
+    toast.success(selectedAlbum ? `Added to ${selectedAlbum.title}` : "Upload complete");
     event.target.value = "";
     loadData();
+  };
+
+  const handleRenameMedia = async (item: IMedia, filename: string) => {
+    const result = await updateMedia({ id: item.id, filename });
+    if (!result.data) {
+      toast.error(result.error?.message || "Could not rename this one");
+      return;
+    }
+    setMedia((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
+    setRecent((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
+    setOnThisDay((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
+    setViewerSource((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
+    setSelectedMedia((current) => (current?.id === item.id ? result.data! : current));
+    toast.success("Renamed");
   };
 
   const handleFavorite = async (item: IMedia) => {
@@ -162,6 +217,7 @@ export default function Album() {
     setMedia((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
     setRecent((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
     setOnThisDay((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
+    setViewerSource((items) => items.map((mediaItem) => (mediaItem.id === item.id ? result.data! : mediaItem)));
     setSelectedMedia((current) => (current?.id === item.id ? result.data! : current));
   };
 
@@ -212,17 +268,17 @@ export default function Album() {
   };
 
   return (
-    <div className="w-full space-y-6 pb-10">
-      <SectionHeaderWrapper className="mb-2">
+    <div className="section-wrapper space-y-6">
+      <SectionHeaderWrapper>
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-[1fr_auto] items-center gap-3 md:flex">
             <div className="flex-1">
-              <HeaderSearch value={search} onChange={setSearch} placeholder="Search your library..." />
+              <HeaderSearch value={search} onChange={setSearch} placeholder="Looking for a photo or video?" />
             </div>
-            <Button asChild className="gap-2 font-semibold">
+            <Button asChild className="gap-2 font-semibold transition-all duration-300 hover:shadow-lg">
               <Label htmlFor="album-upload" className="cursor-pointer">
                 <ImagePlus className="h-4 w-4" />
-                Upload
+                {selectedAlbum ? "Upload here" : "Add media"}
               </Label>
             </Button>
             <Input
@@ -235,16 +291,20 @@ export default function Album() {
             />
             <Button
               variant="outline"
-              className="col-span-2 gap-2 md:w-auto"
+              className="col-span-2 gap-2 transition-all duration-300 hover:bg-primary/10 hover:text-primary md:w-auto"
               onClick={() => {
                 setEditingAlbum(null);
                 setAlbumDialogOpen(true);
               }}
             >
               <Plus className="h-4 w-4" />
-              Album
+              New album
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Photos and videos can be up to {formatBytes(MAX_MEDIA_UPLOAD_BYTES)} each.
+            {selectedAlbum ? ` New uploads will land in ${selectedAlbum.title}.` : " You are viewing media that is not in an album yet."}
+          </p>
 
           <div className="grid gap-3 md:grid-cols-[auto_auto_auto_1fr_auto] md:items-end">
             <div className="space-y-1">
@@ -254,7 +314,7 @@ export default function Album() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All media</SelectItem>
+                  <SelectItem value="ALL">Everything</SelectItem>
                   <SelectItem value="IMAGE">Photos</SelectItem>
                   <SelectItem value="VIDEO">Videos</SelectItem>
                 </SelectContent>
@@ -262,24 +322,24 @@ export default function Album() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">From</Label>
-              <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+              <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="Start date" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">To</Label>
-              <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+              <DatePicker value={dateTo} onChange={setDateTo} placeholder="End date" />
             </div>
             <Card className="bg-secondary/30 border-border/40 md:w-[170px]">
               <CardContent className="flex h-10 items-center justify-between gap-3 px-3 py-0">
-                <Label className="text-sm font-semibold">Favorites</Label>
+                <Label className="text-sm font-semibold">Loved</Label>
                 <Switch checked={favoritesOnly} onCheckedChange={setFavoritesOnly} />
               </CardContent>
             </Card>
-            <div className="flex rounded-md border bg-background p-1">
+            <div className="flex rounded-md border justify-around bg-background p-1">
               <Button size="sm" variant={viewMode === "gallery" ? "secondary" : "ghost"} onClick={() => setViewMode("gallery")}>
                 Gallery
               </Button>
               <Button size="sm" variant={viewMode === "timeline" ? "secondary" : "ghost"} onClick={() => setViewMode("timeline")}>
-                Timeline
+                By date
               </Button>
             </div>
           </div>
@@ -308,7 +368,7 @@ export default function Album() {
       />
 
       {!selectedAlbumId && (
-        <Highlights recent={recent} onThisDay={onThisDay} onOpen={setSelectedMedia} />
+        <Highlights recent={recent} onThisDay={onThisDay} onOpen={openViewer} />
       )}
 
       {selectedAlbum && (
@@ -320,7 +380,7 @@ export default function Album() {
             )}
           </div>
           <Button variant="outline" size="sm" onClick={() => setSelectedAlbumId(undefined)}>
-            All Media
+            Open Media
           </Button>
         </div>
       )}
@@ -338,7 +398,7 @@ export default function Album() {
           media={media}
           albums={albums}
           selectedAlbumId={selectedAlbumId}
-          onOpen={setSelectedMedia}
+          onOpen={(item) => openViewer(item, media)}
           onFavorite={handleFavorite}
           onDelete={handleDeleteMedia}
           onAddToAlbum={handleAddToAlbum}
@@ -357,7 +417,7 @@ export default function Album() {
                 media={items}
                 albums={albums}
                 selectedAlbumId={selectedAlbumId}
-                onOpen={setSelectedMedia}
+                onOpen={(item) => openViewer(item, items)}
                 onFavorite={handleFavorite}
                 onDelete={handleDeleteMedia}
                 onAddToAlbum={handleAddToAlbum}
@@ -383,10 +443,14 @@ export default function Album() {
 
       {selectedMedia && (
         <MediaViewer
+          key={selectedMedia.id}
           media={selectedMedia}
+          source={viewerSource}
           albums={albums}
           onClose={() => setSelectedMedia(null)}
+          onNavigate={setSelectedMedia}
           onFavorite={handleFavorite}
+          onRename={handleRenameMedia}
           onDelete={handleDeleteMedia}
           onAddToAlbum={handleAddToAlbum}
           onRemoveFromAlbum={selectedAlbumId ? () => handleRemoveFromAlbum(selectedMedia.id) : undefined}
@@ -427,8 +491,8 @@ function AlbumShelf({
           <div className="flex h-full flex-col justify-between">
             <Filter className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-bold">All Media</p>
-              <p className="text-xs text-muted-foreground">Full library</p>
+              <p className="font-bold">Open Media</p>
+              <p className="text-xs text-muted-foreground">Not in an album yet</p>
             </div>
           </div>
         </button>
@@ -481,27 +545,27 @@ function Highlights({
 }: {
   recent: IMedia[];
   onThisDay: IMedia[];
-  onOpen: (media: IMedia) => void;
+  onOpen: (media: IMedia, source: IMedia[]) => void;
 }) {
   if (recent.length === 0 && onThisDay.length === 0) return null;
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <HighlightStrip title="Recent uploads" items={recent} onOpen={onOpen} />
-      <HighlightStrip title="On this day" items={onThisDay} onOpen={onOpen} />
+      <HighlightStrip title="Freshly added" items={recent} onOpen={onOpen} />
+      <HighlightStrip title="A little time travel" items={onThisDay} onOpen={onOpen} />
     </div>
   );
 }
 
-function HighlightStrip({ title, items, onOpen }: { title: string; items: IMedia[]; onOpen: (media: IMedia) => void }) {
+function HighlightStrip({ title, items, onOpen }: { title: string; items: IMedia[]; onOpen: (media: IMedia, source: IMedia[]) => void }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-2 w-full overflow-x-auto hide-scrollbar-on-main">
       <h2 className="px-1 text-lg font-bold">{title}</h2>
       <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar-on-main">
         {items.map((item) => (
-          <button key={item.id} onClick={() => onOpen(item)} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border bg-secondary">
+          <button key={item.id} onClick={() => onOpen(item, items)} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border bg-secondary transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <MediaPreview item={item} className="h-full w-full object-cover" muted />
             {item.mediaType === "VIDEO" && <Video className="absolute right-1 top-1 h-4 w-4 text-white drop-shadow" />}
           </button>
@@ -690,28 +754,57 @@ function MediaMenu({
 
 function MediaViewer({
   media,
+  source,
   albums,
   onClose,
+  onNavigate,
   onFavorite,
+  onRename,
   onDelete,
   onAddToAlbum,
   onRemoveFromAlbum,
 }: {
   media: IMedia;
+  source: IMedia[];
   albums: IAlbum[];
   onClose: () => void;
+  onNavigate: (media: IMedia) => void;
   onFavorite: (media: IMedia) => void;
+  onRename: (media: IMedia, filename: string) => void;
   onDelete: (media: IMedia) => void;
   onAddToAlbum: (albumId: string, mediaId: string) => void;
   onRemoveFromAlbum?: () => void;
 }) {
+  const [filename, setFilename] = useState(media.filename);
+  const currentIndex = source.findIndex((item) => item.id === media.id);
+  const previous = currentIndex > 0 ? source[currentIndex - 1] : undefined;
+  const next = currentIndex >= 0 && currentIndex < source.length - 1 ? source[currentIndex + 1] : undefined;
+
   return (
     <div className="fixed inset-0 z-50 grid bg-background/95 backdrop-blur md:grid-cols-[1fr_340px]">
       <div className="relative flex min-h-0 items-center justify-center bg-black">
         <Button size="icon" variant="secondary" className="absolute right-3 top-3 z-10" onClick={onClose}>
           <X className="h-5 w-5" />
         </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute left-3 top-1/2 z-10 h-9 w-9 -translate-y-1/2 transition-all duration-300 hover:-translate-x-1 disabled:opacity-30"
+          disabled={!previous}
+          onClick={() => previous && onNavigate(previous)}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
         <MediaPreview item={media} className="max-h-full max-w-full object-contain" controls />
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute right-3 top-1/2 z-10 h-9 w-9 -translate-y-1/2 transition-all duration-300 hover:translate-x-1 disabled:opacity-30"
+          disabled={!next}
+          onClick={() => next && onNavigate(next)}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
       </div>
       <aside className="overflow-y-auto border-l bg-background p-4">
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -723,20 +816,32 @@ function MediaViewer({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => onFavorite(media)}>
-            <Heart className={`mr-2 h-4 w-4 ${media.isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
-            {media.isFavorite ? "Unfavorite" : "Favorite"}
+        <div className="mb-4 space-y-2">
+          <Label>Call it</Label>
+          <div className="flex gap-2">
+            <Input value={filename} onChange={(event) => setFilename(event.target.value)} />
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-10 w-10 shrink-0 transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+              disabled={!filename.trim() || filename === media.filename}
+              onClick={() => onRename(media, filename)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          <Button size="icon" variant="outline" className="h-10 w-full transition-all duration-300 hover:scale-105 hover:text-rose-500" onClick={() => onFavorite(media)}>
+            <Heart className={`h-4 w-4 ${media.isFavorite ? "fill-rose-500 text-rose-500" : ""}`} />
           </Button>
-          <Button size="sm" variant="outline" asChild>
+          <Button size="icon" variant="outline" className="h-10 w-full transition-all duration-300 hover:-translate-y-0.5 hover:text-primary" asChild>
             <a href={media.url} download target="_blank" rel="noreferrer">
-              <Download className="mr-2 h-4 w-4" />
-              Download
+              <Download className="h-4 w-4" />
             </a>
           </Button>
-          <Button size="sm" variant="destructive" onClick={() => onDelete(media)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+          <Button size="icon" variant="destructive" className="h-10 w-full transition-all duration-300 hover:scale-105" onClick={() => onDelete(media)}>
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
         <div className="mb-5 space-y-2">
@@ -755,7 +860,7 @@ function MediaViewer({
           </Select>
           {onRemoveFromAlbum && (
             <Button className="w-full" variant="outline" onClick={onRemoveFromAlbum}>
-              Remove from current album
+              Take out of this album
             </Button>
           )}
         </div>
@@ -879,6 +984,88 @@ function AlbumDialogForm({
   );
 }
 
+function DatePicker({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const selected = value ? new Date(`${value}T00:00:00`) : undefined;
+  const [calendarMonth, setCalendarMonth] = useState<Date>(selected || new Date());
+
+  const setDate = (date: Date | undefined) => {
+    if (!date) return;
+    onChange(toDateInputValue(date));
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 w-full justify-start gap-2 bg-secondary/30 text-left font-normal transition-all duration-300 hover:bg-secondary/50 hover:text-primary md:w-[160px]"
+        >
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          {selected ? formatDate(selected) : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <div className="border-b border-border/40 p-3">
+          <div className="flex gap-2">
+            <Select
+              value={calendarMonth.getMonth().toString()}
+              onValueChange={(month) => {
+                const next = new Date(calendarMonth);
+                next.setMonth(Number(month));
+                setCalendarMonth(next);
+              }}
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((month, index) => (
+                  <SelectItem key={month} value={index.toString()}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              value={calendarMonth.getFullYear()}
+              onChange={(event) => {
+                const next = new Date(calendarMonth);
+                next.setFullYear(Number(event.target.value) || new Date().getFullYear());
+                setCalendarMonth(next);
+              }}
+              className="h-8 w-24 text-sm"
+            />
+          </div>
+        </div>
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={setDate}
+          month={calendarMonth}
+          onMonthChange={setCalendarMonth}
+        />
+        {value && (
+          <div className="border-t border-border/40 p-2">
+            <Button className="w-full" size="sm" variant="ghost" onClick={() => onChange("")}>
+              Clear date
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function MediaPreview({
   item,
   className,
@@ -949,4 +1136,11 @@ function formatBytes(bytes: number) {
   const units = ["B", "KB", "MB", "GB"];
   const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
   return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
