@@ -1921,6 +1921,23 @@ html.is-capacitor [contenteditable="true"] {
   animation: ken-burns 20s ease-in-out infinite alternate;
 }
 
+/* Slide Down Animation for Filters */
+@keyframes slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out forwards;
+}
+
 /* --- Mobile Splash DVD Bounce --- */
 .dvd-bounce {
   position: absolute;

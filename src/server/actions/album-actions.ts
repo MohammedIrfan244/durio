@@ -29,6 +29,7 @@ import type { CloudinaryUploadResult, IAlbum, IAlbumDashboard, IMedia } from "@/
 
 export const uploadMedia = withErrorWrapper<IMedia, [UploadMediaInput]>(
   async (input) => {
+    console.log("called here")
     const validatedInput = UploadMediaSchema.parse(input);
     const userId = await getUserId();
 
