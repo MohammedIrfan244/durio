@@ -146,7 +146,7 @@ export function MediaDetailsModal({
                 </span>
               </Button>
               <Button variant="outline" className="h-10 gap-1.5" asChild>
-                <a href={media.url} download target="_blank" rel="noreferrer">
+                <a href={`/api/album/media/${media.id}/download`} download>
                   <Download className="h-4 w-4" />
                   <span className="text-xs">Save</span>
                 </a>
