@@ -635,7 +635,7 @@ function MediaMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <a href={item.url} download target="_blank" rel="noreferrer">
+          <a href={`/api/album/media/${item.id}/download`} download>
             <Download className="mr-2 h-4 w-4" />
             Download
           </a>
