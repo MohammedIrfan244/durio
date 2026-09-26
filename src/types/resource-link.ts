@@ -1,4 +1,4 @@
-export type ResourceType = "EVENT" | "TODO" | "NOTE" | "PROJECT";
+export type ResourceType = "EVENT" | "TODO" | "NOTE" | "PROJECT" | "MENSTRUAL_CYCLE" | "MENSTRUAL_DAILY_LOG";
 
 export interface IResourceLink {
     id: string;

@@ -97,6 +97,9 @@ function inferManageToolChoice(messages: DuriaMessage[] = []) {
   const mentionsNote = /\b(note|notes)\b/.test(textToClassify);
   const mentionsEvent = /\b(event|calendar|schedule|meeting|appointment|birthday|anniversary)\b/.test(textToClassify);
   const mentionsFocus = /\b(focus|routine|block|timetable)\b/.test(textToClassify);
+  const mentionsCycle = /\b(period|menstrual|menstruation|cycle|spotting|ovulation)\b/.test(textToClassify);
+  const mentionsDailyLog = /\b(daily log|cycle log|symptom|cramp|flow|mood)\b/.test(textToClassify);
+  const mentionsReminder = /\b(cycle reminder|period reminder|log reminder|medication reminder)\b/.test(textToClassify);
 
   const wantsDelete = /\b(delete|remove|discard)\b/.test(latest);
   const wantsUpdate = /\b(update|edit|change|set|mark|rename|reschedule|move|completed|complete|done|cancelled|canceled|pending|plan)\b/.test(latest);
@@ -109,11 +112,18 @@ function inferManageToolChoice(messages: DuriaMessage[] = []) {
   }
 
   if (wantsUpdate) {
+    if (mentionsReminder) return { type: 'tool' as const, toolName: 'proposeCreateMenstrualReminder' };
+    if (mentionsDailyLog) return { type: 'tool' as const, toolName: 'proposeUpdateDailyLog' };
+    if (mentionsCycle) return { type: 'tool' as const, toolName: 'proposeUpdatePeriod' };
     if (mentionsNote) return { type: 'tool' as const, toolName: 'proposeUpdateNote' };
     if (mentionsEvent) return { type: 'tool' as const, toolName: 'proposeUpdateEvent' };
     if (mentionsTask) return { type: 'tool' as const, toolName: 'proposeUpdateTask' };
     if (mentionsFocus) return { type: 'tool' as const, toolName: 'proposeUpdateFocusBlock' };
   }
+
+  if (mentionsReminder) return { type: 'tool' as const, toolName: 'proposeCreateMenstrualReminder' };
+  if (mentionsDailyLog) return { type: 'tool' as const, toolName: 'proposeCreateDailyLog' };
+  if (mentionsCycle) return { type: 'tool' as const, toolName: 'proposeCreatePeriod' };
 
   return undefined;
 }
@@ -281,7 +291,7 @@ The current local date and time for the user is: ${localTimeString}
 When creating events, ALWAYS use ISO 8601 format for dates/times based on the user's local timezone provided above.
 
 MANAGE MODE RULES:
-- When the user asks to create, edit, or delete a task, note, or event, use the appropriate propose tool.
+- When the user asks to create, edit, or delete a task, note, event, or cycle entry, use the appropriate propose tool.
 - Your propose tool ONLY returns the structured data. You do NOT confirm the action yourself.
 - For edit or delete requests, do NOT ask the user for IDs. Propose the intended update/delete with the information you can infer. The application will show a separate selector so the user can choose the exact task, note, or event, and the application will perform the database operation.
 - If the user asks to edit/update but omits a new value, still call the appropriate update propose tool with partial or empty fields so the app can show the selector and editable preview.
@@ -289,6 +299,7 @@ MANAGE MODE RULES:
 - After you propose, the user will see an editable preview. They will click Confirm or Cancel.
 - You will then receive a [SYSTEM] message telling you the result. React to it naturally.
 - NEVER tell the user the action was completed before you receive the [SYSTEM] result message.
+- Menstrual actions are private and require an explicit proposal confirmation. Never diagnose, offer contraception guidance, claim pregnancy or infertility, or advise medication changes.
 
 BOUNDARY RULES:
 - You are a companion specifically for managing the user's tasks, notes, and calendar within this application.
@@ -316,6 +327,9 @@ ${primaryGuide}
       }
       if ((contextPayload.focusBlocks?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED FOCUS BLOCKS]:\n${JSON.stringify(contextPayload.focusBlocks, null, 2)}\n\n`;
+      }
+      if ((contextPayload.menstruation?.length ?? 0) > 0) {
+        systemPrompt += `[ATTACHED CYCLE SUMMARY]:\n${JSON.stringify(contextPayload.menstruation, null, 2)}\nOnly describe estimates as estimates; do not diagnose, provide contraception guidance, or advise medication changes.\n\n`;
       }
       if ((contextPayload.docs?.length ?? 0) > 0) {
         systemPrompt += `[ATTACHED FEATURE MANUALS]:\n`;
@@ -474,7 +488,12 @@ ${primaryGuide}
           inputSchema: z.object({
             reason: z.string().optional(),
           }),
-        })
+        }),
+        proposeCreatePeriod: tool({ description: "Propose starting a period or spotting entry. Use YYYY-MM-DD for the date.", inputSchema: z.object({ date: z.string(), isSpotting: z.boolean().optional(), notes: z.string().optional() }) }),
+        proposeUpdatePeriod: tool({ description: "Propose ending the currently active period. Use YYYY-MM-DD for the date.", inputSchema: z.object({ date: z.string(), isIrregular: z.boolean().optional(), notes: z.string().optional() }) }),
+        proposeCreateDailyLog: tool({ description: "Propose a private daily cycle log. All details except date are optional.", inputSchema: z.object({ date: z.string(), flow: z.string().optional(), painLevel: z.string().optional(), mood: z.string().optional(), energyLevel: z.string().optional(), symptoms: z.array(z.string()).optional(), notes: z.string().optional() }) }),
+        proposeUpdateDailyLog: tool({ description: "Propose updating a daily cycle log for a date; confirmation saves it as an upsert.", inputSchema: z.object({ date: z.string(), flow: z.string().optional(), painLevel: z.string().optional(), mood: z.string().optional(), energyLevel: z.string().optional(), symptoms: z.array(z.string()).optional(), notes: z.string().optional() }) }),
+        proposeCreateMenstrualReminder: tool({ description: "Propose a private cycle reminder. It is disabled unless the user explicitly enables it.", inputSchema: z.object({ type: z.enum(["EXPECTED_PERIOD", "DAILY_LOG", "MEDICATION", "APPOINTMENT"]), enabled: z.boolean(), time: z.string().optional(), daysBefore: z.number().optional() }) })
       };
 
     const typedToolChoice = toolChoice as ToolChoice<typeof duriaTools> | undefined;

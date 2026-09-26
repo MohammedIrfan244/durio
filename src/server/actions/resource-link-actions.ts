@@ -11,7 +11,7 @@ import {
 import { z } from "zod";
 import { MONGOID } from "@/schema/mongo";
 
-const resourceTypeSchema = z.enum(["EVENT", "TODO", "NOTE", "PROJECT"]);
+const resourceTypeSchema = z.enum(["EVENT", "TODO", "NOTE", "PROJECT", "MENSTRUAL_CYCLE", "MENSTRUAL_DAILY_LOG"]);
 const resourceLinkInputSchema = z.object({
     fromId: MONGOID,
     fromType: resourceTypeSchema,
@@ -184,6 +184,20 @@ async function resolveResource(
                     subtitle: event.category?.name || "Event",
                     color: event.category?.color || "#3182ce" 
                 };
+            }
+            case "MENSTRUAL_CYCLE": {
+                const cycle = await prisma.menstrualCycle.findFirst({ where: { id, userId } });
+                if (!cycle) return null;
+                return {
+                    title: cycle.isSpotting ? "Spotting entry" : "Period entry",
+                    subtitle: cycle.periodStartDate.toLocaleDateString(),
+                    color: "#E11D48",
+                };
+            }
+            case "MENSTRUAL_DAILY_LOG": {
+                const log = await prisma.menstrualDailyLog.findFirst({ where: { id, userId } });
+                if (!log) return null;
+                return { title: "Daily cycle log", subtitle: log.date.toLocaleDateString(), color: "#E11D48" };
             }
             default:
                 return null;

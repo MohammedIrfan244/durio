@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { getTodosForAI, getNotesForAI, getEventsForAI, getFocusBlocksForAI } from "@/server/actions/duria-actions";
-import type { DuriaEventContext, DuriaListFilters, DuriaNoteContext, DuriaTodoContext, DuriaFocusBlockContext } from "@/types/duria";
+import { getTodosForAI, getNotesForAI, getEventsForAI, getFocusBlocksForAI, getMenstrualSummaryForAI } from "@/server/actions/duria-actions";
+import type { DuriaEventContext, DuriaListFilters, DuriaNoteContext, DuriaTodoContext, DuriaFocusBlockContext, DuriaMenstrualContext } from "@/types/duria";
+import type { MenstrualContextAttachment } from "@/types/menstruation";
 
 interface AiPayload {
   todos: DuriaTodoContext[];
@@ -10,6 +11,7 @@ interface AiPayload {
   events: DuriaEventContext[];
   focusBlocks: DuriaFocusBlockContext[];
   docs: { title: string, content: string }[];
+  menstruation: DuriaMenstrualContext[];
 }
 
 interface DuriaContextType {
@@ -19,6 +21,7 @@ interface DuriaContextType {
   attachNotes: (filters?: DuriaListFilters) => Promise<void>;
   attachEvents: (filters?: DuriaListFilters) => Promise<void>;
   attachFocusBlocks: (filters?: DuriaListFilters) => Promise<void>;
+  attachMenstruation: (kind?: MenstrualContextAttachment) => Promise<void>;
   attachDoc: (title: string, path: string) => Promise<void>;
   clearContext: () => void;
   removeContextItem: (type: keyof AiPayload, index: number) => void;
@@ -32,7 +35,7 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
     notes: [],
     events: [],
     focusBlocks: [],
-    docs: []
+    docs: [], menstruation: []
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -87,9 +90,15 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
     }
     setIsLoading(false);
   };
+  const attachMenstruation = async (kind: MenstrualContextAttachment = "SUMMARY") => {
+    setIsLoading(true);
+    const res = await getMenstrualSummaryForAI({ kind });
+    if (res.success && res.data) setAiPayload(prev => ({ ...prev, menstruation: [...prev.menstruation, res.data as DuriaMenstrualContext] }));
+    setIsLoading(false);
+  };
 
   const clearContext = () => {
-    setAiPayload({ todos: [], notes: [], events: [], focusBlocks: [], docs: [] });
+    setAiPayload({ todos: [], notes: [], events: [], focusBlocks: [], docs: [], menstruation: [] });
   };
 
   const removeContextItem = (type: keyof AiPayload, index: number) => {
@@ -108,6 +117,7 @@ export function DuriaProvider({ children }: { children: ReactNode }) {
       attachNotes,
       attachEvents,
       attachFocusBlocks,
+      attachMenstruation,
       attachDoc,
       clearContext,
       removeContextItem

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Link2, Search, X, StickyNote, CheckCircle, CalendarDays, Loader2, Unlink } from "lucide-react";
+import { Link2, Search, X, StickyNote, CheckCircle, CalendarDays, Loader2, Unlink, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ResourceType } from "@/types/resource-link";
@@ -11,6 +11,8 @@ export const TYPE_ICONS: Record<ResourceType, React.ReactNode> = {
     TODO: <CheckCircle className="w-3.5 h-3.5" />,
     EVENT: <CalendarDays className="w-3.5 h-3.5" />,
     PROJECT: <CalendarDays className="w-3.5 h-3.5" />,
+    MENSTRUAL_CYCLE: <Heart className="w-3.5 h-3.5" />,
+    MENSTRUAL_DAILY_LOG: <Heart className="w-3.5 h-3.5" />,
 };
 
 export const TYPE_COLORS: Record<ResourceType, string> = {
@@ -18,6 +20,8 @@ export const TYPE_COLORS: Record<ResourceType, string> = {
     TODO: "text-blue-400",
     EVENT: "text-amber-400",
     PROJECT: "text-orange-400",
+    MENSTRUAL_CYCLE: "text-rose-400",
+    MENSTRUAL_DAILY_LOG: "text-rose-400",
 };
 
 export const TYPE_LABELS: Record<ResourceType, string> = {
@@ -25,6 +29,8 @@ export const TYPE_LABELS: Record<ResourceType, string> = {
     TODO: "Task",
     EVENT: "Event",
     PROJECT: "Project",
+    MENSTRUAL_CYCLE: "Cycle",
+    MENSTRUAL_DAILY_LOG: "Daily log",
 };
 
 export interface LinkableItem {

@@ -115,13 +115,14 @@ export default function CalendarGrid({
     const [detailsOpen, setDetailsOpen] = useState(false);
 
     const handleSelectEvent = (event: ICalendarEvent) => {
+        if (event.type === 'cycle') { toast.info('Cycle entries are read-only here. Open Cycle Tracker to edit confirmed periods.'); return; }
         setSelectedEvent(event);
         setDetailsOpen(true);
     };
 
     // Drag-to-reschedule handler
     const handleEventDrop = useCallback(async ({ event, start, end }: EventInteractionArgs<ICalendarEvent>) => {
-        if (event.type === 'focus') {
+        if (event.type === 'focus' || event.type === 'cycle') {
             toast.error('Focus blocks cannot be rescheduled from the calendar');
             return;
         }
@@ -322,8 +323,8 @@ export default function CalendarGrid({
                 onEventDrop={handleEventDrop}
                 onEventResize={handleEventDrop}
                 resizable
-                draggableAccessor={(event) => event.type !== 'focus'}
-                resizableAccessor={(event) => event.type !== 'focus'}
+                draggableAccessor={(event) => event.type !== 'focus' && event.type !== 'cycle'}
+                resizableAccessor={(event) => event.type !== 'focus' && event.type !== 'cycle'}
                 components={{
                     toolbar: CustomToolbar,
                     event: CustomEvent,

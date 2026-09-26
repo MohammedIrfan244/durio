@@ -22,6 +22,10 @@ export async function GET() {
     "AIUsage",
     "SystemLog",
     "SystemConfig",
+    "MenstrualProfile",
+    "MenstrualCycle",
+    "MenstrualDailyLog",
+    "MenstrualReminder",
   ];
 
   return NextResponse.json({ models });

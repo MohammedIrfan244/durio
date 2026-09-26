@@ -51,12 +51,19 @@ export async function POST(
     // Cascade delete all user data
     // Order matters: delete dependent records before parent records
 
-    // 1. Delete checklist items (depends on todos)
+    // 1. Delete menstrual health data. This is intentionally explicit so
+    // account deletion cannot leave health records behind.
+    await prisma.menstrualDailyLog.deleteMany({ where: { userId: id } });
+    await prisma.menstrualCycle.deleteMany({ where: { userId: id } });
+    await prisma.menstrualReminder.deleteMany({ where: { userId: id } });
+    await prisma.menstrualProfile.deleteMany({ where: { userId: id } });
+
+    // 2. Delete checklist items (depends on todos)
     await prisma.checklistItem.deleteMany({
       where: { todo: { userId: id } },
     });
 
-    // 2. Delete todos
+    // 3. Delete todos
     await prisma.todo.deleteMany({
       where: { userId: id },
     });

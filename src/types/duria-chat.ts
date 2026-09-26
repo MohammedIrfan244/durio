@@ -50,6 +50,7 @@ export interface DuriaChatRequestBody {
     notes?: unknown[];
     events?: unknown[];
     focusBlocks?: unknown[];
+    menstruation?: unknown[];
     docs?: { title: string; content: string }[];
   };
 }

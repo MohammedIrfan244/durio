@@ -12,6 +12,8 @@ import { createNote, updateNote, deleteNote, getNoteById } from '@/server/action
 import { createEvent, updateEvent, deleteEvent, getOrCreateDefaultCategories, getEventById } from '@/server/actions/calendar-actions';
 import { getTodosForAI, getNotesForAI, getEventsForAI } from '@/server/actions/duria-actions';
 import { createFocusBlock, updateFocusBlock, deleteFocusBlock, getFocusBlocksForAI, getFocusBlockById } from '@/server/actions/focus-actions';
+import { startPeriod, endPeriod, upsertDailyLog } from '@/server/actions/menstruation-actions';
+import { upsertMenstrualReminder } from '@/server/actions/menstruation-reminder-actions';
 import type { DuriaProposalPayload } from '@/types/duria-chat';
 import type { IEventCreateInput } from '@/types/calendar';
 import type { CreateTodoInput, UpdateTodoInput } from '@/schema/todo';
@@ -445,6 +447,26 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
         if (!res.success) throw new Error(res.error?.message || "Failed to delete focus block");
         resultMessage = `Focus Block "${selectedTarget?.title || 'selected block'}" deleted successfully.`;
       }
+      else if (toolName === 'proposeCreatePeriod') {
+        const res = await startPeriod({ date: stringValue(payload.date), notes: stringValue(payload.notes) || null, isSpotting: booleanValue(payload.isSpotting) });
+        if (!res.success) throw new Error(res.error?.message || 'Failed to start period');
+        resultMessage = booleanValue(payload.isSpotting) ? 'Spotting entry saved successfully.' : 'Period started successfully.';
+      }
+      else if (toolName === 'proposeUpdatePeriod') {
+        const res = await endPeriod({ date: stringValue(payload.date), notes: stringValue(payload.notes) || null, isIrregular: booleanValue(payload.isIrregular) });
+        if (!res.success) throw new Error(res.error?.message || 'Failed to end period');
+        resultMessage = 'Period updated successfully.';
+      }
+      else if (toolName === 'proposeCreateDailyLog' || toolName === 'proposeUpdateDailyLog') {
+        const res = await upsertDailyLog({ date: stringValue(payload.date), flow: (stringValue(payload.flow) || null) as 'NONE' | 'SPOTTING' | 'LIGHT' | 'MEDIUM' | 'HEAVY' | null, painLevel: (stringValue(payload.painLevel) || null) as 'NONE' | 'MILD' | 'MODERATE' | 'SEVERE' | null, mood: stringValue(payload.mood) || null, energyLevel: (stringValue(payload.energyLevel) || null) as 'LOW' | 'NORMAL' | 'HIGH' | null, symptoms: Array.isArray(payload.symptoms) ? payload.symptoms.filter((value): value is string => typeof value === 'string') : [], notes: stringValue(payload.notes) || null });
+        if (!res.success) throw new Error(res.error?.message || 'Failed to save daily log');
+        resultMessage = 'Daily cycle log saved successfully.';
+      }
+      else if (toolName === 'proposeCreateMenstrualReminder') {
+        const res = await upsertMenstrualReminder({ type: stringValue(payload.type) as 'EXPECTED_PERIOD' | 'DAILY_LOG' | 'MEDICATION' | 'APPOINTMENT', enabled: booleanValue(payload.enabled), time: stringValue(payload.time) || null, daysBefore: typeof payload.daysBefore === 'number' ? payload.daysBefore : null });
+        if (!res.success) throw new Error(res.error?.message || 'Failed to save reminder');
+        resultMessage = 'Cycle reminder saved successfully.';
+      }
       
       onConfirm(finalPayload, resultMessage);
     } catch (e: unknown) {
@@ -685,6 +707,18 @@ export default function ProposalCard({ toolName, args, onConfirm, onCancel, stat
           </div>
         </div>
       );
+    }
+
+    if (toolName.includes('Period')) {
+      return <div className="space-y-3"><div className="space-y-1"><Label>{toolName.includes('Create') ? 'Start date' : 'End date'}</Label><Input type="date" value={stringValue(payload.date)} onChange={event => handleChange('date', event.target.value)} disabled={fieldsDisabled} /></div>{toolName.includes('Create') && <div className="flex items-center justify-between rounded-md border border-border/60 p-3"><Label>Spotting, not a period</Label><Switch checked={booleanValue(payload.isSpotting)} onCheckedChange={value => handleChange('isSpotting', value)} disabled={fieldsDisabled} /></div>}{toolName.includes('Update') && <div className="flex items-center justify-between rounded-md border border-border/60 p-3"><Label>Mark as irregular</Label><Switch checked={booleanValue(payload.isIrregular)} onCheckedChange={value => handleChange('isIrregular', value)} disabled={fieldsDisabled} /></div>}<div className="space-y-1"><Label>Private note (optional)</Label><Textarea value={stringValue(payload.notes)} onChange={event => handleChange('notes', event.target.value)} disabled={fieldsDisabled} /></div></div>;
+    }
+
+    if (toolName.includes('DailyLog')) {
+      return <div className="space-y-3"><div className="space-y-1"><Label>Date</Label><Input type="date" value={stringValue(payload.date)} onChange={event => handleChange('date', event.target.value)} disabled={fieldsDisabled} /></div><div className="grid grid-cols-2 gap-3"><div className="space-y-1"><Label>Flow</Label><Input value={stringValue(payload.flow)} onChange={event => handleChange('flow', event.target.value)} disabled={fieldsDisabled} /></div><div className="space-y-1"><Label>Pain level</Label><Input value={stringValue(payload.painLevel)} onChange={event => handleChange('painLevel', event.target.value)} disabled={fieldsDisabled} /></div></div><div className="space-y-1"><Label>Mood</Label><Input value={stringValue(payload.mood)} onChange={event => handleChange('mood', event.target.value)} disabled={fieldsDisabled} /></div><div className="space-y-1"><Label>Private note (optional)</Label><Textarea value={stringValue(payload.notes)} onChange={event => handleChange('notes', event.target.value)} disabled={fieldsDisabled} /></div></div>;
+    }
+
+    if (toolName.includes('MenstrualReminder')) {
+      return <div className="space-y-3"><div className="space-y-1"><Label>Reminder type</Label><Select value={stringValue(payload.type)} onValueChange={value => handleChange('type', value)} disabled={fieldsDisabled}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="EXPECTED_PERIOD">Expected period</SelectItem><SelectItem value="DAILY_LOG">Daily log</SelectItem><SelectItem value="MEDICATION">Medication</SelectItem><SelectItem value="APPOINTMENT">Appointment</SelectItem></SelectContent></Select></div><div className="space-y-1"><Label>Time</Label><Input type="time" value={stringValue(payload.time)} onChange={event => handleChange('time', event.target.value)} disabled={fieldsDisabled} /></div><div className="flex items-center justify-between rounded-md border border-border/60 p-3"><Label>Enabled</Label><Switch checked={booleanValue(payload.enabled)} onCheckedChange={value => handleChange('enabled', value)} disabled={fieldsDisabled} /></div></div>;
     }
 
     return null;

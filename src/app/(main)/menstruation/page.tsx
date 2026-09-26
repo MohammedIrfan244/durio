@@ -1,4 +1,4 @@
-import Menstruation from '@/components/pages/mesnstruation/menstruation'
+import Menstruation from '@/components/pages/menstruation/menstruation'
 import React from 'react'
 import { APP_NAME } from '@/lib/brand'
 

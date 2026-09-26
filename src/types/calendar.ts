@@ -14,9 +14,9 @@ export interface ICalendarEvent {
     start: Date;
     end: Date;
     isAllDay: boolean;
-    type: "event" | "todo" | "focus";
+    type: "event" | "todo" | "focus" | "cycle";
     color: string;
-    raw: IEvent | ITodo | RoutineBlock;
+    raw: IEvent | ITodo | RoutineBlock | { kind: "confirmed-period" | "predicted-period" | "fertile-window" | "ovulation" };
 }
 
 export interface IEventCreateInput {

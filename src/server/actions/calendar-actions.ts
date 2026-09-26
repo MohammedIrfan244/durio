@@ -14,6 +14,8 @@ import { Event, EventCategory, RoutineBlock } from "@prisma/client";
 import { z } from "zod";
 import { MONGOID } from "@/schema/mongo";
 import { eventCreateSchema, searchSchema } from "@/schema/calendar";
+import { getCyclePredictions } from "@/lib/logic/menstruation/cycle-predictions";
+import type { MenstrualCycleData } from "@/types/menstruation";
 
 
 const eventUpdateSchema = eventCreateSchema.partial().omit({ linkedResources: true });
@@ -492,7 +494,24 @@ export async function getUnifiedCalendarData(startDate: Date, endDate: Date): Pr
             };
         });
 
-        return [...mappedEvents, ...mappedTodos, ...focusEvents];
+        // Cycle information is an overlay, not generic Event records. It never
+        // creates calendar events or notification noise.
+        const [profile, cycles] = await Promise.all([
+            prisma.menstrualProfile.findUnique({ where: { userId: user.id as string } }),
+            prisma.menstrualCycle.findMany({ where: { userId: user.id as string }, orderBy: { periodStartDate: "desc" }, take: 24 }),
+        ]);
+        const cycleEvents: ICalendarEvent[] = cycles.flatMap((cycle) => {
+            const end = cycle.periodEndDate ?? cycle.periodStartDate;
+            if (end < validatedRange.startDate || cycle.periodStartDate > validatedRange.endDate) return [];
+            return [{ id: `cycle-${cycle.id}`, title: "Period (confirmed)", start: cycle.periodStartDate, end, isAllDay: true, type: "cycle" as const, color: "#e11d48", raw: { kind: "confirmed-period" as const } }];
+        });
+        if (profile?.predictionEnabled) {
+            const prediction = getCyclePredictions(cycles as MenstrualCycleData[], profile.averageCycleLength, profile.fertileWindowEnabled, user.timezone || "UTC");
+            if (prediction.nextPeriod && prediction.nextPeriod >= validatedRange.startDate && prediction.nextPeriod <= validatedRange.endDate) cycleEvents.push({ id: "predicted-period", title: "Period (estimated)", start: prediction.nextPeriod, end: prediction.nextPeriod, isAllDay: true, type: "cycle", color: "#fb7185", raw: { kind: "predicted-period" } });
+            if (prediction.ovulation && prediction.ovulation >= validatedRange.startDate && prediction.ovulation <= validatedRange.endDate) cycleEvents.push({ id: "estimated-ovulation", title: "Ovulation (estimated)", start: prediction.ovulation, end: prediction.ovulation, isAllDay: true, type: "cycle", color: "#a855f7", raw: { kind: "ovulation" } });
+            if (prediction.fertileWindow && prediction.fertileWindow.end >= validatedRange.startDate && prediction.fertileWindow.start <= validatedRange.endDate) cycleEvents.push({ id: "fertile-window", title: "Fertile window (estimated)", start: prediction.fertileWindow.start, end: prediction.fertileWindow.end, isAllDay: true, type: "cycle", color: "#64748b", raw: { kind: "fertile-window" } });
+        }
+        return [...mappedEvents, ...mappedTodos, ...focusEvents, ...cycleEvents];
     } catch (error) {
         console.error("Failed to get unified data:", error);
         return [];

@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { getUserId } from "@/lib/server/get-user";
 import { getEffectiveAIUsageForUser } from "@/server/actions/ai-usage";
+import { differenceInUserCalendarDays } from "@/lib/logic/menstruation/cycle-dates";
+import { getCyclePredictions } from "@/lib/logic/menstruation/cycle-predictions";
+import type { MenstrualCycleData } from "@/types/menstruation";
 
 export interface DashboardStats {
   activeTodos: number;
@@ -37,6 +40,7 @@ export interface DashboardStats {
     energyLevel: string;
     transitionRitual: string | null;
   }[];
+  cycleSummary: { state: "PERIOD" | "BETWEEN"; day: number; nextPeriod: Date | null } | null;
 }
 
 export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () => {
@@ -59,6 +63,9 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
     nextEvent,
     aiUsage,
     todayFocusBlocks,
+    user,
+    menstrualProfile,
+    menstrualCycles,
   ] = await Promise.all([
     prisma.todo.count({
       where: {
@@ -168,7 +175,21 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
         startTime: "asc",
       },
     }),
+    prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
+    prisma.menstrualProfile.findUnique({ where: { userId } }),
+    prisma.menstrualCycle.findMany({ where: { userId }, orderBy: { periodStartDate: "desc" }, take: 24 }),
   ]);
+
+  const timezone = user?.timezone || "UTC";
+  const activeCycle = menstrualCycles.find(cycle => !cycle.periodEndDate);
+  const latestCycle = menstrualCycles[0];
+  const cycleSummary = menstrualProfile?.dashboardEnabled && latestCycle
+    ? {
+        state: activeCycle ? "PERIOD" as const : "BETWEEN" as const,
+        day: differenceInUserCalendarDays((activeCycle ?? latestCycle).periodStartDate, now, timezone) + 1,
+        nextPeriod: getCyclePredictions(menstrualCycles as MenstrualCycleData[], menstrualProfile.averageCycleLength, menstrualProfile.fertileWindowEnabled, timezone).nextPeriod,
+      }
+    : null;
 
   return {
     activeTodos,
@@ -187,5 +208,6 @@ export const getDashboardStats = withErrorWrapper<DashboardStats, []>(async () =
     nextEvent,
     aiUsage,
     todayFocusBlocks,
+    cycleSummary,
   };
 });

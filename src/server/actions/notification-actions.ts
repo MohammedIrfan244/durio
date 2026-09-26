@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 import { Notification } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges } from "@/lib/server/date-utils";
 import { MONGOID } from "@/schema/mongo";
+import { getCyclePredictions } from "@/lib/logic/menstruation/cycle-predictions";
+import { addUserCalendarDays, getUserDateKey, userDateFromKey } from "@/lib/logic/menstruation/cycle-dates";
+import type { MenstrualCycleData } from "@/types/menstruation";
 
 export async function getNotifications(): Promise<Notification[]> {
   try {
@@ -14,6 +17,7 @@ export async function getNotifications(): Promise<Notification[]> {
 
     // Trigger check for due tasks before fetching
     await checkAndNotifyDueTasks();
+    await checkAndNotifyMenstrualReminders();
 
     const notifications = await prisma.notification.findMany({
       where: { userId: user.id as string },
@@ -193,6 +197,42 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
     }
   } catch (error) {
     console.error("Failed to check due tasks:", error);
+  }
+}
+
+/** Uses the same in-app notification flow as the rest of the project. */
+export async function checkAndNotifyMenstrualReminders(): Promise<void> {
+  try {
+    const user = await getUser();
+    if (!user || "error" in user) return;
+    const timezone = user.timezone || "UTC";
+    const todayKey = getUserDateKey(new Date(), timezone);
+    const today = userDateFromKey(todayKey, timezone);
+    const reminders = await prisma.menstrualReminder.findMany({ where: { userId: user.id, enabled: true } });
+    if (!reminders.length) return;
+    const [profile, cycles, todayLog] = await Promise.all([
+      prisma.menstrualProfile.findUnique({ where: { userId: user.id } }),
+      prisma.menstrualCycle.findMany({ where: { userId: user.id }, orderBy: { periodStartDate: "desc" }, take: 24 }),
+      prisma.menstrualDailyLog.findUnique({ where: { userId_date: { userId: user.id, date: today } } }),
+    ]);
+    const messages: string[] = [];
+    const expected = reminders.find(reminder => reminder.type === "EXPECTED_PERIOD");
+    if (expected && profile?.predictionEnabled) {
+      const prediction = getCyclePredictions(cycles as MenstrualCycleData[], profile.averageCycleLength, profile.fertileWindowEnabled, timezone);
+      const reminderDate = prediction.nextPeriod ? addUserCalendarDays(prediction.nextPeriod, -(expected.daysBefore ?? 0), timezone) : null;
+      if (reminderDate && getUserDateKey(reminderDate, timezone) === todayKey) messages.push("Cycle reminder: Your next period is approaching your recent estimate.");
+    }
+    const dailyLog = reminders.find(reminder => reminder.type === "DAILY_LOG");
+    const medication = reminders.find(reminder => reminder.type === "MEDICATION");
+    const localTime = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+    if (dailyLog && !todayLog && localTime >= (dailyLog.time ?? "09:00")) messages.push("Cycle reminder: Add today’s entry when you’re ready.");
+    if (medication && localTime >= (medication.time ?? "09:00")) messages.push("Scheduled reminder: Check your medication plan.");
+    for (const message of messages) {
+      const existing = await prisma.notification.findFirst({ where: { userId: user.id, message, createdAt: { gte: today } } });
+      if (!existing) await prisma.notification.create({ data: { userId: user.id, message, date: new Date() } });
+    }
+  } catch (error) {
+    console.error("Failed to check menstrual reminders:", error);
   }
 }
 
