@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, CirclePlus, Droplets, History, Loader2, Pencil, Settings2, Trash2 } from "lucide-react";
+import { CalendarDays, CirclePlus, Droplets, HelpCircle, History, Loader2, Pencil, Settings2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,12 +21,25 @@ import { upsertMenstrualReminder } from "@/server/actions/menstruation-reminder-
 import ResourceLinker from "@/components/shared/resource-linker";
 import { searchLinkableResources } from "@/server/actions/resource-link-actions";
 import { SectionHeaderWrapper } from "@/components/layout/section-header-wrapper";
+import InfoModal from "@/components/shared/info-modal";
 import type { CyclePredictions, EnergyLevel, Flow, MenstrualCycleData, MenstrualDailyLogData, MenstrualProfileData, MenstrualReminderData, MenstrualReminderType, PainLevel } from "@/types/menstruation";
 
 type Summary = { timezone: string; profile: MenstrualProfileData | null; cycles: MenstrualCycleData[]; activeCycle: MenstrualCycleData | null; todayLog: MenstrualDailyLogData | null; recentLogs: MenstrualDailyLogData[]; reminders: MenstrualReminderData[]; predictions: CyclePredictions };
 const symptoms = ["Cramps", "Headache", "Bloating", "Breast tenderness", "Acne", "Nausea", "Back pain", "Fatigue", "Food cravings"];
 const dateValue = (value: Date | string | undefined, timezone: string) => getUserDateKey(value ?? new Date(), timezone);
 const displayDate = (value: Date | string, timezone: string) => formatInTimeZone(new Date(value), timezone, "MMM d, yyyy");
+
+const helpTopics = {
+  start: { title: "Start period", text: "Use this on the first day you notice menstrual bleeding. It starts a new period record using today’s date. You can change the date, mark spotting, or add a private note if you want." },
+  end: { title: "End period", text: "Use this when bleeding has finished. It closes the active period and calculates its length. You can change the end date later if needed." },
+  log: { title: "Log a day", text: "This is optional. You can save an empty entry in one tap, or add details such as flow, pain, mood, symptoms, medication, or a private note." },
+  history: { title: "History", text: "This is your record of past periods. Use the pencil to correct a date or add a note. Use the bin only when you want to permanently delete that period." },
+  estimates: { title: "Estimates", text: "These dates are calculated from your completed cycle history or your chosen cycle length. They are estimates, not medical advice, and may change when you add more records." },
+  calendar: { title: "Cycle calendar", text: "The calendar shows confirmed periods and clearly labelled estimates. P means a confirmed period; E means estimated period; O means estimated ovulation; F means estimated fertile window." },
+  insights: { title: "Insights", text: "These are simple summaries of what you chose to track, such as average lengths or frequently logged symptoms. They do not diagnose health conditions." },
+  settings: { title: "Cycle settings", text: "Settings control estimates, reminders, the optional Dashboard summary, and whether you can deliberately attach a safe cycle summary to DURIA. Your data stays private unless you choose otherwise." },
+} as const;
+type HelpTopic = keyof typeof helpTopics;
 
 export default function Menstruation() {
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -35,6 +48,7 @@ export default function Menstruation() {
   const [logDialog, setLogDialog] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<MenstrualCycleData | null>(null);
+  const [helpTopic, setHelpTopic] = useState<HelpTopic | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,38 +81,40 @@ export default function Menstruation() {
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Cycle Tracker</h1>
             <p className="text-sm font-medium text-muted-foreground">Private tracking that stays simple when you need it to.</p>
           </div>
-          <Button variant="outline" className="min-h-11" onClick={() => setSettingsOpen(true)}><Settings2 /> Settings</Button>
+          <div className="flex items-center gap-1"><Button variant="outline" className="min-h-11" onClick={() => setSettingsOpen(true)}><Settings2 /> Settings</Button><HelpButton label="Learn about cycle settings" onClick={() => setHelpTopic("settings")} /></div>
         </div>
       </div>
     </SectionHeaderWrapper>
     <Card className="border-rose-200/50 bg-gradient-to-br from-rose-100/60 via-card to-card dark:from-rose-950/30">
       <CardContent className="flex flex-col gap-5 p-5 sm:p-7">
-        <div><p className="text-sm text-muted-foreground">Current status</p><h2 className="mt-1 text-3xl font-bold">{status.title}</h2><p className="mt-2 text-sm text-muted-foreground">{status.detail}</p></div>
+        <div><div className="flex items-center gap-1"><p className="text-sm text-muted-foreground">Current status</p><HelpButton label="Learn about cycle tracking" onClick={() => setHelpTopic("start")} /></div><h2 className="mt-1 text-3xl font-bold">{status.title}</h2><p className="mt-2 text-sm text-muted-foreground">{status.detail}</p></div>
         <div className="flex flex-wrap gap-2">
-          {summary.activeCycle ? <Button className="min-h-11" onClick={() => setPeriodDialog("end")}><Droplets /> End period</Button> : <Button className="min-h-11" onClick={() => setPeriodDialog("start")}><CirclePlus /> Start period</Button>}
-          <Button className="min-h-11" variant="secondary" onClick={() => setLogDialog(true)}><Pencil /> {summary.todayLog ? "Edit today" : "Log today"}</Button>
-          <Button className="min-h-11" variant="outline" onClick={() => document.getElementById("cycle-history")?.scrollIntoView({ behavior: "smooth" })}><History /> View history</Button>
+          <div className="flex items-center gap-1">{summary.activeCycle ? <Button className="min-h-11" onClick={() => setPeriodDialog("end")}><Droplets /> End period</Button> : <Button className="min-h-11" onClick={() => setPeriodDialog("start")}><CirclePlus /> Start period</Button>}<HelpButton label={summary.activeCycle ? "Learn how to end a period" : "Learn how to start a period"} onClick={() => setHelpTopic(summary.activeCycle ? "end" : "start")} /></div>
+          <div className="flex items-center gap-1"><Button className="min-h-11" variant="secondary" onClick={() => setLogDialog(true)}><Pencil /> {summary.todayLog ? "Edit today" : "Log today"}</Button><HelpButton label="Learn about daily logs" onClick={() => setHelpTopic("log")} /></div>
+          <div className="flex items-center gap-1"><Button className="min-h-11" variant="outline" onClick={() => document.getElementById("cycle-history")?.scrollIntoView({ behavior: "smooth" })}><History /> View history</Button><HelpButton label="Learn about history" onClick={() => setHelpTopic("history")} /></div>
         </div>
       </CardContent>
     </Card>
-    {summary.profile?.predictionEnabled && <PredictionCard predictions={summary.predictions} timezone={summary.timezone} />}
-    <CycleCalendar cycles={summary.cycles} predictions={summary.predictions} timezone={summary.timezone} />
+    {summary.profile?.predictionEnabled && <PredictionCard predictions={summary.predictions} timezone={summary.timezone} onHelp={() => setHelpTopic("estimates")} />}
+    <div className="space-y-1"><div className="flex justify-end"><HelpButton label="Learn about the cycle calendar" onClick={() => setHelpTopic("calendar")} /></div><CycleCalendar cycles={summary.cycles} predictions={summary.predictions} timezone={summary.timezone} /></div>
     <Card id="cycle-history"><CardHeader><CardTitle className="flex items-center gap-2"><History size={18} /> History</CardTitle></CardHeader><CardContent>
       {summary.cycles.length === 0 ? <p className="text-sm text-muted-foreground">Your confirmed periods will appear here.</p> : <div className="divide-y">{summary.cycles.map(cycle => <div className="flex flex-wrap items-center justify-between gap-3 py-4" key={cycle.id}><div><p className="font-medium">{displayDate(cycle.periodStartDate, summary.timezone)}{cycle.periodEndDate ? ` - ${displayDate(cycle.periodEndDate, summary.timezone)}` : " - ongoing"}</p><p className="text-sm text-muted-foreground">{cycle.isSpotting ? "Spotting" : cycle.periodLength ? `${cycle.periodLength} day period` : "Start date confirmed"}{cycle.cycleLength ? ` · ${cycle.cycleLength} day cycle` : ""}{cycle.isConfirmed ? " · confirmed" : " · estimated"}{cycle.isIrregular ? " · marked irregular" : ""}</p></div><div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="Edit period" onClick={() => { setSelectedCycle(cycle); setPeriodDialog("edit"); }}><Pencil /></Button><Button variant="ghost" size="icon" aria-label="Delete period" onClick={async () => { if (!confirm("Delete this period? Linked daily logs will be kept.")) return; const r = await deleteCycle({ id: cycle.id }); if (r.success) { toast.success("Period deleted"); load(); } else toast.error(r.error?.message); }}><Trash2 /></Button></div></div>)}</div>}
     </CardContent></Card>
-    <SymptomTrends cycles={summary.cycles} logs={summary.recentLogs} />
+    <div className="space-y-1"><div className="flex justify-end"><HelpButton label="Learn about insights" onClick={() => setHelpTopic("insights")} /></div><SymptomTrends cycles={summary.cycles} logs={summary.recentLogs} /></div>
     <Card><CardHeader><CardTitle>Connections</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2"><Button asChild variant="outline"><Link href="/todo">Create a Todo</Link></Button><Button asChild variant="outline"><Link href="/notes">Open Notes</Link></Button><Button asChild variant="outline"><Link href="/focus">Explore Focus</Link></Button><p className="w-full text-xs text-muted-foreground">These actions open their own modules. Nothing is created or changed until you confirm it there.</p></CardContent></Card>
     <PeriodDialog key={`${periodDialog}-${selectedCycle?.id ?? "new"}`} mode={periodDialog} cycle={selectedCycle} timezone={summary.timezone} onClose={() => { setPeriodDialog(null); setSelectedCycle(null); }} onSaved={load} />
     <DailyLogDialog key={`${logDialog}-${summary.todayLog?.id ?? "new"}`} open={logDialog} existing={summary.todayLog} timezone={summary.timezone} onClose={() => setLogDialog(false)} onSaved={load} />
     <SettingsDialog key={`${settingsOpen}-${summary.profile?.id ?? "new"}`} open={settingsOpen} profile={summary.profile} reminders={summary.reminders} onClose={() => setSettingsOpen(false)} onSaved={load} />
+    {helpTopic && <InfoModal open={Boolean(helpTopic)} onClose={() => setHelpTopic(null)} title={helpTopics[helpTopic].title} icon={<HelpCircle className="h-5 w-5" />} description={helpTopics[helpTopic].text}><p>{helpTopics[helpTopic].text}</p></InfoModal>}
   </div>;
 }
 
-function PredictionCard({ predictions, timezone }: { predictions: CyclePredictions; timezone: string }) {
+function PredictionCard({ predictions, timezone, onHelp }: { predictions: CyclePredictions; timezone: string; onHelp: () => void }) {
   if (!predictions.nextPeriod) return <Card><CardContent className="p-5"><p className="font-medium">Predictions will appear after more completed cycle history.</p><p className="mt-1 text-sm text-muted-foreground">They are estimates based on recent cycles, not medical advice.</p></CardContent></Card>;
-  return <Card><CardHeader><CardTitle className="flex items-center gap-2"><CalendarDays size={18} /> Estimates <span className="text-sm font-normal text-muted-foreground">· {predictions.confidence.toLowerCase()} confidence</span></CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3"><Metric label="Expected next period" value={displayDate(predictions.nextPeriod, timezone)} /><Metric label="Estimated ovulation" value={predictions.ovulation ? displayDate(predictions.ovulation, timezone) : "-"} />{predictions.fertileWindow && <Metric label="Estimated fertile window" value={`${displayDate(predictions.fertileWindow.start, timezone)} - ${displayDate(predictions.fertileWindow.end, timezone)}`} />}<p className="text-xs text-muted-foreground sm:col-span-3">Estimated based on recent cycles. Not contraception or medical advice.</p></CardContent></Card>;
+  return <Card><CardHeader><CardTitle className="flex items-center gap-2"><CalendarDays size={18} /> Estimates <span className="text-sm font-normal text-muted-foreground">· {predictions.confidence.toLowerCase()} confidence</span><HelpButton label="Learn about estimates" onClick={onHelp} /></CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3"><Metric label="Expected next period" value={displayDate(predictions.nextPeriod, timezone)} /><Metric label="Estimated ovulation" value={predictions.ovulation ? displayDate(predictions.ovulation, timezone) : "-"} />{predictions.fertileWindow && <Metric label="Estimated fertile window" value={`${displayDate(predictions.fertileWindow.start, timezone)} - ${displayDate(predictions.fertileWindow.end, timezone)}`} />}<p className="text-xs text-muted-foreground sm:col-span-3">Estimated based on recent cycles. Not contraception or medical advice.</p></CardContent></Card>;
 }
 function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold">{value}</p></div>; }
+function HelpButton({ label, onClick }: { label: string; onClick: () => void }) { return <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0 rounded-full" aria-label={label} onClick={onClick}><HelpCircle className="size-4" /></Button>; }
 
 function PeriodDialog({ mode, cycle, timezone, onClose, onSaved }: { mode: "start" | "end" | "edit" | null; cycle: MenstrualCycleData | null; timezone: string; onClose: () => void; onSaved: () => void }) {
   const [start, setStart] = useState(dateValue(cycle?.periodStartDate, timezone)); const [end, setEnd] = useState(dateValue(cycle?.periodEndDate ?? new Date(), timezone)); const [notes, setNotes] = useState(cycle?.notes ?? ""); const [isIrregular, setIrregular] = useState(cycle?.isIrregular ?? false); const [isSpotting, setSpotting] = useState(cycle?.isSpotting ?? false); const [saving, setSaving] = useState(false);

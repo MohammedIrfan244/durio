@@ -3,7 +3,7 @@ import React from 'react'
 import { APP_NAME } from '@/lib/brand'
 
 export const metadata = {
-    title: `${APP_NAME} - Cycle`,
+    title: ` Menstruation - ${APP_NAME}`,
     description: "Track your menstrual cycle",
 }
 
