@@ -56,3 +56,22 @@ export interface DuriaFocusBlockContext {
   transitionRitual: string | null;
   isActive: boolean;
 }
+
+// Deliberately summary-only: raw menstrual notes and medication details are
+// never part of DURIA context.
+export interface DuriaMenstrualContext {
+  attachmentType: "SUMMARY" | "RECENT_LOGS" | "CYCLE_HISTORY";
+  currentCycleDay?: number;
+  currentPhase?: string;
+  lastPeriodStart?: Date;
+  lastPeriodEnd?: Date | null;
+  predictedNextPeriod?: Date | null;
+  predictedOvulation?: Date | null;
+  averageCycleLength?: number | null;
+  recentSymptoms: string[];
+  recentMood?: string | null;
+  recentEnergy?: string | null;
+  predictionConfidence: string;
+  recentDailyLogs?: { date: Date; symptoms: string[]; mood: string | null; energyLevel: string | null }[];
+  cycleHistory?: { periodStartDate: Date; periodEndDate: Date | null; cycleLength: number | null; periodLength: number | null; isIrregular: boolean }[];
+}

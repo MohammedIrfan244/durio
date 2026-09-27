@@ -17,7 +17,7 @@ export const APP_REGISTRY = {
     ALBUM:        { enabled: true,  systemDisabled: false, aiAccess: false, path: "/album" },
     WORKOUT:      { enabled: false, systemDisabled: true,  aiAccess: false, path: "/workout" },
     SLEEP:        { enabled: false, systemDisabled: true,  aiAccess: false, path: "/sleep" },
-    MENSTRUATION: { enabled: false, systemDisabled: true,  aiAccess: false, path: "/menstruation" },
+    MENSTRUATION: { enabled: true,  systemDisabled: false, aiAccess: false, path: "/menstruation" },
     PROJECTS:     { enabled: false, systemDisabled: true,  aiAccess: false, path: "/projects" },
     FOCUS:        { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/focus" },
     CALCULATOR:   { enabled: true,  systemDisabled: false, aiAccess: true,  path: "/calculator" },

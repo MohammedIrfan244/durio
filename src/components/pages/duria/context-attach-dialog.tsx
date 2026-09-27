@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useDuria } from '@/components/providers/duria-provider';
-import { Loader2, CheckCircle2, FileText, CheckSquare, CalendarDays, BookOpen } from 'lucide-react';
+import { Loader2, CheckCircle2, FileText, CheckSquare, CalendarDays, BookOpen, Heart } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function ContextAttachDialog({ open, onOpenChange }: Props) {
-  const { attachTodos, attachNotes, attachEvents, attachDoc, isLoading } = useDuria();
+  const { attachTodos, attachNotes, attachEvents, attachDoc, attachMenstruation, isLoading } = useDuria();
   const [successMsg, setSuccessMsg] = useState("");
 
   const handleAction = async (action: () => Promise<void>, msg: string) => {
@@ -60,6 +60,15 @@ export default function ContextAttachDialog({ open, onOpenChange }: Props) {
                     <span className="font-semibold">Recent Tasks</span>
                     <span className="text-xs text-muted-foreground">Attach up to 10 active tasks</span>
                   </div>
+                </Button>
+                <Button variant="outline" className="justify-start h-14" disabled={isLoading} onClick={() => handleAction(() => attachMenstruation("SUMMARY"), "Attached your private cycle summary!")}>
+                  <Heart className="mr-3 h-5 w-5 text-rose-500" /><div className="flex flex-col items-start"><span className="font-semibold">Cycle summary</span><span className="text-xs text-muted-foreground">Only enabled summaries; never raw notes</span></div>
+                </Button>
+                <Button variant="outline" className="justify-start h-14" disabled={isLoading} onClick={() => handleAction(() => attachMenstruation("RECENT_LOGS"), "Attached recent cycle-log summaries!")}>
+                  <Heart className="mr-3 h-5 w-5 text-rose-500" /><div className="flex flex-col items-start"><span className="font-semibold">Recent cycle logs</span><span className="text-xs text-muted-foreground">Symptoms, mood, and energy only; never notes or medication</span></div>
+                </Button>
+                <Button variant="outline" className="justify-start h-14" disabled={isLoading} onClick={() => handleAction(() => attachMenstruation("CYCLE_HISTORY"), "Attached cycle history!")}>
+                  <Heart className="mr-3 h-5 w-5 text-rose-500" /><div className="flex flex-col items-start"><span className="font-semibold">Cycle history</span><span className="text-xs text-muted-foreground">Dates and lengths only; never private notes</span></div>
                 </Button>
 
                 <Button 

@@ -40,5 +40,12 @@
         "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051133/Screenshot_2026-07-14_222711_nrk8o9.png",
         "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051124/Screenshot_2026-07-14_222522_zf2tn6.png",
         "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1784051124/Screenshot_2026-07-14_222109_ye3cou.png"
+    },
+    "menstruation":{
+         "light":"https://res.cloudinary.com/doseusf1y/image/upload/v1790441248/Gemini_Generated_Image_6dszix6dszix6dsz_xxgtmi.png",
+        "dark":"https://res.cloudinary.com/doseusf1y/image/upload/v1790441248/Gemini_Generated_Image_tpucmutpucmutpuc_dxtkqj.png",
+        "pookie":"https://res.cloudinary.com/doseusf1y/image/upload/v1790441247/Gemini_Generated_Image_6ybk5q6ybk5q6ybk_r5d1tm.png",
+        "gothic":"https://res.cloudinary.com/doseusf1y/image/upload/v1790441247/Gemini_Generated_Image_2zw1762zw1762zw1_zinrt8.png",
+        "natural":"https://res.cloudinary.com/doseusf1y/image/upload/v1790441248/Gemini_Generated_Image_io0b25io0b25io0b_jzd2sw.png"
     }
 }

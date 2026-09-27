@@ -20,7 +20,10 @@ Durio is built around a centralized layout with a persistent Header and Navigati
 4. **[Calculator](file:///d:/myprojects/durio/docs/features/calculator.md):** 
    A massive suite of mathematical utilities including Scientific, Graphing, Matrix algebra, Complex polynomial operations, and Statistics engines.
 
-5. **[Settings](file:///d:/myprojects/durio/docs/features/settings.md):** 
+5. **[Menstruation / Cycle Tracking](docs/features/menstruation.md):**
+   A private, progressive-disclosure cycle tracker with one-tap logging, optional health details, predictions, history, reminders, and explicit cross-module and DURIA integration.
+
+6. **[Settings](file:///d:/myprojects/durio/docs/features/settings.md):**
    The global preference center where users can manage their profile, disable unneeded modules to declutter their sidebar, and toggle "Fancy Mode" to optimize device performance.
 
 ## Layout Elements (Header & Sidebar)

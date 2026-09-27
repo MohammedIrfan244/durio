@@ -20,6 +20,10 @@ const allowed = [
   "aiusage",
   "systemlog",
   "systemconfig",
+  "menstrualprofile",
+  "menstrualcycle",
+  "menstrualdailylog",
+  "menstrualreminder",
 ] as const;
 
 type AdminModelKey = typeof allowed[number];
@@ -47,6 +51,10 @@ const adminModelClients: Record<AdminModelKey, AdminModelClient> = {
   aiusage: prisma.aIUsage,
   systemlog: prisma.systemLog,
   systemconfig: prisma.systemConfig,
+  menstrualprofile: prisma.menstrualProfile,
+  menstrualcycle: prisma.menstrualCycle,
+  menstrualdailylog: prisma.menstrualDailyLog,
+  menstrualreminder: prisma.menstrualReminder,
 };
 
 function modelKey(name: string) {

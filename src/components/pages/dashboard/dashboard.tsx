@@ -49,6 +49,7 @@ const DEFAULT_STATS: DashboardStats = {
     limit: 50,
   },
   todayFocusBlocks: [],
+  cycleSummary: null,
 };
 
 
@@ -511,6 +512,11 @@ function ModuleInsight({
         </div>
       </div>
     );
+  }
+
+  if (moduleKey === "MENSTRUATION") {
+    if (!stats.cycleSummary) return <p className="rounded-lg border border-border/40 bg-background/45 p-3 text-xs leading-relaxed text-muted-foreground">Cycle summary is hidden. Enable it in Cycle settings whenever you want it here.</p>;
+    return <div className="space-y-3"><div className="grid grid-cols-2 gap-2"><MiniMetric label={stats.cycleSummary.state === "PERIOD" ? "Period day" : "Cycle day"} value={stats.cycleSummary.day} /><MiniMetric label="Next period" value={stats.cycleSummary.nextPeriod ? formatEventDate(stats.cycleSummary.nextPeriod) : "-"} /></div><p className="rounded-lg border border-border/40 bg-background/45 p-3 text-xs leading-relaxed text-muted-foreground">Private cycle information is shown here only because you enabled this summary.</p></div>;
   }
 
   if (moduleKey === "SETTINGS") {

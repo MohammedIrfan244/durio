@@ -35,6 +35,10 @@ model User {
   events        Event[]
   eventCategories EventCategory[]
   routineBlocks RoutineBlock[]
+  menstrualProfile MenstrualProfile?
+  menstrualCycles MenstrualCycle[]
+  menstrualDailyLogs MenstrualDailyLog[]
+  menstrualReminders MenstrualReminder[]
   
   aiUsage       AIUsage?
 
@@ -299,6 +303,81 @@ model Event {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Menstruation Section - health data is intentionally kept in dedicated,
+// user-owned models rather than generic events or notes.
+model MenstrualProfile {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String   @unique @db.ObjectId
+  user                  User     @relation(fields: [userId], references: [id])
+  averageCycleLength    Int?
+  averagePeriodLength   Int?
+  trackingStartedAt     DateTime?
+  predictionEnabled     Boolean  @default(true)
+  fertileWindowEnabled  Boolean  @default(false)
+  dashboardEnabled      Boolean  @default(false)
+  duriaAccessEnabled    Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model MenstrualCycle {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id])
+  periodStartDate DateTime
+  periodEndDate   DateTime?
+  cycleLength     Int?
+  periodLength    Int?
+  isConfirmed     Boolean  @default(true)
+  isIrregular     Boolean  @default(false)
+  isSpotting      Boolean  @default(false)
+  notes           String?
+  dailyLogs       MenstrualDailyLog[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, periodStartDate])
+}
+
+model MenstrualDailyLog {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
+  cycleId      String?  @db.ObjectId
+  cycle        MenstrualCycle? @relation(fields: [cycleId], references: [id])
+  date         DateTime
+  flow         String?
+  painLevel    String?
+  mood         String?
+  energyLevel  String?
+  symptoms     String[] @default([])
+  sleepQuality String?
+  appetite     String?
+  cervicalMucus String?
+  temperature  Float?
+  medication   String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([cycleId])
+}
+
+model MenstrualReminder {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  type       String
+  enabled    Boolean  @default(false)
+  time       String?
+  daysBefore Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // Cross-Module Relational Engine
