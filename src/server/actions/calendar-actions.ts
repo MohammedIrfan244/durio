@@ -16,6 +16,7 @@ import { MONGOID } from "@/schema/mongo";
 import { eventCreateSchema, searchSchema } from "@/schema/calendar";
 import { getCyclePredictions } from "@/lib/logic/menstruation/cycle-predictions";
 import type { MenstrualCycleData } from "@/types/menstruation";
+import { formatInTimeZone } from "date-fns-tz";
 
 
 const eventUpdateSchema = eventCreateSchema.partial().omit({ linkedResources: true });
@@ -599,7 +600,8 @@ export async function rescheduleCalendarItem(
                 data: { startDate: validated.newStart, endDate: validated.newEnd },
             });
         } else if (validated.type === "todo") {
-            const timeStr = validated.newStart.toTimeString().slice(0, 5); // "HH:MM"
+            const userTimezone = await getUserTimezone(user.id as string);
+            const timeStr = formatInTimeZone(validated.newStart, userTimezone, "HH:mm");
             await prisma.todo.update({
                 where: { id: validated.id, userId: user.id as string },
                 data: {

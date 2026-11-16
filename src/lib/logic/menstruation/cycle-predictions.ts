@@ -7,7 +7,9 @@ export function getCyclePredictions(cycles: MenstrualCycleData[], configuredCycl
   const completed = chronological.filter(isValidCompletedCycle);
   const lengths = completed.slice(1).map((cycle, index) => cycleLength(completed[index].periodStartDate, cycle.periodStartDate, timezone)).filter((length) => length >= 15 && length <= 90);
   const averageCycleLength = lengths.length ? Math.round(lengths.reduce((sum, value) => sum + value, 0) / lengths.length) : configuredCycleLength ?? null;
-  const lastPeriod = completed.at(-1);
+  // A configured cycle length is an explicit user preference, so it can seed
+  // an estimate even before the user has completed a tracked cycle.
+  const lastPeriod = completed.at(-1) ?? (configuredCycleLength ? chronological.at(-1) : undefined);
   if (!averageCycleLength || !lastPeriod) return { averageCycleLength, nextPeriod: null, ovulation: null, fertileWindow: null, confidence: "UNAVAILABLE" };
   const nextPeriod = addUserCalendarDays(lastPeriod.periodStartDate, averageCycleLength, timezone);
   const ovulation = addUserCalendarDays(nextPeriod, -14, timezone);
