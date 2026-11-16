@@ -120,18 +120,22 @@ export async function deleteNotification(id: string): Promise<{ success: boolean
   }
 }
 
-export async function checkAndNotifyDueTasks(): Promise<void> {
+export async function checkAndNotifyDueTasks(targetUserId?: string): Promise<void> {
   try {
-    const user = await getUser();
-    if (!user || "error" in user) return;
+    let userId = targetUserId;
+    if (!userId) {
+      const user = await getUser();
+      if (!user || "error" in user) return;
+      userId = user.id as string;
+    }
 
-    const timezone = await getUserTimezone(user.id as string);
+    const timezone = await getUserTimezone(userId);
     const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
 
     // Find todos due today (prevent daily spam for already overdue tasks)
     const dueTodos = await prisma.todo.findMany({
       where: {
-        userId: user.id as string,
+        userId,
         status: { notIn: ["DONE", "CANCELLED", "ARCHIVED"] },
         dueDate: {
           gte: startOfToday,
@@ -150,7 +154,7 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
       // Check if we already notified about this today
       const existing = await prisma.notification.findFirst({
         where: {
-          userId: user.id as string,
+          userId,
           message,
           createdAt: {
             gte: startOfToday,
@@ -161,7 +165,7 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
       if (!existing) {
         await prisma.notification.create({
           data: {
-            userId: user.id as string,
+            userId,
             message,
             date: new Date(),
           }
@@ -171,7 +175,7 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
         const { adminMessaging } = await import("@/lib/server/firebase-admin");
         if (adminMessaging) {
           const dbUser = await prisma.user.findUnique({
-            where: { id: user.id as string },
+            where: { id: userId },
             select: { fcmTokens: true },
           });
           const tokens = dbUser?.fcmTokens;
@@ -201,19 +205,33 @@ export async function checkAndNotifyDueTasks(): Promise<void> {
 }
 
 /** Uses the same in-app notification flow as the rest of the project. */
-export async function checkAndNotifyMenstrualReminders(): Promise<void> {
+export async function checkAndNotifyMenstrualReminders(targetUserId?: string): Promise<void> {
   try {
-    const user = await getUser();
-    if (!user || "error" in user) return;
-    const timezone = user.timezone || "UTC";
+    let userId = targetUserId;
+    let userTimezone: string | null = null;
+
+    if (!userId) {
+      const user = await getUser();
+      if (!user || "error" in user) return;
+      userId = user.id as string;
+      userTimezone = user.timezone || null;
+    } else {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { timezone: true },
+      });
+      userTimezone = dbUser?.timezone || null;
+    }
+
+    const timezone = userTimezone || "UTC";
     const todayKey = getUserDateKey(new Date(), timezone);
     const today = userDateFromKey(todayKey, timezone);
-    const reminders = await prisma.menstrualReminder.findMany({ where: { userId: user.id, enabled: true } });
+    const reminders = await prisma.menstrualReminder.findMany({ where: { userId, enabled: true } });
     if (!reminders.length) return;
     const [profile, cycles, todayLog] = await Promise.all([
-      prisma.menstrualProfile.findUnique({ where: { userId: user.id } }),
-      prisma.menstrualCycle.findMany({ where: { userId: user.id }, orderBy: { periodStartDate: "desc" }, take: 24 }),
-      prisma.menstrualDailyLog.findUnique({ where: { userId_date: { userId: user.id, date: today } } }),
+      prisma.menstrualProfile.findUnique({ where: { userId } }),
+      prisma.menstrualCycle.findMany({ where: { userId }, orderBy: { periodStartDate: "desc" }, take: 24 }),
+      prisma.menstrualDailyLog.findUnique({ where: { userId_date: { userId, date: today } } }),
     ]);
     const messages: string[] = [];
     const expected = reminders.find(reminder => reminder.type === "EXPECTED_PERIOD");
@@ -235,15 +253,15 @@ export async function checkAndNotifyMenstrualReminders(): Promise<void> {
     const { adminMessaging } = await import("@/lib/server/firebase-admin");
     if (adminMessaging) {
       const dbUser = await prisma.user.findUnique({
-        where: { id: user.id as string },
+        where: { id: userId },
         select: { fcmTokens: true },
       });
       fcmTokens = dbUser?.fcmTokens ?? [];
     }
     for (const message of messages) {
-      const existing = await prisma.notification.findFirst({ where: { userId: user.id, message, createdAt: { gte: today } } });
+      const existing = await prisma.notification.findFirst({ where: { userId, message, createdAt: { gte: today } } });
       if (!existing) {
-        await prisma.notification.create({ data: { userId: user.id, message, date: new Date() } });
+        await prisma.notification.create({ data: { userId, message, date: new Date() } });
         // Send push notification if the user has registered FCM tokens
         if (adminMessaging && fcmTokens.length > 0) {
           try {
@@ -265,6 +283,28 @@ export async function checkAndNotifyMenstrualReminders(): Promise<void> {
     }
   } catch (error) {
     console.error("Failed to check menstrual reminders:", error);
+  }
+}
+
+/**
+ * Runs background checks for all registered users.
+ * Used by cron endpoints or background workers.
+ */
+export async function runGlobalNotificationChecks(): Promise<{ processedUsers: number }> {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true },
+    });
+
+    for (const u of users) {
+      await checkAndNotifyDueTasks(u.id);
+      await checkAndNotifyMenstrualReminders(u.id);
+    }
+
+    return { processedUsers: users.length };
+  } catch (error) {
+    console.error("Failed in runGlobalNotificationChecks:", error);
+    return { processedUsers: 0 };
   }
 }
 
