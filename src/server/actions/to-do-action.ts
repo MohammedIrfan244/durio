@@ -258,7 +258,13 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     priorityInt = getPrioritySortValue(validatedInput.priority);
   }
 
-  const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
+  // Only parse/update dueDate if it was explicitly provided in the input.
+  // When dueDate is undefined (not sent by the client), we keep the existing value
+  // rather than setting it to null, which would clear the date.
+  const dueDateProvided = validatedInput.dueDate !== undefined;
+  const dueDate = dueDateProvided
+    ? await parseToUserDate(validatedInput.dueDate, timezone)
+    : undefined;
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
   // Validate that due date is not in the past
@@ -279,8 +285,12 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
       priority: validatedInput.priority,
       priorityInt,
       tags: validatedInput.tags,
-      dueDate: dueDate,
-      dueTime: validatedInput.dueTime,
+      // Only update dueDate/dueTime when explicitly provided; skip them to
+      // preserve the existing values when they were not part of this update.
+      ...(dueDateProvided && {
+        dueDate: dueDate,
+        dueTime: validatedInput.dueTime ?? null,
+      }),
       renewStart: renewStart,
       renewInterval: validatedInput.renewInterval,
       renewEvery: validatedInput.renewEvery,
@@ -530,6 +540,7 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
       status: true,
       priority: true,
       dueDate: true,
+      dueTime: true,
       renewStart: true,
       renewInterval: true,
       renewEvery: true,
@@ -637,6 +648,7 @@ export const restoreAllFromArchive = withErrorWrapper<IGetTodoList[], []>(async 
       status: true,
       priority: true,
       dueDate: true,
+      dueTime: true,
       renewStart: true,
       renewInterval: true,
       renewEvery: true,

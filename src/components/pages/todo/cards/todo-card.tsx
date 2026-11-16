@@ -172,6 +172,13 @@ export default function TodoCard({
               {formatDate(new Date(todo.dueDate))}
             </span>
           )}
+
+          {todo.dueTime && (
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {todo.dueTime}
+            </span>
+          )}
         </div>
 
         <Separator />

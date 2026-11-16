@@ -219,17 +219,49 @@ export async function checkAndNotifyMenstrualReminders(): Promise<void> {
     const expected = reminders.find(reminder => reminder.type === "EXPECTED_PERIOD");
     if (expected && profile?.predictionEnabled) {
       const prediction = getCyclePredictions(cycles as MenstrualCycleData[], profile.averageCycleLength, profile.fertileWindowEnabled, timezone);
-      const reminderDate = prediction.nextPeriod ? addUserCalendarDays(prediction.nextPeriod, -(expected.daysBefore ?? 0), timezone) : null;
-      if (reminderDate && getUserDateKey(reminderDate, timezone) === todayKey) messages.push("Cycle reminder: Your next period is approaching your recent estimate.");
+      const daysBefore = expected.daysBefore ?? 3;
+      const reminderDate = prediction.nextPeriod ? addUserCalendarDays(prediction.nextPeriod, -daysBefore, timezone) : null;
+      if (reminderDate && getUserDateKey(reminderDate, timezone) === todayKey) {
+        messages.push("Heads up! Your next period is estimated to start in " + daysBefore + " day" + (daysBefore !== 1 ? "s" : "") + ". Take care of yourself");
+      }
     }
     const dailyLog = reminders.find(reminder => reminder.type === "DAILY_LOG");
     const medication = reminders.find(reminder => reminder.type === "MEDICATION");
     const localTime = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
     if (dailyLog && !todayLog && localTime >= (dailyLog.time ?? "09:00")) messages.push("Cycle reminder: Add today’s entry when you’re ready.");
     if (medication && localTime >= (medication.time ?? "09:00")) messages.push("Scheduled reminder: Check your medication plan.");
+    // Fetch FCM tokens once for push notifications
+    let fcmTokens: string[] = [];
+    const { adminMessaging } = await import("@/lib/server/firebase-admin");
+    if (adminMessaging) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id as string },
+        select: { fcmTokens: true },
+      });
+      fcmTokens = dbUser?.fcmTokens ?? [];
+    }
     for (const message of messages) {
       const existing = await prisma.notification.findFirst({ where: { userId: user.id, message, createdAt: { gte: today } } });
-      if (!existing) await prisma.notification.create({ data: { userId: user.id, message, date: new Date() } });
+      if (!existing) {
+        await prisma.notification.create({ data: { userId: user.id, message, date: new Date() } });
+        // Send push notification if the user has registered FCM tokens
+        if (adminMessaging && fcmTokens.length > 0) {
+          try {
+            await adminMessaging.sendEachForMulticast({
+              tokens: fcmTokens,
+              notification: {
+                title: "Durio - Cycle Reminder",
+                body: message,
+              },
+              data: {
+                url: "/menstruation",
+              },
+            });
+          } catch (err) {
+            console.error("FCM Push Error (menstrual reminder):", err);
+          }
+        }
+      }
     }
   } catch (error) {
     console.error("Failed to check menstrual reminders:", error);
