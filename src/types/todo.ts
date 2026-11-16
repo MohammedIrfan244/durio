@@ -76,6 +76,7 @@ export interface IGetTodoList {
   status: ITodoStatus;
   priority?: IPriority | null;
   dueDate?: Date | null;
+  dueTime?: string | null;
   renewStart?: Date | null;
   renewInterval?: IRenewInterval | null;
   renewEvery?: number | null;

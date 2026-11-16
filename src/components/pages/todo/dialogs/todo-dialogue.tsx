@@ -493,7 +493,8 @@ export default function ToDoDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
-  const [showMore, setShowMore] = useState(false);
+  // When editing an existing todo, default "show more" to true so date/time/etc are visible
+  const [showMore, setShowMore] = useState(!!todoId);
 
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
@@ -568,34 +569,50 @@ export default function ToDoDialog({
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
       let res;
-      // Convert dueDate and dueTime to UTC ISO string if present
-      let dueDateUTC: string | undefined = undefined;
+      // Send dueDate as a plain YYYY-MM-DD string.
+      // The server's parseToUserDate() is designed to receive this format and
+      // converts it to midnight in the user's saved timezone — no time math needed here.
+      // dueTime is stored as a separate display-only string ("05:00 PM") and is never
+      // merged into the dueDate timestamp on the server.
+      let dueDateStr: string | undefined = undefined;
       if (data.dueDate) {
-        // If dueTime is present, combine date and time
         const dateObj = new Date(data.dueDate);
-        if (data.dueTime) {
-          // Use same parsing logic as server
-          const parts = data.dueTime.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i);
-          if (parts) {
-            const [_, hourStr, minuteStr, period] = parts;
-            console.log(_)
-            let hours = parseInt(hourStr, 10);
-            const minutes = parseInt(minuteStr, 10);
-            if (period.toUpperCase() === 'PM' && hours < 12) {
-              hours += 12;
-            } else if (period.toUpperCase() === 'AM' && hours === 12) {
-              hours = 0;
-            }
-            dateObj.setUTCHours(hours, minutes, 0, 0);
-          }
-        }
-        dueDateUTC = dateObj.toISOString();
+        // Extract local calendar date as YYYY-MM-DD using local (not UTC) methods,
+        // so the date matches what the user selected in their own timezone.
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        dueDateStr = `${year}-${month}-${day}`;
       }
-      const payload = {
-        ...data,
-        dueDate: dueDateUTC,
+
+      // Build payload carefully: only include dueDate/dueTime when they were
+      // explicitly set, so updating a todo never accidentally clears an existing date.
+      const basePayload = {
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        tags: data.tags,
+        renewInterval: data.renewInterval,
+        renewEvery: data.renewEvery,
+        renewCustom: data.renewCustom,
+        status: data.status,
         checklist: data.checklist?.map((item) => ({ text: item.text })),
+        linkedResources: data.linkedResources,
       };
+
+      // Only include date/time fields if the user has set them (or explicitly cleared them)
+      const datePayload: { dueDate?: string; dueTime?: string } = {};
+      if (dueDateStr !== undefined) {
+        datePayload.dueDate = dueDateStr;
+        datePayload.dueTime = data.dueTime ?? undefined;
+      } else if (todoId) {
+        // Editing mode and date was explicitly cleared by the user
+        datePayload.dueDate = undefined;
+        datePayload.dueTime = undefined;
+      }
+
+      const payload = { ...basePayload, ...datePayload };
+
       if (todoId) {
         // Update operation
         res = await withClientAction(() => updateTodo({ id: todoId, ...payload }), true);
@@ -604,7 +621,7 @@ export default function ToDoDialog({
         // Create operation
         res = await withClientAction(() => createTodo(payload), true);
         toast.success("Nice! Todo added 🎉");
-        reset(); 
+        reset();
       }
 
       onSaved?.(res);
