@@ -14,6 +14,11 @@ const GreetingWidget = dynamic(
   { ssr: false }
 );
 
+const InAppAlertModal = dynamic(
+  () => import("@/components/shared/in-app-alert-modal"),
+  { ssr: false }
+);
+
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -51,6 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         {!isDuriaPage && <GreetingWidget />}
+        <InAppAlertModal />
       </div>
     </SidebarProvider>
   );
