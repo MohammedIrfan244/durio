@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { Capacitor } from "@capacitor/core";
 import { registerFCMToken } from "@/server/actions/notification-actions";
-import { useIsMobile } from "./use-mobile";
 
 export function usePushNotifications() {
-  const isMobile = useIsMobile();
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     const setupPush = async () => {
-      // Push notifications are only applicable for mobile apps
-      if (!isMobile) return;
+      // Push notifications are only applicable for native Capacitor apps (Android/iOS)
+      if (!Capacitor.isNativePlatform()) return;
 
       try {
         // Request permission to use push notifications
@@ -68,11 +67,9 @@ export function usePushNotifications() {
 
     return () => {
       mounted = false;
-      if (isMobile) {
-        PushNotifications.removeAllListeners();
-      }
+      PushNotifications.removeAllListeners();
     };
-  }, [isMobile]);
+  }, []);
 
   return { token };
 }

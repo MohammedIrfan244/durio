@@ -49,7 +49,7 @@ export function TodoCardSkeleton() {
 }
 
 interface TodoColumnSkeletonProps {
-  title: "PLAN" | "PENDING" | "DONE";
+  title: "PLAN" | "PENDING" | "OVERDUE" | "DONE";
   count?: number;
 }
 

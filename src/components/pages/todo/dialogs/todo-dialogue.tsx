@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { useState, useTransition, useEffect, useCallback, useMemo } from "react";
 import { useForm, UseFormReturn, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -234,6 +234,7 @@ const TagsDisplay: React.FC<{ form: TodoFormContext }> = ({ form }) => {
 const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
   const { watch, setValue } = form;
   const dueDateValue = watch("dueDate");
+  const dueTimeValue = watch("dueTime") || "12:00 AM";
 
   // Clear time if date is cleared
   useEffect(() => {
@@ -241,6 +242,118 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
       setValue("dueTime", undefined);
     }
   }, [dueDateValue, setValue]);
+
+  // Determine if the selected date is today in the client's local day
+  const isSelectedDateToday = useMemo(() => {
+    if (!dueDateValue) return false;
+    const d = new Date(dueDateValue);
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
+  }, [dueDateValue]);
+
+  const [hour, minute, ampm] = (dueTimeValue || "12:00 AM").split(/[: ]/);
+
+  // Helper to convert 12h + period to 24h
+  const to24Hour = (hStr: string, periodStr: string) => {
+    let h = parseInt(hStr, 10);
+    const p = (periodStr || "AM").toUpperCase();
+    if (p === "PM" && h < 12) h += 12;
+    if (p === "AM" && h === 12) h = 0;
+    return h;
+  };
+
+  const now = new Date();
+  const currentHour24 = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  // 1. Available AM/PM periods
+  const ampmOptions = useMemo(() => {
+    if (!isSelectedDateToday) return ["AM", "PM"];
+    // If it's already 12:00 PM or later, AM is completely past for today
+    if (currentHour24 >= 12) return ["PM"];
+    return ["AM", "PM"];
+  }, [isSelectedDateToday, currentHour24]);
+
+  // 2. Available hours based on selected AM/PM
+  const hourOptions = useMemo(() => {
+    const allHours = [...Array(12).keys()].map((h) => (h + 1).toString().padStart(2, "0"));
+    if (!isSelectedDateToday) return allHours;
+
+    const currentPeriod = ampmOptions.includes(ampm) ? ampm : ampmOptions[0];
+
+    return allHours.filter((hStr) => {
+      const h24 = to24Hour(hStr, currentPeriod);
+      if (h24 > currentHour24) return true;
+      if (h24 === currentHour24) {
+        // Can be picked if at least 45 is in the future
+        return currentMinute < 45;
+      }
+      return false;
+    });
+  }, [isSelectedDateToday, ampm, ampmOptions, currentHour24, currentMinute]);
+
+  // 3. Available minutes based on selected hour and period
+  const minuteOptions = useMemo(() => {
+    const allMinutes = ["00", "15", "30", "45"];
+    if (!isSelectedDateToday) return allMinutes;
+
+    const selectedH24 = to24Hour(hour || "12", ampm || "AM");
+    if (selectedH24 > currentHour24) return allMinutes;
+    if (selectedH24 === currentHour24) {
+      return allMinutes.filter((mStr) => parseInt(mStr, 10) > currentMinute);
+    }
+    // If selected hour is somehow in the past
+    return [];
+  }, [isSelectedDateToday, hour, ampm, currentHour24, currentMinute]);
+
+  // Ensure selected dueTime remains valid if today is selected
+  useEffect(() => {
+    if (!isSelectedDateToday || !dueDateValue) return;
+
+    let validAmpm = ampm;
+    if (!ampmOptions.includes(validAmpm)) {
+      validAmpm = ampmOptions[0] || "PM";
+    }
+
+    let validHour = hour;
+    if (!hourOptions.includes(validHour)) {
+      validHour = hourOptions[0] || "12";
+    }
+
+    const selectedH24 = to24Hour(validHour, validAmpm);
+    const validMinutes =
+      selectedH24 > currentHour24
+        ? ["00", "15", "30", "45"]
+        : selectedH24 === currentHour24
+        ? ["00", "15", "30", "45"].filter((m) => parseInt(m, 10) > currentMinute)
+        : [];
+
+    let validMinute = minute;
+    if (!validMinutes.includes(validMinute)) {
+      validMinute = validMinutes[0] || "45";
+    }
+
+    const nextTime = `${validHour}:${validMinute} ${validAmpm}`;
+    if (nextTime !== dueTimeValue) {
+      setValue("dueTime", nextTime, { shouldValidate: true });
+    }
+  }, [
+    isSelectedDateToday,
+    dueDateValue,
+    ampm,
+    hour,
+    minute,
+    ampmOptions,
+    hourOptions,
+    currentHour24,
+    currentMinute,
+    dueTimeValue,
+    setValue,
+  ]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-5">
@@ -307,8 +420,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="hour"
-            disabled={!dueDateValue}
-            options={[...Array(12).keys()].map((h) => (h + 1).toString().padStart(2, "0"))}
+            disabled={!dueDateValue || hourOptions.length === 0}
+            options={hourOptions}
             placeholder="Hour"
           />
 
@@ -316,8 +429,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="minute"
-            disabled={!dueDateValue}
-            options={["00", "15", "30", "45"]}
+            disabled={!dueDateValue || minuteOptions.length === 0}
+            options={minuteOptions}
             placeholder="Min"
           />
 
@@ -325,8 +438,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="ampm"
-            disabled={!dueDateValue}
-            options={["AM", "PM"]}
+            disabled={!dueDateValue || ampmOptions.length === 0}
+            options={ampmOptions}
             placeholder="AM/PM"
           />
         </div>
@@ -493,7 +606,8 @@ export default function ToDoDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
-  const [showMore, setShowMore] = useState(false);
+  // When editing an existing todo, default "show more" to true so date/time/etc are visible
+  const [showMore, setShowMore] = useState(!!todoId);
 
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
@@ -568,34 +682,50 @@ export default function ToDoDialog({
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
       let res;
-      // Convert dueDate and dueTime to UTC ISO string if present
-      let dueDateUTC: string | undefined = undefined;
+      // Send dueDate as a plain YYYY-MM-DD string.
+      // The server's parseToUserDate() is designed to receive this format and
+      // converts it to midnight in the user's saved timezone — no time math needed here.
+      // dueTime is stored as a separate display-only string ("05:00 PM") and is never
+      // merged into the dueDate timestamp on the server.
+      let dueDateStr: string | undefined = undefined;
       if (data.dueDate) {
-        // If dueTime is present, combine date and time
         const dateObj = new Date(data.dueDate);
-        if (data.dueTime) {
-          // Use same parsing logic as server
-          const parts = data.dueTime.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i);
-          if (parts) {
-            const [_, hourStr, minuteStr, period] = parts;
-            console.log(_)
-            let hours = parseInt(hourStr, 10);
-            const minutes = parseInt(minuteStr, 10);
-            if (period.toUpperCase() === 'PM' && hours < 12) {
-              hours += 12;
-            } else if (period.toUpperCase() === 'AM' && hours === 12) {
-              hours = 0;
-            }
-            dateObj.setUTCHours(hours, minutes, 0, 0);
-          }
-        }
-        dueDateUTC = dateObj.toISOString();
+        // Extract local calendar date as YYYY-MM-DD using local (not UTC) methods,
+        // so the date matches what the user selected in their own timezone.
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        dueDateStr = `${year}-${month}-${day}`;
       }
-      const payload = {
-        ...data,
-        dueDate: dueDateUTC,
+
+      // Build payload carefully: only include dueDate/dueTime when they were
+      // explicitly set, so updating a todo never accidentally clears an existing date.
+      const basePayload = {
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        tags: data.tags,
+        renewInterval: data.renewInterval,
+        renewEvery: data.renewEvery,
+        renewCustom: data.renewCustom,
+        status: data.status,
         checklist: data.checklist?.map((item) => ({ text: item.text })),
+        linkedResources: data.linkedResources,
       };
+
+      // Only include date/time fields if the user has set them (or explicitly cleared them)
+      const datePayload: { dueDate?: string; dueTime?: string } = {};
+      if (dueDateStr !== undefined) {
+        datePayload.dueDate = dueDateStr;
+        datePayload.dueTime = data.dueTime ?? undefined;
+      } else if (todoId) {
+        // Editing mode and date was explicitly cleared by the user
+        datePayload.dueDate = undefined;
+        datePayload.dueTime = undefined;
+      }
+
+      const payload = { ...basePayload, ...datePayload };
+
       if (todoId) {
         // Update operation
         res = await withClientAction(() => updateTodo({ id: todoId, ...payload }), true);
@@ -604,7 +734,7 @@ export default function ToDoDialog({
         // Create operation
         res = await withClientAction(() => createTodo(payload), true);
         toast.success("Nice! Todo added 🎉");
-        reset(); 
+        reset();
       }
 
       onSaved?.(res);

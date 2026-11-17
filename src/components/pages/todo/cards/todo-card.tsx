@@ -167,9 +167,22 @@ export default function TodoCard({
           )}
 
           {todo.dueDate && (
-            <span className="flex items-center gap-1 text-muted-foreground">
+            <span className={cn(
+              "flex items-center gap-1",
+              todo.status === "OVERDUE" ? "text-destructive font-medium" : "text-muted-foreground"
+            )}>
               <Calendar className="h-3 w-3" />
               {formatDate(new Date(todo.dueDate))}
+            </span>
+          )}
+
+          {todo.dueTime && (
+            <span className={cn(
+              "flex items-center gap-1",
+              todo.status === "OVERDUE" ? "text-destructive font-medium" : "text-muted-foreground"
+            )}>
+              <Clock className="h-3 w-3" />
+              {todo.dueTime}
             </span>
           )}
         </div>

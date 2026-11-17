@@ -18,7 +18,7 @@ import type { DuriaMenstrualContext } from "@/types/duria";
 import { menstrualContextAttachmentSchema, type MenstrualContextAttachmentInput } from "@/schema/menstruation";
 
 
-export const getTodosForAI = withErrorWrapper<DuriaTodoContext[], [DuriaListFilters | undefined]>(async (input) => {
+export const getTodosForAI = withErrorWrapper<DuriaTodoContext[], [DuriaListFilters?]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
@@ -46,7 +46,7 @@ export const getTodosForAI = withErrorWrapper<DuriaTodoContext[], [DuriaListFilt
     return todos;
 });
 
-export const getNotesForAI = withErrorWrapper<DuriaNoteContext[], [DuriaListFilters | undefined]>(async (input) => {
+export const getNotesForAI = withErrorWrapper<DuriaNoteContext[], [DuriaListFilters?]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
@@ -76,7 +76,7 @@ export const getNotesForAI = withErrorWrapper<DuriaNoteContext[], [DuriaListFilt
     return notes;
 });
 
-export const getEventsForAI = withErrorWrapper<DuriaEventContext[], [DuriaListFilters | undefined]>(async (input) => {
+export const getEventsForAI = withErrorWrapper<DuriaEventContext[], [DuriaListFilters?]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
@@ -107,7 +107,7 @@ export const getEventsForAI = withErrorWrapper<DuriaEventContext[], [DuriaListFi
     return events;
 });
 
-export const getFocusBlocksForAI = withErrorWrapper<DuriaFocusBlockContext[], [DuriaListFilters | undefined]>(async (input) => {
+export const getFocusBlocksForAI = withErrorWrapper<DuriaFocusBlockContext[], [DuriaListFilters?]>(async (input) => {
     const validatedInput = aiListSchema.parse(input);
     const userId = await getUserId();
     const limit = validatedInput?.limit || 20;
