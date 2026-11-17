@@ -8,6 +8,7 @@ import { getUserTimezone, getUserDateRanges } from "@/lib/server/date-utils";
 import { MONGOID } from "@/schema/mongo";
 import { getCyclePredictions } from "@/lib/logic/menstruation/cycle-predictions";
 import { addUserCalendarDays, getUserDateKey, userDateFromKey } from "@/lib/logic/menstruation/cycle-dates";
+import { evaluateTodoDue } from "@/lib/logic/todo/todo-due";
 import type { MenstrualCycleData } from "@/types/menstruation";
 
 export async function getNotifications(): Promise<Notification[]> {
@@ -130,72 +131,109 @@ export async function checkAndNotifyDueTasks(targetUserId?: string): Promise<voi
     }
 
     const timezone = await getUserTimezone(userId);
-    const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
+    const { startOfToday } = getUserDateRanges(timezone);
 
-    // Find todos due today (prevent daily spam for already overdue tasks)
-    const dueTodos = await prisma.todo.findMany({
+    // Find all active todos with a dueDate
+    const candidateTodos = await prisma.todo.findMany({
       where: {
         userId,
         status: { notIn: ["DONE", "CANCELLED", "ARCHIVED"] },
-        dueDate: {
-          gte: startOfToday,
-          lt: startOfTomorrow, 
-        },
+        dueDate: { not: null },
       },
       select: {
         id: true,
         title: true,
-      }
+        status: true,
+        dueDate: true,
+        dueTime: true,
+        createdAt: true,
+      },
     });
 
-    for (const todo of dueTodos) {
-      const message = `Reminder: Task "${todo.title}" is due!`;
-      
-      // Check if we already notified about this today
-      const existing = await prisma.notification.findFirst({
-        where: {
-          userId,
-          message,
-          createdAt: {
-            gte: startOfToday,
-          }
+    if (candidateTodos.length === 0) return;
+
+    // Load FCM tokens once if needed
+    let fcmTokens: string[] = [];
+    const { adminMessaging } = await import("@/lib/server/firebase-admin");
+    if (adminMessaging) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { fcmTokens: true },
+      });
+      fcmTokens = dbUser?.fcmTokens || [];
+    }
+
+    const sendPush = async (title: string, body: string, url: string = "/todo") => {
+      if (adminMessaging && fcmTokens.length > 0) {
+        try {
+          await adminMessaging.sendEachForMulticast({
+            tokens: fcmTokens,
+            notification: { title, body },
+            data: { url },
+          });
+        } catch (err) {
+          console.error("FCM Push Error (due tasks):", err);
         }
+      }
+    };
+
+    for (const todo of candidateTodos) {
+      const dueStatus = evaluateTodoDue(todo.dueDate, todo.dueTime, timezone, {
+        createdAt: todo.createdAt,
       });
 
-      if (!existing) {
-        await prisma.notification.create({
-          data: {
+      if (!dueStatus.hasDue) continue;
+
+      // 1. Task has become OVERDUE
+      if (dueStatus.isOverdue) {
+        // Update database status to OVERDUE if not already marked
+        if (todo.status !== "OVERDUE") {
+          await prisma.todo.update({
+            where: { id: todo.id },
+            data: { status: "OVERDUE" },
+          });
+        }
+
+        const message = `Alert: Task "${todo.title}" is now overdue!`;
+        const existing = await prisma.notification.findFirst({
+          where: {
             userId,
             message,
-            date: new Date(),
-          }
+            createdAt: { gte: startOfToday },
+          },
         });
 
-        // Send Push Notification
-        const { adminMessaging } = await import("@/lib/server/firebase-admin");
-        if (adminMessaging) {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { fcmTokens: true },
+        if (!existing) {
+          await prisma.notification.create({
+            data: {
+              userId,
+              message,
+              date: new Date(),
+            },
           });
-          const tokens = dbUser?.fcmTokens;
-          
-          if (tokens && tokens.length > 0) {
-            try {
-              await adminMessaging.sendEachForMulticast({
-                tokens: tokens,
-                notification: {
-                  title: 'Durio Reminder',
-                  body: message,
-                },
-                data: {
-                  url: '/duria',
-                }
-              });
-            } catch (err) {
-              console.error("FCM Push Error:", err);
-            }
-          }
+          await sendPush("Durio Overdue Alert", message, "/todo");
+        }
+      }
+      // 2. Task is due within the next 24 hours (pre-warning)
+      else if (dueStatus.isDueWithin24Hours) {
+        const message = `Reminder: Task "${todo.title}" is due in 24 hours.`;
+        const existing = await prisma.notification.findFirst({
+          where: {
+            userId,
+            message,
+            createdAt: { gte: startOfToday },
+          },
+        });
+
+        if (!existing) {
+          await prisma.notification.create({
+            data: {
+              userId,
+              message,
+              date: new Date(),
+            },
+          });
+          await sendPush("Durio Reminder", message, "/todo");
         }
       }
     }

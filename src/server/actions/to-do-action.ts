@@ -31,7 +31,9 @@ import {
 import type { Prisma } from "@prisma/client";
 import { getUserTimezone, getUserDateRanges, parseToUserDate, validateDateNotBeforeToday } from "@/lib/server/date-utils";
 import { isRenewalDay } from "@/lib/logic/todo/todo-insights";
+import { evaluateTodoDue } from "@/lib/logic/todo/todo-due";
 import { AppError } from "@/types/api";
+import { markOverdueTodos } from "@/server/flag-time-stamp";
 
 
 
@@ -51,12 +53,13 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
   const dueDate = await parseToUserDate(validatedInput.dueDate, timezone);
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
-  // Validate that due date is not in the past
-  if (dueDate) {
-    const dateError = validateDateNotBeforeToday(dueDate, timezone);
-    if (dateError) {
-      const error = new Error(dateError) as AppError;
+  // Validate that due date and time is not in the past
+  if (validatedInput.dueDate) {
+    const dueStatus = evaluateTodoDue(validatedInput.dueDate, validatedInput.dueTime, timezone);
+    if (dueStatus.hasDue && dueStatus.isOverdue) {
+      const error = new Error("Due date and time cannot be in the past") as AppError;
       error.code = "DATE_NOT_BEFORE_TODAY";
+      throw error;
     }
   }
 
@@ -113,6 +116,9 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
     const validatedFilters = todoFilterSchema.parse(filters);
     const userId = await getUserId();
 
+    // Check for newly overdue tasks before fetching
+    await markOverdueTodos(userId);
+
     const andConditions: Prisma.TodoWhereInput[] = [{ userId }];
 
     if (validatedFilters.status) {
@@ -121,7 +127,10 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
           andConditions.push({ status: "PLAN" });
           break;
         case "PENDING":
-          andConditions.push({ status: { in: ["PENDING", "OVERDUE"] } });
+          andConditions.push({ status: "PENDING" });
+          break;
+        case "OVERDUE":
+          andConditions.push({ status: "OVERDUE" });
           break;
         case "DONE":
           andConditions.push({ status: { in: ["DONE", "CANCELLED"] } });
@@ -178,6 +187,7 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
     const grouped: IGetTodoListPayload = {
       plan: [],
       pending: [],
+      overdue: [],
       done: [],
     };
 
@@ -188,8 +198,11 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInpu
           break;
 
         case "PENDING":
-        case "OVERDUE":
           grouped.pending.push(todo);
+          break;
+
+        case "OVERDUE":
+          grouped.overdue.push(todo);
           break;
 
         case "DONE":
@@ -267,11 +280,11 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
     : undefined;
   const renewStart = await parseToUserDate(validatedInput.renewStart, timezone);
 
-  // Validate that due date is not in the past
-  if (dueDate) {
-    const dateError = validateDateNotBeforeToday(dueDate, timezone);
-    if (dateError) {
-      const error = new Error(dateError) as AppError;
+  // Validate that due date and time is not in the past
+  if (dueDateProvided && validatedInput.dueDate) {
+    const dueStatus = evaluateTodoDue(validatedInput.dueDate, validatedInput.dueTime ?? existingTodo.dueTime, timezone);
+    if (dueStatus.hasDue && dueStatus.isOverdue) {
+      const error = new Error("Due date and time cannot be in the past") as AppError;
       error.code = "INVALID_DUE_DATE";
       throw error;
     }
@@ -512,6 +525,10 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
 // Action to get today's todos (due today, overdue, and renewal tasks) , done
 export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): Promise<IGetTodoListPayload> => {
   const userId = await getUserId();
+
+  // Check for newly overdue tasks before fetching
+  await markOverdueTodos(userId);
+
   const timezone = await getUserTimezone(userId);
   
   const { startOfToday, startOfTomorrow } = getUserDateRanges(timezone);
@@ -562,28 +579,23 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): 
   const grouped: IGetTodoListPayload = {
     plan: [],
     pending: [],
+    overdue: [],
     done: [],
   };
 
-  // Logic to put overdue into pending or plan?
-  // Existing logic: PENDING or OVERDUE -> pending list.
-  
   for (const todo of filtered) {
     if (todo.status === "DONE" || todo.status === "CANCELLED") {
       grouped.done.push(todo);
     } else {
-        // If due date is < today, it's overdue
-        // Wait, the query fetches today + overdue.
-        // We classify based on status mainly.
-        // If status is PLAN but dueDate < startOfToday, it's virtually overdue/pending.
-        
         switch (todo.status) {
             case "PLAN":
                  grouped.plan.push(todo);
                 break;
             case "PENDING":
-            case "OVERDUE":
                 grouped.pending.push(todo);
+                break;
+            case "OVERDUE":
+                grouped.overdue.push(todo);
                 break;
             default:
                 grouped.plan.push(todo);

@@ -92,6 +92,7 @@ export type IGetArchivedTodoListPayload = IGetArchivedTodoList[];
 export interface IGetTodoListPayload {
     plan: IGetTodoList[];
     pending: IGetTodoList[];
+    overdue: IGetTodoList[];
     done: IGetTodoList[];
   }
 

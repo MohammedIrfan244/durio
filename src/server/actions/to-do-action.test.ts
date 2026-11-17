@@ -25,6 +25,7 @@ vi.mock("@/lib/server/date-utils", () => ({
 }));
 vi.mock("@/lib/server/logger", () => ({ auditLogger: mocks.auditLogger }));
 vi.mock("@/lib/utils/logger", () => ({ error: mocks.logError }));
+vi.mock("@/server/flag-time-stamp", () => ({ markOverdueTodos: vi.fn(), flagTimestamp: vi.fn() }));
 
 import { createTodo, getTodoById, getTodoList } from "./to-do-action";
 
@@ -76,13 +77,22 @@ describe("todo server actions", () => {
   it("groups only the current user's todos by their visible workflow state", async () => {
     mocks.prisma.todo.findMany.mockResolvedValue([
       { id: "plan", status: "PLAN" },
-      { id: "pending", status: "OVERDUE" },
+      { id: "pending", status: "PENDING" },
+      { id: "overdue", status: "OVERDUE" },
       { id: "done", status: "DONE" },
     ]);
 
     const result = await getTodoList({});
 
-    expect(result).toEqual({ success: true, data: { plan: [{ id: "plan", status: "PLAN" }], pending: [{ id: "pending", status: "OVERDUE" }], done: [{ id: "done", status: "DONE" }] } });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        plan: [{ id: "plan", status: "PLAN" }],
+        pending: [{ id: "pending", status: "PENDING" }],
+        overdue: [{ id: "overdue", status: "OVERDUE" }],
+        done: [{ id: "done", status: "DONE" }],
+      },
+    });
     expect(mocks.prisma.todo.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ AND: [{ userId }] }),
     }));

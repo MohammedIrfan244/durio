@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { useState, useTransition, useEffect, useCallback, useMemo } from "react";
 import { useForm, UseFormReturn, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -234,6 +234,7 @@ const TagsDisplay: React.FC<{ form: TodoFormContext }> = ({ form }) => {
 const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
   const { watch, setValue } = form;
   const dueDateValue = watch("dueDate");
+  const dueTimeValue = watch("dueTime") || "12:00 AM";
 
   // Clear time if date is cleared
   useEffect(() => {
@@ -241,6 +242,118 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
       setValue("dueTime", undefined);
     }
   }, [dueDateValue, setValue]);
+
+  // Determine if the selected date is today in the client's local day
+  const isSelectedDateToday = useMemo(() => {
+    if (!dueDateValue) return false;
+    const d = new Date(dueDateValue);
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
+  }, [dueDateValue]);
+
+  const [hour, minute, ampm] = (dueTimeValue || "12:00 AM").split(/[: ]/);
+
+  // Helper to convert 12h + period to 24h
+  const to24Hour = (hStr: string, periodStr: string) => {
+    let h = parseInt(hStr, 10);
+    const p = (periodStr || "AM").toUpperCase();
+    if (p === "PM" && h < 12) h += 12;
+    if (p === "AM" && h === 12) h = 0;
+    return h;
+  };
+
+  const now = new Date();
+  const currentHour24 = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  // 1. Available AM/PM periods
+  const ampmOptions = useMemo(() => {
+    if (!isSelectedDateToday) return ["AM", "PM"];
+    // If it's already 12:00 PM or later, AM is completely past for today
+    if (currentHour24 >= 12) return ["PM"];
+    return ["AM", "PM"];
+  }, [isSelectedDateToday, currentHour24]);
+
+  // 2. Available hours based on selected AM/PM
+  const hourOptions = useMemo(() => {
+    const allHours = [...Array(12).keys()].map((h) => (h + 1).toString().padStart(2, "0"));
+    if (!isSelectedDateToday) return allHours;
+
+    const currentPeriod = ampmOptions.includes(ampm) ? ampm : ampmOptions[0];
+
+    return allHours.filter((hStr) => {
+      const h24 = to24Hour(hStr, currentPeriod);
+      if (h24 > currentHour24) return true;
+      if (h24 === currentHour24) {
+        // Can be picked if at least 45 is in the future
+        return currentMinute < 45;
+      }
+      return false;
+    });
+  }, [isSelectedDateToday, ampm, ampmOptions, currentHour24, currentMinute]);
+
+  // 3. Available minutes based on selected hour and period
+  const minuteOptions = useMemo(() => {
+    const allMinutes = ["00", "15", "30", "45"];
+    if (!isSelectedDateToday) return allMinutes;
+
+    const selectedH24 = to24Hour(hour || "12", ampm || "AM");
+    if (selectedH24 > currentHour24) return allMinutes;
+    if (selectedH24 === currentHour24) {
+      return allMinutes.filter((mStr) => parseInt(mStr, 10) > currentMinute);
+    }
+    // If selected hour is somehow in the past
+    return [];
+  }, [isSelectedDateToday, hour, ampm, currentHour24, currentMinute]);
+
+  // Ensure selected dueTime remains valid if today is selected
+  useEffect(() => {
+    if (!isSelectedDateToday || !dueDateValue) return;
+
+    let validAmpm = ampm;
+    if (!ampmOptions.includes(validAmpm)) {
+      validAmpm = ampmOptions[0] || "PM";
+    }
+
+    let validHour = hour;
+    if (!hourOptions.includes(validHour)) {
+      validHour = hourOptions[0] || "12";
+    }
+
+    const selectedH24 = to24Hour(validHour, validAmpm);
+    const validMinutes =
+      selectedH24 > currentHour24
+        ? ["00", "15", "30", "45"]
+        : selectedH24 === currentHour24
+        ? ["00", "15", "30", "45"].filter((m) => parseInt(m, 10) > currentMinute)
+        : [];
+
+    let validMinute = minute;
+    if (!validMinutes.includes(validMinute)) {
+      validMinute = validMinutes[0] || "45";
+    }
+
+    const nextTime = `${validHour}:${validMinute} ${validAmpm}`;
+    if (nextTime !== dueTimeValue) {
+      setValue("dueTime", nextTime, { shouldValidate: true });
+    }
+  }, [
+    isSelectedDateToday,
+    dueDateValue,
+    ampm,
+    hour,
+    minute,
+    ampmOptions,
+    hourOptions,
+    currentHour24,
+    currentMinute,
+    dueTimeValue,
+    setValue,
+  ]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-5">
@@ -307,8 +420,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="hour"
-            disabled={!dueDateValue}
-            options={[...Array(12).keys()].map((h) => (h + 1).toString().padStart(2, "0"))}
+            disabled={!dueDateValue || hourOptions.length === 0}
+            options={hourOptions}
             placeholder="Hour"
           />
 
@@ -316,8 +429,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="minute"
-            disabled={!dueDateValue}
-            options={["00", "15", "30", "45"]}
+            disabled={!dueDateValue || minuteOptions.length === 0}
+            options={minuteOptions}
             placeholder="Min"
           />
 
@@ -325,8 +438,8 @@ const DateTimeSection: React.FC<{ form: TodoFormContext }> = ({ form }) => {
           <TimeSelect
             form={form}
             unit="ampm"
-            disabled={!dueDateValue}
-            options={["AM", "PM"]}
+            disabled={!dueDateValue || ampmOptions.length === 0}
+            options={ampmOptions}
             placeholder="AM/PM"
           />
         </div>

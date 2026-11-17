@@ -3,8 +3,8 @@ import { withErrorWrapper } from "@/lib/server/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server/get-user";
 import { revalidatePath } from "next/cache";
-import { convertToLocalDate,convertToTime,getCurrentTimeString } from "@/lib/utils/date-formatter";
 import { end, start } from "@/lib/utils/today";
+import { evaluateTodoDue } from "@/lib/logic/todo/todo-due";
 
 export const flagTimestamp = withErrorWrapper<string, [string]>(async (input): Promise<string> => {
     const userId = await getUserId();
@@ -20,48 +20,38 @@ export const flagTimestamp = withErrorWrapper<string, [string]>(async (input): P
 });
 
 
-async function markOverdueTodos(userId: string) {
-
+export async function markOverdueTodos(userId: string) {
     const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { timezone: true },
     });
 
-    if(!user || !user.timezone) {
-        throw new Error('User not found');
-    }
-
-    const timeZone = user.timezone;
-    const currentTimeString = getCurrentTimeString(timeZone);
-    const currentTimeInMinutes = convertToTime(currentTimeString);
-    const currentDate = convertToLocalDate({ utc: new Date().toISOString(), timeZone });
+    const timeZone = user?.timezone || "UTC";
 
     const todos = await prisma.todo.findMany({
         where: {
             userId,
-            dueDate : {not: null},
-            status : {in : ['PENDING','PLAN']},
+            dueDate: { not: null },
+            status: { in: ['PENDING', 'PLAN'] },
         },
-        select: { id: true, dueDate: true, dueTime: true},
+        select: { id: true, dueDate: true, dueTime: true },
     });
 
     const overdueTodoIds: string[] = [];
 
     for (const todo of todos) {
-        const dueDate = convertToLocalDate({ utc: todo.dueDate!.toISOString(), timeZone });
-        const dueTimeInMinutes = todo.dueTime ? convertToTime(todo.dueTime) : 0;
-        if(dueDate < currentDate || (dueDate === currentDate && dueTimeInMinutes < currentTimeInMinutes)) {
+        const dueStatus = evaluateTodoDue(todo.dueDate, todo.dueTime, timeZone);
+        if (dueStatus.hasDue && dueStatus.isOverdue) {
             overdueTodoIds.push(todo.id);
         }
     }
 
-    if(overdueTodoIds.length > 0) {
+    if (overdueTodoIds.length > 0) {
         await prisma.todo.updateMany({
             where: { id: { in: overdueTodoIds } },
             data: { status: 'OVERDUE' },
         });
     }
-
 }
 
 async function markTodoStreak(userId: string) {

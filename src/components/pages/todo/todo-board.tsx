@@ -33,7 +33,7 @@ import { TodoFilterInput } from "@/schema/todo";
 import type { FocusBlockWithNoteTitle } from "@/types/focus";
 
 interface TodoColumnProps {
-  title: "PLAN" | "PENDING" | "DONE";
+  title: "PLAN" | "PENDING" | "OVERDUE" | "DONE";
   filters: TodoFilterInput;
   todayMode: boolean;
   triggerRefresh: number; 
@@ -101,7 +101,14 @@ function TodoColumn({
         const action = getTodayTodos;
         const res = await withClientAction<IGetTodoListPayload>(() => action());
         if (res) {
-          const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
+          const list =
+            title === "PLAN"
+              ? res.plan
+              : title === "PENDING"
+              ? res.pending
+              : title === "OVERDUE"
+              ? res.overdue
+              : res.done;
           setTodos(createFocusTodoCards(list));
           setHasMore(false); 
         }
@@ -112,7 +119,14 @@ function TodoColumn({
         );
         
         if (res) {
-          const list = title === "PLAN" ? res.plan : title === "PENDING" ? res.pending : res.done;
+          const list =
+            title === "PLAN"
+              ? res.plan
+              : title === "PENDING"
+              ? res.pending
+              : title === "OVERDUE"
+              ? res.overdue
+              : res.done;
           
           if (reset) {
             setTodos(createFocusTodoCards(list));
@@ -306,7 +320,7 @@ export default function TodoBoard({
       className="
         relative grid gap-2 w-full max-h-screen
         overflow-y-auto hide-scrollbar-on-main
-        grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+        grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5
       "
     >
       {/* BULK ACTION BAR */}
@@ -350,6 +364,20 @@ export default function TodoBoard({
         selectedIds={selectedIds}
         onToggleSelect={toggleSelect}
         activeFocusBlocks={activeFocusBlocks}
+      />
+
+      <TodoColumn
+        title="OVERDUE"
+        filters={filters}
+        todayMode={todayMode}
+        triggerRefresh={refreshTrigger}
+        onRefreshBoard={handleRefresh}
+        setSelectedId={setSelectedId}
+        setOpenDetail={setOpenDetail}
+        setOpenDelete={setOpenDelete}
+        setOpenEdit={setOpenEdit}
+        selectedIds={selectedIds}
+        onToggleSelect={toggleSelect}
       />
 
       <TodoColumn
