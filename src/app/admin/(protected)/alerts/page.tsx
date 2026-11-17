@@ -32,7 +32,20 @@ export default function AdminAlertsPage() {
   };
 
   useEffect(() => {
-    fetchAlerts();
+    let isMounted = true;
+    async function load() {
+      const res = await getAppAlerts();
+      if (isMounted) {
+        if (res.success) {
+          setAlerts(res.data || []);
+        }
+        setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

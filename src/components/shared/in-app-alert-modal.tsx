@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { getActiveAppAlert } from "@/server/actions/app-alert-actions";
 import type { AppAlert } from "@prisma/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,28 +19,30 @@ export default function InAppAlertModal() {
   const [alertData, setAlertData] = useState<AppAlert | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const fetchAlert = useCallback(async () => {
-    const res = await getActiveAppAlert();
-    if (res.success && res.data) {
-      setAlertData(res.data);
+  useEffect(() => {
+    let isMounted = true;
 
-      const isMobile =
-        window.innerWidth < 768 ||
-        (typeof window !== "undefined" &&
-          (window as unknown as { Capacitor?: { isNativePlatform: () => boolean } })
-            .Capacitor?.isNativePlatform?.());
+    async function load() {
+      const res = await getActiveAppAlert();
+      if (isMounted && res.success && res.data) {
+        setAlertData(res.data);
 
-      const dismissedKey = `durio_alert_dismissed_${res.data.id}`;
-      const isDismissed = sessionStorage.getItem(dismissedKey);
+        const isMobile =
+          window.innerWidth < 768 ||
+          (typeof window !== "undefined" &&
+            (window as unknown as { Capacitor?: { isNativePlatform: () => boolean } })
+              .Capacitor?.isNativePlatform?.());
 
-      if (isMobile && !isDismissed) {
-        setIsOpen(true);
+        const dismissedKey = `durio_alert_dismissed_${res.data.id}`;
+        const isDismissed = sessionStorage.getItem(dismissedKey);
+
+        if (isMobile && !isDismissed) {
+          setIsOpen(true);
+        }
       }
     }
-  }, []);
 
-  useEffect(() => {
-    fetchAlert();
+    load();
 
     const handleOpenEvent = () => {
       setIsOpen(true);
@@ -48,9 +50,10 @@ export default function InAppAlertModal() {
 
     window.addEventListener(OPEN_APP_ALERT_EVENT, handleOpenEvent);
     return () => {
+      isMounted = false;
       window.removeEventListener(OPEN_APP_ALERT_EVENT, handleOpenEvent);
     };
-  }, [fetchAlert]);
+  }, []);
 
   if (!alertData) return null;
 
