@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '@/components/providers/settings-provider';
 import { APP_REGISTRY } from '@/config/modules';
 import { updateUserSettings } from '@/server/actions/settings-actions';
+import { getActiveAppAlert } from '@/server/actions/app-alert-actions';
+import { triggerAppAlertModal } from '@/components/shared/in-app-alert-modal';
+import type { AppAlert } from '@prisma/client';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Sparkles, ShieldOff, Loader2, Trash2 } from 'lucide-react';
+import { Sparkles, ShieldOff, Loader2, Trash2, Smartphone, Download, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SectionHeaderWrapper } from '@/components/layout/section-header-wrapper';
@@ -18,6 +21,17 @@ export default function Settings() {
   const { fancyMode, disabledModules, setFancyMode, setDisabledModules, isLoading } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [appAlert, setAppAlert] = useState<AppAlert | null>(null);
+
+  useEffect(() => {
+    async function loadAlert() {
+      const res = await getActiveAppAlert();
+      if (res.success && res.data) {
+        setAppAlert(res.data);
+      }
+    }
+    loadAlert();
+  }, []);
 
   if (isLoading) {
     return (
@@ -26,6 +40,28 @@ export default function Settings() {
       </div>
     );
   }
+
+  const handleDownloadApk = () => {
+    const downloadUrl = appAlert?.downloadUrl || "/downloads/durio.apk";
+    const url = downloadUrl.startsWith("http")
+      ? downloadUrl
+      : `${window.location.origin}${downloadUrl}`;
+
+    const isNative = (
+      window as unknown as { Capacitor?: { isNativePlatform: () => boolean } }
+    ).Capacitor?.isNativePlatform?.();
+
+    if (isNative) {
+      window.open(url, "_system");
+    } else {
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "durio.apk";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const handleFancyModeToggle = async (checked: boolean) => {
     setIsSaving(true);
@@ -38,7 +74,7 @@ export default function Settings() {
       toast.error("Failed to update Fancy Mode");
       setFancyMode(previous);
     } else {
-      toast.success(checked ? "Fancy Mode Enabled ✨" : "Fancy Mode Disabled 🚀");
+      toast.success(checked ? "Fancy Mode Enabled" : "Fancy Mode Disabled");
     }
     setIsSaving(false);
   };
@@ -155,6 +191,85 @@ export default function Settings() {
 
       {/* Avatar Section */}
       <AvatarSection />
+
+      {/* App Version and Updates Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-emerald-500" />
+            App Updates and Version
+          </CardTitle>
+          <CardDescription>
+            Check for new releases, install APK updates, and view release notes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 bg-secondary/20 gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold">Durio Mobile</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-medium">
+                  v{appAlert?.version || "1.1"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {appAlert?.title || "Latest stable release ready for download"}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={triggerAppAlertModal}
+                className="gap-1.5 text-xs"
+              >
+                <ExternalLink size={14} />
+                View Announcement
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleDownloadApk}
+                className="gap-1.5 text-xs font-semibold"
+              >
+                <Download size={14} />
+                Download APK
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/40 bg-secondary/10 p-4 space-y-2">
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
+              What is included in this update
+            </span>
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
+              {appAlert?.changelog && appAlert.changelog.length > 0 ? (
+                appAlert.changelog.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+                    <span>3-day cycle warning reminders for menstruation tracker</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+                    <span>Dedicated overdue task column with real-time due tracking</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+                    <span>Reliable mobile push notification delivery via Firebase</span>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Delete Account Section */}
       <Card className="border-destructive/30 bg-destructive/5">

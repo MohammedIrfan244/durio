@@ -486,3 +486,16 @@ model GreetingCard {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model AppAlert {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  version     String
+  description String
+  changelog   String[]
+  downloadUrl String   @default("/downloads/durio.apk")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
