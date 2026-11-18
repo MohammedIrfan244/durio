@@ -6,6 +6,7 @@ import { APP_REGISTRY } from '@/config/modules';
 import { updateUserSettings } from '@/server/actions/settings-actions';
 import { getActiveAppAlert } from '@/server/actions/app-alert-actions';
 import { triggerAppAlertModal } from '@/components/shared/in-app-alert-modal';
+import { downloadAppApk } from '@/lib/client/download-apk';
 import type { AppAlert } from '@prisma/client';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -42,25 +43,7 @@ export default function Settings() {
   }
 
   const handleDownloadApk = () => {
-    const downloadUrl = appAlert?.downloadUrl || "/downloads/durio.apk";
-    const url = downloadUrl.startsWith("http")
-      ? downloadUrl
-      : `${window.location.origin}${downloadUrl}`;
-
-    const isNative = (
-      window as unknown as { Capacitor?: { isNativePlatform: () => boolean } }
-    ).Capacitor?.isNativePlatform?.();
-
-    if (isNative) {
-      window.open(url, "_system");
-    } else {
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = "durio.apk";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    downloadAppApk(appAlert?.downloadUrl);
   };
 
   const handleFancyModeToggle = async (checked: boolean) => {

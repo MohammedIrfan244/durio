@@ -6,6 +6,7 @@ import type { AppAlert } from "@prisma/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download, Info, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { downloadAppApk } from "@/lib/client/download-apk";
 
 export const OPEN_APP_ALERT_EVENT = "open-durio-app-alert";
 
@@ -63,24 +64,7 @@ export default function InAppAlertModal() {
   };
 
   const handleDownload = () => {
-    const url = alertData.downloadUrl.startsWith("http")
-      ? alertData.downloadUrl
-      : `${window.location.origin}${alertData.downloadUrl}`;
-
-    const isNative = (
-      window as unknown as { Capacitor?: { isNativePlatform: () => boolean } }
-    ).Capacitor?.isNativePlatform?.();
-
-    if (isNative) {
-      window.open(url, "_system");
-    } else {
-      const link = document.createElement("a");
-      link.href = alertData.downloadUrl;
-      link.download = "durio.apk";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    downloadAppApk(alertData.downloadUrl);
   };
 
   return (
